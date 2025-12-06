@@ -116,7 +116,9 @@ class _LoginPageState extends State<LoginPage> {
                           if (email.isEmpty || password.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text("Please enter email and password"),
+                                content: Text(
+                                  "Please enter email and password",
+                                ),
                                 duration: Duration(seconds: 2),
                               ),
                             );
