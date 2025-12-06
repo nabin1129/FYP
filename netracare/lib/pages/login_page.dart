@@ -28,14 +28,12 @@ class _LoginPageState extends State<LoginPage> {
                 backgroundColor: Colors.white,
                 child: Icon(Icons.remove_red_eye, size: 45, color: Colors.blue),
               ),
-
               const SizedBox(height: 20),
 
               const Text(
                 "Welcome Back",
                 style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
               ),
-
               const SizedBox(height: 5),
               const Text("Sign in to continue"),
 
@@ -56,7 +54,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 child: Column(
                   children: [
-                    // EMAIL FIELD
                     TextField(
                       controller: emailController,
                       decoration: InputDecoration(
@@ -67,10 +64,8 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
 
-                    // PASSWORD FIELD
                     TextField(
                       controller: passwordController,
                       obscureText: !isPasswordVisible,
@@ -97,7 +92,6 @@ class _LoginPageState extends State<LoginPage> {
 
                     const SizedBox(height: 20),
 
-                    // LOGIN BUTTON → DASHBOARD
                     SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -109,23 +103,6 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         onPressed: () {
-                          String email = emailController.text.trim();
-                          String password = passwordController.text.trim();
-
-                          // Validate input
-                          if (email.isEmpty || password.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  "Please enter email and password",
-                                ),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                            return;
-                          }
-
-                          // Navigate to Dashboard
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
@@ -142,7 +119,6 @@ class _LoginPageState extends State<LoginPage> {
 
                     const SizedBox(height: 20),
 
-                    // SIGN UP NAVIGATION
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

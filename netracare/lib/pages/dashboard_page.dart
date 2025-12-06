@@ -1,79 +1,178 @@
 import 'package:flutter/material.dart';
+import 'package:netracare/pages/profile_page.dart';
+import 'package:netracare/utils/animated_route.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  int selectedIndex = 0;
+
+  void onTabTapped(int index) {
+    setState(() => selectedIndex = index);
+
+    if (index == 2) {
+      Navigator.push(context, AnimatedRoute.create(const ProfilePage()));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6FA),
 
-      // FIXED BOTTOM NAV BAR
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 5,
-              offset: Offset(0, -2),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          elevation: 10,
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.blue,
-          unselectedItemColor: Colors.grey,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.insert_drive_file),
-              label: 'Reports',
-            ),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          ],
-        ),
+      // Bottom Navigation Bar
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: selectedIndex,
+        onTap: onTabTapped,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.insert_drive_file),
+            label: "Reports",
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+        ],
       ),
 
-      // MAIN PAGE CONTENT (SCROLLABLE)
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // HEADER
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Netra Care",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  Row(
-                    children: const [
-                      Icon(Icons.notifications_outlined, size: 26),
-                      SizedBox(width: 12),
-                      Icon(Icons.account_circle_outlined, size: 28),
-                    ],
-                  ),
-                ],
+              // 🌟 UPCOMING CHECKUP
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      size: 38,
+                      color: Colors.blue.shade700,
+                    ),
+                    const SizedBox(width: 15),
+                    const Expanded(
+                      child: Text(
+                        "Upcoming Checkup\nJune 15, 2025",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 20),
 
-              // EYE HEALTH STATUS CARD
+              // 🌟 EYE HEALTH STATUS
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black12.withOpacity(0.05),
+                      color: Colors.black12.withOpacity(0.1),
                       blurRadius: 10,
-                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.green.shade100,
+                      child: const Text(
+                        "85",
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    const Expanded(
+                      child: Text(
+                        "Good Eye Health\n2 tests pending",
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              // Available Tests Title
+              const Text(
+                "Available Tests",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+
+              // Test Cards
+              testCard(
+                Icons.visibility,
+                "Visual Acuity Test",
+                "Measures clarity of vision at various distances.",
+              ),
+              testCard(
+                Icons.remove_red_eye,
+                "Eye Tracking Test",
+                "Analyzes eye movement patterns.",
+              ),
+              testCard(
+                Icons.bedtime,
+                "Blink & Fatigue Test",
+                "Evaluates blink rate & eye fatigue.",
+              ),
+              testCard(
+                Icons.flash_on,
+                "Pupil Reflex Test",
+                "Tests eye response to light.",
+              ),
+              testCard(
+                Icons.color_lens,
+                "Colour Vision Test",
+                "Detects colour deficiencies.",
+              ),
+
+              const SizedBox(height: 25),
+
+              // 🌈 DOCTOR CONSULTATION CARD
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF4FACFE), Color(0xFF5B76F7)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
                     ),
                   ],
                 ),
@@ -81,169 +180,58 @@ class DashboardPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 26,
-                          backgroundColor: Colors.green.shade100,
-                          child: const Text(
-                            "85",
-                            style: TextStyle(
-                              color: Colors.green,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                      children: const [
+                        Icon(
+                          Icons.video_camera_front,
+                          color: Colors.white,
+                          size: 28,
                         ),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: Text(
-                            "Good Eye Health\nYour eyes are in good condition.",
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
+                        SizedBox(width: 10),
+                        Text(
+                          "Doctor Consultation",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Text(
-                        "2 tests pending • Complete all tests for a detailed report",
-                        style: TextStyle(color: Colors.blue),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
 
-              const SizedBox(height: 20),
-
-              const Text(
-                "Available Tests",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-
-              const SizedBox(height: 10),
-
-              // TEST CARD BUILDER
-              testCard(
-                icon: Icons.visibility,
-                title: "Visual Acuity Test",
-                description:
-                    "Measures how clearly you can see at various distances",
-              ),
-
-              testCard(
-                icon: Icons.track_changes,
-                title: "Eye Tracking Test",
-                description:
-                    "Analyzes your eye movement patterns and coordination",
-              ),
-
-              testCard(
-                icon: Icons.bedtime,
-                title: "Blink & Fatigue Test",
-                description: "Measures blink rate and detects eye fatigue",
-              ),
-
-              testCard(
-                icon: Icons.flash_on,
-                title: "Pupil Reflex Test",
-                description: "Evaluates how your pupils respond to light",
-              ),
-
-              testCard(
-                icon: Icons.color_lens,
-                title: "Colour Vision Test",
-                description:
-                    "Detects colour deficiencies using Ishihara plates",
-              ),
-
-              const SizedBox(height: 15),
-
-              // DOCTOR CONSULTATION CARD
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Colors.blue, Colors.purple],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "👨‍⚕️  Doctor Consultation",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
                     const Text(
                       "Connect with eye care specialists for personalized advice.",
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
-                    const SizedBox(height: 15),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.blue,
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+
+                    const SizedBox(height: 20),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        minimumSize: const Size.fromHeight(45),
+                        onPressed: () {},
+                        child: const Text(
+                          "Book Consultation",
+                          style: TextStyle(
+                            color: Color(0xFF3554F4),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                      onPressed: () {},
-                      child: const Text("Book Consultation"),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 20),
-
-              // SCHEDULED CHECKUP
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12.withOpacity(0.05),
-                      blurRadius: 10,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      "📅  Scheduled Checkup",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      "Next recommended test: June 15, 2023",
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 100), // Space above fixed nav bar
+              const SizedBox(height: 140),
             ],
           ),
         ),
@@ -251,32 +239,23 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  // ----------------------------
-  // REUSABLE TEST CARD WIDGET
-  // ----------------------------
-  Widget testCard({
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
+  // 📌 Test Card Widget
+  Widget testCard(IconData icon, String title, String description) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black12.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
+          BoxShadow(color: Colors.black12.withOpacity(0.07), blurRadius: 10),
         ],
       ),
       child: Row(
         children: [
-          Icon(icon, size: 30, color: Colors.blue),
-          const SizedBox(width: 14),
+          Icon(icon, size: 34, color: Colors.blue),
+          const SizedBox(width: 16),
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -284,11 +263,11 @@ class DashboardPage extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
                     fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 5),
                 Text(
                   description,
                   style: const TextStyle(fontSize: 13, color: Colors.grey),
@@ -296,7 +275,8 @@ class DashboardPage extends StatelessWidget {
               ],
             ),
           ),
-          TextButton(onPressed: () {}, child: const Text("Start Test")),
+
+          TextButton(onPressed: () {}, child: const Text("Start")),
         ],
       ),
     );
