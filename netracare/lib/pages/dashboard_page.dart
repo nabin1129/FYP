@@ -87,7 +87,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
             const SizedBox(height: 20),
 
-            // 🌟 Eye Health Status
+            // Eye Health Status
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -240,7 +240,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _reportsPage() {
     return const Center(
       child: Text(
-        "Reports Page Coming Soon",
+        "Reports Page will be here.",
         style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
       ),
     );
