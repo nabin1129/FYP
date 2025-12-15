@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:netracare/pages/login_page.dart';
+import 'package:netracare/services/api_service.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -16,22 +17,54 @@ class _SignupPageState extends State<SignupPage> {
 
   String selectedSex = "Male";
   bool isPasswordVisible = false;
+  bool isLoading = false;
 
-  void showSuccess() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Signup Successful! 🎉"),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    // Go back to login
-    Future.delayed(const Duration(milliseconds: 800), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-      );
+  Future<void> showSuccess() async {
+    setState(() {
+      isLoading = true;
     });
+
+    try {
+      await ApiService.signup(
+        name: nameController.text.trim(),
+        email: emailController.text.trim(),
+        password: passwordController.text,
+        age: ageController.text.isNotEmpty ? int.tryParse(ageController.text) : null,
+        sex: selectedSex,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Signup Successful! 🎉"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Go back to login
+        Future.delayed(const Duration(milliseconds: 800), () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const LoginPage()),
+          );
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Signup failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -149,15 +182,24 @@ class _SignupPageState extends State<SignupPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: showSuccess,
-                      child: const Text(
-                        "Create Account",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      onPressed: isLoading ? null : showSuccess,
+                      child: isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Text(
+                              "Create Account",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ),
                 ],

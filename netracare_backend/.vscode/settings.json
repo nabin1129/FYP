@@ -1,0 +1,6 @@
+{
+  "python.analysis.extraPaths": [
+    "D:/3rd Year/FYP/venv/Lib/site-packages"
+  ],
+  "python.defaultInterpreterPath": "D:/3rd Year/FYP/venv/Scripts/python.exe"
+}

@@ -1,230 +1,169 @@
 # app.py
-from datetime import datetime, timedelta
 import os
-
-from flask import Flask, request
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask
+from flask_restx import Api
 from flask_cors import CORS
-from flask_restx import Api, Resource, fields
-import bcrypt
-import jwt
-
-# -----------------------------------------------------------------------------
-# CONFIG
-# -----------------------------------------------------------------------------
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me")
-JWT_EXP_MINUTES = 60
+from db_model import db
+from config import SECRET_KEY
+from auth import auth_ns
+from user import user_ns
+from test import test_ns
 
 app = Flask(__name__)
-CORS(app)
+# Configure CORS to allow Flutter app requests
+CORS(app, resources={
+    r"/*": {
+        "origins": ["*"],  # In production, replace with your Flutter app's origin
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+    }
+})
 
-# -----------------------------------------------------------------------------
-# SQLITE DATABASE (FULLY WORKING)
-# -----------------------------------------------------------------------------
+app.config["SECRET_KEY"] = SECRET_KEY
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DB_PATH = os.path.join(BASE_DIR, "db.sqlite3")
-
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-db = SQLAlchemy(app)
-
-# -----------------------------------------------------------------------------
-# SWAGGER SETUP
-# -----------------------------------------------------------------------------
-authorizations = {
-    "BearerAuth": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "Authorization",
-        "description": "JWT format: Bearer <token>",
-    }
-}
+db.init_app(app)
 
 api = Api(
     app,
     title="NetraCare API",
     version="1.0",
-    description="Authentication, Profile & Eye Test Upload APIs",
+    description="Backend APIs",
     doc="/docs",
-    authorizations=authorizations,
-    security="BearerAuth",
 )
 
-auth_ns = api.namespace("auth", description="Login & Signup")
-user_ns = api.namespace("user", description="Profile")
-test_ns = api.namespace("tests", description="Eye Test Upload")
-
-# -----------------------------------------------------------------------------
-# DATABASE MODELS
-# -----------------------------------------------------------------------------
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120))
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.LargeBinary, nullable=False)
-    age = db.Column(db.Integer)
-    sex = db.Column(db.String(20))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-# -----------------------------------------------------------------------------
-# HELPERS
-# -----------------------------------------------------------------------------
-def hash_password(plain):
-    return bcrypt.hashpw(plain.encode(), bcrypt.gensalt())
-
-def check_password(plain, hashed):
-    return bcrypt.checkpw(plain.encode(), hashed)
-
-def create_token(user_id):
-    return jwt.encode(
-        {"sub": user_id, "exp": datetime.utcnow() + timedelta(minutes=JWT_EXP_MINUTES)},
-        SECRET_KEY,
-        algorithm="HS256"
-    )
-
-def decode_token(token):
-    return jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-
-def get_user_from_auth():
-    auth = request.headers.get("Authorization", "")
-
-    if not auth.startswith("Bearer "):
-        return None
-
-    token = auth.split(" ", 1)[1]
-
-    try:
-        payload = decode_token(token)
-        return User.query.get(payload.get("sub"))
-    except:
-        return None
-
-# -----------------------------------------------------------------------------
-# SWAGGER MODELS
-# -----------------------------------------------------------------------------
-signup_model = api.model("Signup", {
-    "name": fields.String,
-    "email": fields.String(required=True),
-    "password": fields.String(required=True),
-    "age": fields.Integer,
-    "sex": fields.String,
-})
-
-login_model = api.model("Login", {
-    "email": fields.String(required=True),
-    "password": fields.String(required=True),
-})
-
-user_response = api.model("User", {
-    "id": fields.Integer,
-    "name": fields.String,
-    "email": fields.String,
-    "age": fields.Integer,
-    "sex": fields.String,
-})
-
-token_response = api.model("TokenResponse", {
-    "token": fields.String,
-    "user": fields.Nested(user_response),
-})
-
-# -----------------------------------------------------------------------------
-# AUTH ROUTES
-# -----------------------------------------------------------------------------
-@auth_ns.route("/signup")
-class Signup(Resource):
-    @auth_ns.expect(signup_model)
-    @auth_ns.marshal_with(token_response, code=201)
-    def post(self):
-        data = request.json or {}
-        email = data.get("email")
-        password = data.get("password")
-
-        if not email or not password:
-            api.abort(400, "Email and password required")
-
-        if User.query.filter_by(email=email).first():
-            api.abort(400, "Email already exists")
-
-        user = User(
-            name=data.get("name"),
-            email=email,
-            password_hash=hash_password(password),
-            age=data.get("age"),
-            sex=data.get("sex")
-        )
-
-        db.session.add(user)    
-        db.session.commit()
-
-        token = create_token(user.id)
-
-        return {"token": token, "user": user}, 201
+api.add_namespace(auth_ns)
+api.add_namespace(user_ns)
+api.add_namespace(test_ns)
 
 
-@auth_ns.route("/login")
-class Login(Resource):
-    @auth_ns.expect(login_model)
-    @auth_ns.marshal_with(token_response)
-    def post(self):
-        data = request.json or {}
-        email = data.get("email")
-        password = data.get("password")
+@app.route("/")
+def home():
+    """Home page placeholder"""
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>NetraCare API - Home</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+            .container {
+                background: white;
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                padding: 60px 40px;
+                max-width: 600px;
+                width: 100%;
+                text-align: center;
+            }
+            h1 {
+                color: #333;
+                font-size: 2.5em;
+                margin-bottom: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            p {
+                color: #666;
+                font-size: 1.1em;
+                line-height: 1.6;
+                margin-bottom: 30px;
+            }
+            .links {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                margin-top: 30px;
+            }
+            a {
+                display: inline-block;
+                padding: 12px 30px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                text-decoration: none;
+                border-radius: 25px;
+                font-weight: 600;
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+            a:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+            .api-info {
+                margin-top: 40px;
+                padding-top: 30px;
+                border-top: 2px solid #f0f0f0;
+            }
+            .api-info h2 {
+                color: #333;
+                font-size: 1.5em;
+                margin-bottom: 15px;
+            }
+            .api-info ul {
+                list-style: none;
+                text-align: left;
+                display: inline-block;
+            }
+            .api-info li {
+                color: #666;
+                margin: 8px 0;
+                padding-left: 20px;
+                position: relative;
+            }
+            .api-info li:before {
+                content: "→";
+                position: absolute;
+                left: 0;
+                color: #667eea;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>NetraCare API</h1>
+            <p>Welcome to the NetraCare Backend API</p>
+            <p>This is a RESTful API service for managing eye care data and user authentication.</p>
+            
+            <div class="links">
+                <a href="/docs">API Documentation</a>
+            </div>
+            
+            <div class="api-info">
+                <h2>Available Endpoints</h2>
+                <ul>
+                    <li><strong>/auth</strong> - Authentication (Login & Signup)</li>
+                    <li><strong>/user</strong> - User Profile Management</li>
+                    <li><strong>/tests</strong> - Eye Test Uploads</li>
+                    <li><strong>/docs</strong> - Interactive API Documentation</li>
+                </ul>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
 
-        user = User.query.filter_by(email=email).first()
 
-        if not user or not check_password(password, user.password_hash):
-            api.abort(401, "Invalid credentials")
-
-        token = create_token(user.id)
-
-        return {"token": token, "user": user}
-
-# -----------------------------------------------------------------------------
-# PROFILE
-# -----------------------------------------------------------------------------
-@user_ns.route("/profile")
-class Profile(Resource):
-    @user_ns.marshal_with(user_response)
-    def get(self):
-        user = get_user_from_auth()
-        if not user:
-            api.abort(401, "Unauthorized")
-
-        return user
-
-# -----------------------------------------------------------------------------
-# FILE UPLOAD (Associated with DB user)
-# -----------------------------------------------------------------------------
-@test_ns.route("/upload")
-class Upload(Resource):
-    @test_ns.doc(security="BearerAuth")
-    def post(self):
-        user = get_user_from_auth()
-        if not user:
-            api.abort(401, "Unauthorized")
-
-        if "file" not in request.files:
-            api.abort(400, "File missing")
-
-        file = request.files["file"]
-
-        upload_path = os.path.join(BASE_DIR, "uploads")
-        os.makedirs(upload_path, exist_ok=True)
-
-        filename = f"user{user.id}_{int(datetime.utcnow().timestamp())}_{file.filename}"
-        full_path = os.path.join(upload_path, filename)
-
-        file.save(full_path)
-
-        return {"status": "ok", "file_path": full_path}
-
-# -----------------------------------------------------------------------------
-# RUN APP
-# -----------------------------------------------------------------------------
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()   # ensures database is always created
+        db.create_all()
 
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(debug=True)
