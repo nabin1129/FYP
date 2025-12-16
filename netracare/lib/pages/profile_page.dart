@@ -139,34 +139,51 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               child: Row(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 35,
                     backgroundColor: Colors.blue,
                     child: CircleAvatar(
                       radius: 32,
-                      backgroundImage: AssetImage("assets/images/user.png"),
+                      backgroundColor: Colors.blue.shade100,
+                      child: Text(
+                        user?.name.isNotEmpty == true
+                            ? user!.name[0].toUpperCase()
+                            : 'U',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          "Hari Bahadur",
-                          style: TextStyle(
+                          user?.name ?? 'User',
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
                           ),
                         ),
-                        SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         Text(
-                          "hari.bahadur@example.com",
-                          style: TextStyle(color: Colors.grey),
+                          user?.email ?? '',
+                          style: const TextStyle(color: Colors.grey),
                         ),
-                        SizedBox(height: 8),
-                        Text(
+                        if (user?.age != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Age: ${user!.age} | ${user.sex ?? ''}',
+                            style: const TextStyle(color: Colors.grey, fontSize: 12),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        const Text(
                           "Edit Profile",
                           style: TextStyle(
                             color: Colors.blue,
@@ -222,12 +239,15 @@ class _ProfilePageState extends State<ProfilePage> {
             // Log OUT BUTTON
             Center(
               child: GestureDetector(
-                onTap: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginPage()),
-                    (route) => false, // removes ALL previous pages
-                  );
+                onTap: () async {
+                  await ApiService.deleteToken();
+                  if (mounted) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginPage()),
+                      (route) => false, // removes ALL previous pages
+                    );
+                  }
                 },
                 child: Container(
                   width: double.infinity,
@@ -255,6 +275,11 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   // Reusable Setting Item
