@@ -1,15 +1,17 @@
 # auth.py
 from flask import request
 from flask_restx import Namespace, Resource, fields
-import bcrypt, jwt
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
+import jwt
+
 from db_model import db, User
 from config import SECRET_KEY, JWT_EXP_MINUTES
 
-auth_ns = Namespace("auth", description="Login & Signup")
+auth_ns = Namespace("auth", description="Authentication APIs")
 
 signup_model = auth_ns.model("Signup", {
-    "name": fields.String,
+    "name": fields.String(required=True),
     "email": fields.String(required=True),
     "password": fields.String(required=True),
     "age": fields.Integer,
@@ -21,32 +23,42 @@ login_model = auth_ns.model("Login", {
     "password": fields.String(required=True),
 })
 
-def hash_password(p):
-    return bcrypt.hashpw(p.encode(), bcrypt.gensalt())
 
-def check_password(p, h):
-    return bcrypt.checkpw(p.encode(), h)
+def generate_token(user_id: int) -> str:
+    payload = {
+        "sub": str(user_id),  # ✅ MUST be string
+        "iat": datetime.utcnow(),
+        "exp": datetime.utcnow() + timedelta(minutes=JWT_EXP_MINUTES),
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
-def create_token(uid):
-    return jwt.encode(
-        {"sub": uid, "exp": datetime.utcnow() + timedelta(minutes=JWT_EXP_MINUTES)},
-        SECRET_KEY,
-        algorithm="HS256",
-    )
+
+def user_to_dict(user: User):
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "age": user.age,
+        "sex": user.sex,
+    }
+
 
 @auth_ns.route("/signup")
 class Signup(Resource):
     @auth_ns.expect(signup_model)
     def post(self):
-        data = request.json or {}
+        data = request.get_json()
+
+        if not data:
+            return {"error": "Invalid JSON body"}, 400
 
         if User.query.filter_by(email=data["email"]).first():
-            auth_ns.abort(400, "Email already exists")
+            return {"error": "Email already registered"}, 400
 
         user = User(
-            name=data.get("name"),
+            name=data["name"],
             email=data["email"],
-            password_hash=hash_password(data["password"]),
+            password_hash=generate_password_hash(data["password"]),
             age=data.get("age"),
             sex=data.get("sex"),
         )
@@ -54,23 +66,25 @@ class Signup(Resource):
         db.session.add(user)
         db.session.commit()
 
-        return {
-            "token": create_token(user.id),
-            "user": {"id": user.id, "name": user.name, "email": user.email},
-        }, 201
+        token = generate_token(user.id)
+
+        return {"token": token, "user": user_to_dict(user)}, 201
 
 
 @auth_ns.route("/login")
 class Login(Resource):
     @auth_ns.expect(login_model)
     def post(self):
-        data = request.json or {}
+        data = request.get_json()
+
+        if not data:
+            return {"error": "Invalid JSON body"}, 400
+
         user = User.query.filter_by(email=data["email"]).first()
 
-        if not user or not check_password(data["password"], user.password_hash):
-            auth_ns.abort(401, "Invalid credentials")
+        if not user or not check_password_hash(user.password_hash, data["password"]):
+            return {"error": "Invalid email or password"}, 401
 
-        return {
-            "token": create_token(user.id),
-            "user": {"id": user.id, "name": user.name, "email": user.email},
-        }
+        token = generate_token(user.id)
+
+        return {"token": token, "user": user_to_dict(user)}, 200

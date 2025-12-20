@@ -18,17 +18,20 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    // Small delay ensures token is available before API call
+    Future.delayed(const Duration(milliseconds: 300), _loadProfile);
   }
 
   Future<void> _loadProfile() async {
     try {
       final profile = await ApiService.getProfile();
+      if (!mounted) return;
       setState(() {
         user = profile;
         isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         errorMessage = e.toString();
         isLoading = false;
@@ -38,70 +41,60 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    // ---------------- LOADING STATE ----------------
     if (isLoading) {
-      return Scaffold(
-        backgroundColor: const Color(0xFFF5F7FA),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+      return const Scaffold(
+        backgroundColor: Color(0xFFF5F7FA),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
+    // ---------------- ERROR STATE ----------------
     if (errorMessage != null) {
       return Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
-              const SizedBox(height: 16),
-              Text(
-                errorMessage!,
-                style: const TextStyle(color: Colors.red),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginPage()),
-                    (route) => false,
-                  );
-                },
-                child: const Text('Go to Login'),
-              ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginPage()),
+                      (route) => false,
+                    );
+                  },
+                  child: const Text("Go to Login"),
+                ),
+              ],
+            ),
           ),
         ),
       );
     }
 
+    // ---------------- SUCCESS STATE ----------------
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: const Text(
-          "Netra Care",
+          "NetraCare",
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
-        centerTitle: false,
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -115,15 +108,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 6),
             const Text(
               "Manage your account settings",
-              style: TextStyle(color: Colors.grey, fontSize: 15),
+              style: TextStyle(color: Colors.grey),
             ),
 
             const SizedBox(height: 20),
 
-            // 👤 USER INFO CARD
+            // ---------------- USER CARD ----------------
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -133,22 +126,21 @@ class _ProfilePageState extends State<ProfilePage> {
                   BoxShadow(
                     color: Colors.black12.withOpacity(0.08),
                     blurRadius: 10,
-                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: Row(
                 children: [
                   CircleAvatar(
-                    radius: 35,
+                    radius: 36,
                     backgroundColor: Colors.blue,
                     child: CircleAvatar(
                       radius: 32,
                       backgroundColor: Colors.blue.shade100,
                       child: Text(
-                        user?.name.isNotEmpty == true
+                        user!.name.isNotEmpty
                             ? user!.name[0].toUpperCase()
-                            : 'U',
+                            : "U",
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -163,34 +155,27 @@ class _ProfilePageState extends State<ProfilePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user?.name ?? 'User',
+                          user!.name,
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
                           ),
                         ),
-                        const SizedBox(height: 5),
+                        const SizedBox(height: 4),
                         Text(
-                          user?.email ?? '',
+                          user!.email,
                           style: const TextStyle(color: Colors.grey),
                         ),
-                        if (user?.age != null) ...[
+                        if (user!.age != null) ...[
                           const SizedBox(height: 4),
                           Text(
-                            'Age: ${user!.age} | ${user.sex ?? ''}',
-                            style: const TextStyle(color: Colors.grey, fontSize: 12),
+                            "Age: ${user!.age} | ${user!.sex ?? ''}",
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
-                        const SizedBox(height: 8),
-                        const Text(
-                          "Edit Profile",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -200,70 +185,44 @@ class _ProfilePageState extends State<ProfilePage> {
 
             const SizedBox(height: 28),
 
-            // ACCOUNT SETTINGS TITLE
             const Text(
               "Account Settings",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
 
-            settingsCard("Personal Information", Icons.person),
-            settingsCard("Notifications", Icons.notifications),
-            settingsCard("Privacy & Security", Icons.lock),
-            settingsCard("Test History", Icons.history),
-            settingsCard("App Settings", Icons.settings),
-
-            const SizedBox(height: 28),
-
-            // HEALTH DATA TITLE
-            const Text(
-              "Health Data",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            settingsCard("Eye Health History", Icons.remove_red_eye),
-            settingsCard("Export Health Data", Icons.download),
-            settingsCard("Connected Services", Icons.link),
+            _settingsItem("Personal Information", Icons.person),
+            _settingsItem("Privacy & Security", Icons.lock),
+            _settingsItem("Test History", Icons.history),
+            _settingsItem("App Settings", Icons.settings),
 
             const SizedBox(height: 30),
 
-            // Log OUT BUTTON
-            Center(
-              child: GestureDetector(
-                onTap: () async {
-                  await ApiService.deleteToken();
-                  if (mounted) {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginPage()),
-                      (route) => false, // removes ALL previous pages
-                    );
-                  }
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.red.shade300),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      "Log Out",
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+            // ---------------- LOGOUT BUTTON ----------------
+            GestureDetector(
+              onTap: () async {
+                await ApiService.deleteToken();
+                if (!mounted) return;
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                  (route) => false,
+                );
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.red.shade300),
+                ),
+                child: const Center(
+                  child: Text(
+                    "Log Out",
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -277,13 +236,8 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  // Reusable Setting Item
-  Widget settingsCard(String label, IconData icon) {
+  // ---------------- SETTINGS ITEM ----------------
+  Widget _settingsItem(String label, IconData icon) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -291,28 +245,20 @@ class _ProfilePageState extends State<ProfilePage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black12.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
+          BoxShadow(color: Colors.black12.withOpacity(0.05), blurRadius: 8),
         ],
       ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.blue, size: 26),
-          const SizedBox(width: 15),
+          Icon(icon, color: Colors.blue),
+          const SizedBox(width: 16),
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ),
-          const Icon(Icons.chevron_right, color: Colors.grey, size: 26),
+          const Icon(Icons.chevron_right, color: Colors.grey),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 # config.py
 import os
 
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me")
+# config.py
+SECRET_KEY = "netracare-dev-secret-12345"
 JWT_EXP_MINUTES = 60

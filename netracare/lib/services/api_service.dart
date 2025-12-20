@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import '../config/api_config.dart';
 import '../models/user_model.dart';
 
@@ -8,64 +9,44 @@ class ApiService {
   static const _storage = FlutterSecureStorage();
   static const String _tokenKey = 'auth_token';
 
-  // Get stored token
+  // =========================
+  // TOKEN HANDLING
+  // =========================
   static Future<String?> getToken() async {
     return await _storage.read(key: _tokenKey);
   }
 
-  // Save token
   static Future<void> saveToken(String token) async {
     await _storage.write(key: _tokenKey, value: token);
   }
 
-  // Delete token (logout)
   static Future<void> deleteToken() async {
     await _storage.delete(key: _tokenKey);
   }
 
-  // Get headers with authentication
-  static Future<Map<String, String>> getHeaders({bool includeAuth = false}) async {
-    final headers = <String, String>{
-      'Content-Type': 'application/json',
-    };
-
-    if (includeAuth) {
-      final token = await getToken();
-      if (token != null) {
-        headers['Authorization'] = 'Bearer $token';
-      }
-    }
-
-    return headers;
-  }
-
-  // Login
+  // =========================
+  // LOGIN
+  // =========================
   static Future<AuthResponse> login(String email, String password) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.loginEndpoint}'),
-        headers: await getHeaders(),
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
-      );
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.loginEndpoint}'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final authResponse = AuthResponse.fromJson(data);
-        await saveToken(authResponse.token);
-        return authResponse;
-      } else {
-        final error = jsonDecode(response.body) as Map<String, dynamic>;
-        throw Exception(error['message'] ?? 'Login failed');
-      }
-    } catch (e) {
-      throw Exception('Network error: ${e.toString()}');
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final auth = AuthResponse.fromJson(data);
+      await saveToken(auth.token);
+      return auth;
     }
+
+    _throwReadableError(response);
   }
 
-  // Signup
+  // =========================
+  // SIGNUP
+  // =========================
   static Future<AuthResponse> signup({
     required String name,
     required String email,
@@ -73,95 +54,114 @@ class ApiService {
     int? age,
     String? sex,
   }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.signupEndpoint}'),
-        headers: await getHeaders(),
-        body: jsonEncode({
-          'name': name,
-          'email': email,
-          'password': password,
-          if (age != null) 'age': age,
-          if (sex != null) 'sex': sex,
-        }),
-      );
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.signupEndpoint}'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'name': name,
+        'email': email,
+        'password': password,
+        if (age != null) 'age': age,
+        if (sex != null) 'sex': sex,
+      }),
+    );
 
-      if (response.statusCode == 201) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final authResponse = AuthResponse.fromJson(data);
-        await saveToken(authResponse.token);
-        return authResponse;
-      } else {
-        final error = jsonDecode(response.body) as Map<String, dynamic>;
-        throw Exception(error['message'] ?? 'Signup failed');
-      }
-    } catch (e) {
-      throw Exception('Network error: ${e.toString()}');
+    if (response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+      final auth = AuthResponse.fromJson(data);
+      await saveToken(auth.token);
+      return auth;
     }
+
+    _throwReadableError(response);
   }
 
-  // Get user profile
+  // =========================
+  // PROFILE
+  // =========================
   static Future<User> getProfile() async {
-    try {
-      final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.profileEndpoint}'),
-        headers: await getHeaders(includeAuth: true),
-      );
+    final token = await getToken();
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        return User.fromJson(data);
-      } else if (response.statusCode == 401) {
-        await deleteToken();
-        throw Exception('Unauthorized. Please login again.');
-      } else {
-        final error = jsonDecode(response.body) as Map<String, dynamic>;
-        throw Exception(error['error'] ?? 'Failed to fetch profile');
-      }
-    } catch (e) {
-      throw Exception('Network error: ${e.toString()}');
+    if (token == null || token.isEmpty) {
+      throw Exception('Unauthorized. Please login again.');
     }
+
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.profileEndpoint}'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    // 🔒 CRITICAL SAFETY CHECK
+    final contentType = response.headers['content-type'] ?? '';
+    if (!contentType.contains('application/json')) {
+      await deleteToken();
+      throw Exception('Session expired. Please login again.');
+    }
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return User.fromJson(data);
+    }
+
+    if (response.statusCode == 401) {
+      await deleteToken();
+      throw Exception('Unauthorized. Please login again.');
+    }
+
+    _throwReadableError(response);
   }
 
-  // Upload test file
+  // =========================
+  // FILE UPLOAD
+  // =========================
   static Future<Map<String, dynamic>> uploadTestFile(
     List<int> fileBytes,
     String fileName,
   ) async {
-    try {
-      final token = await getToken();
-      if (token == null) {
-        throw Exception('Not authenticated');
-      }
+    final token = await getToken();
 
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.testUploadEndpoint}'),
-      );
-
-      request.headers['Authorization'] = 'Bearer $token';
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          'file',
-          fileBytes,
-          filename: fileName,
-        ),
-      );
-
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-
-      if (response.statusCode == 201) {
-        return jsonDecode(response.body) as Map<String, dynamic>;
-      } else if (response.statusCode == 401) {
-        await deleteToken();
-        throw Exception('Unauthorized. Please login again.');
-      } else {
-        final error = jsonDecode(response.body) as Map<String, dynamic>;
-        throw Exception(error['error'] ?? 'Upload failed');
-      }
-    } catch (e) {
-      throw Exception('Network error: ${e.toString()}');
+    if (token == null) {
+      throw Exception('Unauthorized');
     }
+
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.testUploadEndpoint}'),
+    );
+
+    request.headers['Authorization'] = 'Bearer $token';
+    request.files.add(
+      http.MultipartFile.fromBytes('file', fileBytes, filename: fileName),
+    );
+
+    final response = await http.Response.fromStream(await request.send());
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    }
+
+    if (response.statusCode == 401) {
+      await deleteToken();
+      throw Exception('Unauthorized');
+    }
+
+    throw Exception('Upload failed');
+  }
+
+  // =========================
+  // ERROR HANDLER (INTERNAL)
+  // =========================
+  static Never _throwReadableError(http.Response response) {
+    final contentType = response.headers['content-type'] ?? '';
+
+    if (contentType.contains('application/json')) {
+      final error = jsonDecode(response.body);
+      throw Exception(error['error'] ?? error['message'] ?? 'Request failed');
+    }
+
+    throw Exception('Server error. Please try again.');
   }
 }

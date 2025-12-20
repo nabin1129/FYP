@@ -9,7 +9,7 @@ from config import SECRET_KEY
 
 def token_required(fn):
     @wraps(fn)
-    def wrapper(*args, **kwargs):
+    def wrapper(self, *args, **kwargs):  # ✅ KEEP self
         auth = request.headers.get("Authorization", "")
 
         if not auth.startswith("Bearer "):
@@ -18,13 +18,21 @@ def token_required(fn):
         token = auth.split(" ", 1)[1]
 
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-            user = User.query.get(payload["sub"])
+            payload = jwt.decode(
+                token,
+                SECRET_KEY,
+                algorithms=["HS256"],
+                options={"require": ["exp", "iat", "sub"]},
+            )
+
+            user_id = int(payload["sub"])
+            user = User.query.get(user_id)
 
             if not user:
                 return {"error": "User not found"}, 401
 
-            return fn(user, *args, **kwargs)
+            # ✅ PASS self FIRST, then user
+            return fn(self, user, *args, **kwargs)
 
         except jwt.ExpiredSignatureError:
             return {"error": "Token expired"}, 401
@@ -34,8 +42,10 @@ def token_required(fn):
     return wrapper
 
 
+# -----------------------------
+# REQUIRED BY test.py
+# -----------------------------
 def get_user_from_auth():
-    """Extract user from Authorization header. Returns User object or None."""
     auth = request.headers.get("Authorization", "")
 
     if not auth.startswith("Bearer "):
@@ -44,8 +54,15 @@ def get_user_from_auth():
     token = auth.split(" ", 1)[1]
 
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        user = User.query.get(payload["sub"])
-        return user
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=["HS256"],
+            options={"require": ["exp", "iat", "sub"]},
+        )
+
+        user_id = int(payload["sub"])
+        return User.query.get(user_id)
+
+    except jwt.InvalidTokenError:
         return None
