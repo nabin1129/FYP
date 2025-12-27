@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:netracare/pages/profile_page.dart';
+import 'visual_acuity_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -13,24 +14,18 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Pages for navigation
     final List<Widget> pages = [
-      _homePage(), // Home Dashboard Content
-      _reportsPage(), // Reports Page Placeholder
-      const ProfilePage(), // Profile Page
+      _homePage(),
+      _reportsPage(),
+      const ProfilePage(),
     ];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6FA),
-
-      // Switch view instead of navigating
       body: pages[selectedIndex],
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,
-        onTap: (index) {
-          setState(() => selectedIndex = index);
-        },
+        onTap: (index) => setState(() => selectedIndex = index),
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         items: const [
@@ -46,7 +41,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   // ---------------------------
-  // HOME PAGE CONTENT
+  // HOME PAGE
   // ---------------------------
   Widget _homePage() {
     return SafeArea(
@@ -55,178 +50,59 @@ class _DashboardPageState extends State<DashboardPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // UPCOMING CHECKUP
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.blue.shade200),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    size: 38,
-                    color: Colors.blue.shade700,
-                  ),
-                  const SizedBox(width: 15),
-                  const Expanded(
-                    child: Text(
-                      "Upcoming Checkup\nJune 15, 2025",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        height: 1.3,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
+            _upcomingCheckup(),
             const SizedBox(height: 20),
-
-            // Eye Health Status
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12.withOpacity(0.1),
-                    blurRadius: 10,
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.green.shade100,
-                    child: const Text(
-                      "85",
-                      style: TextStyle(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 22,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  const Expanded(
-                    child: Text(
-                      "Good Eye Health\n2 tests pending",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
+            _eyeHealthStatus(),
             const SizedBox(height: 25),
-
             const Text(
               "Available Tests",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 12),
 
+            // 🔥 TEST CARDS
             _testCard(
               Icons.visibility,
               "Visual Acuity Test",
               "Measures clarity of vision at various distances.",
+              onStart: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const VisualAcuityPage()),
+                );
+              },
             ),
+
             _testCard(
               Icons.remove_red_eye,
               "Eye Tracking Test",
               "Analyzes eye movement patterns.",
+              onStart: _comingSoon,
             ),
+
             _testCard(
               Icons.bedtime,
               "Blink & Fatigue Test",
               "Evaluates blink rate & eye fatigue.",
+              onStart: _comingSoon,
             ),
+
             _testCard(
               Icons.flash_on,
               "Pupil Reflex Test",
               "Tests eye response to light.",
+              onStart: _comingSoon,
             ),
+
             _testCard(
               Icons.color_lens,
               "Colour Vision Test",
               "Detects colour deficiencies.",
+              onStart: _comingSoon,
             ),
 
             const SizedBox(height: 25),
-
-            // DOCTOR CONSULTATION
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF4FACFE), Color(0xFF5B76F7)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: const [
-                      Icon(
-                        Icons.video_camera_front,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                      SizedBox(width: 10),
-                      Text(
-                        "Doctor Consultation",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    "Connect with eye care specialists for personalized advice.",
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () {},
-                      child: const Text(
-                        "Book Consultation",
-                        style: TextStyle(
-                          color: Color(0xFF3554F4),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
+            _doctorConsultation(),
             const SizedBox(height: 120),
           ],
         ),
@@ -235,7 +111,120 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   // ---------------------------
-  // SIMPLE REPORTS PAGE (placeholder)
+  // COMPONENTS
+  // ---------------------------
+  Widget _upcomingCheckup() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blue.shade200),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.calendar_today, size: 38, color: Colors.blue.shade700),
+          const SizedBox(width: 15),
+          const Expanded(
+            child: Text(
+              "Upcoming Checkup\nJune 15, 2025",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _eyeHealthStatus() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: Colors.black12.withOpacity(0.08), blurRadius: 10),
+        ],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.green.shade100,
+            child: const Text(
+              "85",
+              style: TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+              ),
+            ),
+          ),
+          const SizedBox(width: 20),
+          const Expanded(
+            child: Text(
+              "Good Eye Health\n2 tests pending",
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _doctorConsultation() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF4FACFE), Color(0xFF5B76F7)],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.video_camera_front, color: Colors.white, size: 28),
+              SizedBox(width: 10),
+              Text(
+                "Doctor Consultation",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            "Connect with eye care specialists for personalized advice.",
+            style: TextStyle(color: Colors.white70),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
+              onPressed: () {},
+              child: const Text(
+                "Book Consultation",
+                style: TextStyle(
+                  color: Color(0xFF3554F4),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------
+  // REPORTS PAGE
   // ---------------------------
   Widget _reportsPage() {
     return const Center(
@@ -247,9 +236,14 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   // ---------------------------
-  // Test Card Widget
+  // TEST CARD (UPDATED)
   // ---------------------------
-  Widget _testCard(IconData icon, String title, String description) {
+  Widget _testCard(
+    IconData icon,
+    String title,
+    String description, {
+    required VoidCallback onStart,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(18),
@@ -283,9 +277,18 @@ class _DashboardPageState extends State<DashboardPage> {
               ],
             ),
           ),
-          TextButton(onPressed: () {}, child: const Text("Start")),
+          TextButton(onPressed: onStart, child: const Text("Start")),
         ],
       ),
     );
+  }
+
+  // ---------------------------
+  // TEMP PLACEHOLDER
+  // ---------------------------
+  void _comingSoon() {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Coming soon 🚧")));
   }
 }
