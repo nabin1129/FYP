@@ -22,9 +22,14 @@ def token_required(fn):
                 token,
                 SECRET_KEY,
                 algorithms=["HS256"],
-                options={"require": ["exp", "iat", "sub"]},
+                options={
+                    "require": ["exp", "iat", "sub"],
+                    "verify_exp": True,
+                },
+                leeway=30,  # Allow 30 seconds clock skew
             )
 
+            # JWT sub claim is a string, convert to int for user lookup
             user_id = int(payload["sub"])
             user = User.query.get(user_id)
 
@@ -34,10 +39,15 @@ def token_required(fn):
             # ✅ PASS self FIRST, then user
             return fn(self, user, *args, **kwargs)
 
-        except jwt.ExpiredSignatureError:
+        except jwt.ExpiredSignatureError as e:
+            print(f"Token expired: {e}")
             return {"error": "Token expired"}, 401
-        except jwt.InvalidTokenError:
-            return {"error": "Invalid token"}, 401
+        except jwt.InvalidTokenError as e:
+            print(f"Invalid token error: {e}")
+            return {"error": f"Invalid token: {str(e)}"}, 401
+        except Exception as e:
+            print(f"Unexpected error during token validation: {e}")
+            return {"error": "Token validation failed"}, 401
 
     return wrapper
 
@@ -58,9 +68,14 @@ def get_user_from_auth():
             token,
             SECRET_KEY,
             algorithms=["HS256"],
-            options={"require": ["exp", "iat", "sub"]},
+            options={
+                "require": ["exp", "iat", "sub"],
+                "verify_exp": True,
+            },
+            leeway=30,  # Allow 30 seconds clock skew
         )
 
+        # JWT sub claim is a string, convert to int for user lookup
         user_id = int(payload["sub"])
         return User.query.get(user_id)
 

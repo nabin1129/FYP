@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:netracare/pages/login_page.dart';
+import 'package:netracare/pages/dashboard_page.dart';
 import 'package:netracare/services/api_service.dart';
 
 class SignupPage extends StatefulWidget {
@@ -67,9 +68,10 @@ class _SignupPageState extends State<SignupPage> {
 
       if (!mounted) return;
 
+      // ✅ FIX: GO DIRECTLY TO DASHBOARD
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const LoginPage()),
+        MaterialPageRoute(builder: (_) => const DashboardPage()),
         (route) => false,
       );
     } catch (e) {

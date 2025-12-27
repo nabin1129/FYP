@@ -10,7 +10,7 @@ class ApiService {
   static const String _tokenKey = 'auth_token';
 
   // =========================
-  // TOKEN HANDLING
+  // TOKEN
   // =========================
   static Future<String?> getToken() async {
     return await _storage.read(key: _tokenKey);
@@ -77,52 +77,86 @@ class ApiService {
   }
 
   // =========================
-  // PROFILE
+  // PROFILE (FIXED)
   // =========================
   static Future<User> getProfile() async {
     final token = await getToken();
 
     if (token == null || token.isEmpty) {
-      throw Exception('Unauthorized. Please login again.');
+      throw Exception('Session expired. Please login again.');
     }
 
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.profileEndpoint}'),
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json', // 🔥 IMPORTANT
       },
     );
 
-    // 🔒 CRITICAL SAFETY CHECK
-    final contentType = response.headers['content-type'] ?? '';
-    if (!contentType.contains('application/json')) {
-      await deleteToken();
-      throw Exception('Session expired. Please login again.');
-    }
-
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return User.fromJson(data);
+      return User.fromJson(jsonDecode(response.body));
     }
 
     if (response.statusCode == 401) {
       await deleteToken();
-      throw Exception('Unauthorized. Please login again.');
+      throw Exception('Session expired. Please login again.');
     }
 
     _throwReadableError(response);
   }
 
   // =========================
-  // FILE UPLOAD
+  // UPDATE PROFILE
+  // =========================
+  static Future<User> updateProfile({
+    String? name,
+    String? email,
+    int? age,
+    String? sex,
+  }) async {
+    final token = await getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Session expired. Please login again.');
+    }
+
+    final Map<String, dynamic> body = {};
+    if (name != null) body['name'] = name;
+    if (email != null) body['email'] = email;
+    if (age != null) body['age'] = age;
+    if (sex != null) body['sex'] = sex;
+
+    final response = await http.put(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.profileEndpoint}'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return User.fromJson(data['user'] as Map<String, dynamic>);
+    }
+
+    if (response.statusCode == 401) {
+      await deleteToken();
+      throw Exception('Session expired. Please login again.');
+    }
+
+    _throwReadableError(response);
+  }
+
+  // =========================
+  // FILE UPLOAD (FIXED)
   // =========================
   static Future<Map<String, dynamic>> uploadTestFile(
     List<int> fileBytes,
     String fileName,
   ) async {
     final token = await getToken();
-
     if (token == null) {
       throw Exception('Unauthorized');
     }
@@ -133,13 +167,15 @@ class ApiService {
     );
 
     request.headers['Authorization'] = 'Bearer $token';
+
     request.files.add(
       http.MultipartFile.fromBytes('file', fileBytes, filename: fileName),
     );
 
     final response = await http.Response.fromStream(await request.send());
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
+      // 🔥 FIXED
       return jsonDecode(response.body);
     }
 
@@ -152,7 +188,7 @@ class ApiService {
   }
 
   // =========================
-  // ERROR HANDLER (INTERNAL)
+  // ERROR HANDLER
   // =========================
   static Never _throwReadableError(http.Response response) {
     final contentType = response.headers['content-type'] ?? '';
@@ -162,6 +198,6 @@ class ApiService {
       throw Exception(error['error'] ?? error['message'] ?? 'Request failed');
     }
 
-    throw Exception('Server error. Please try again.');
+    throw Exception('Server error (${response.statusCode})');
   }
 }

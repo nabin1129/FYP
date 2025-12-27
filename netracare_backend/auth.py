@@ -2,7 +2,7 @@
 from flask import request
 from flask_restx import Namespace, Resource, fields
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import jwt
 import re
 
@@ -46,12 +46,18 @@ auth_response = auth_ns.model("AuthResponse", {
 # Helper Functions
 # -----------------------------
 def generate_token(user_id: int) -> str:
+    now = datetime.now(timezone.utc)
+    exp_time = now + timedelta(minutes=JWT_EXP_MINUTES)
     payload = {
-        "sub": user_id,
-        "iat": datetime.utcnow(),
-        "exp": datetime.utcnow() + timedelta(minutes=JWT_EXP_MINUTES),
+        "sub": str(user_id),  # JWT standard requires sub to be a string
+        "iat": int(now.timestamp()),
+        "exp": int(exp_time.timestamp()),
     }
-    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+    token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+    # Ensure token is always a string (PyJWT 2.x returns string, but be safe)
+    if isinstance(token, bytes):
+        return token.decode('utf-8')
+    return token
 
 
 def user_to_dict(user: User) -> dict:
