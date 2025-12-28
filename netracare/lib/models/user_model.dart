@@ -50,3 +50,23 @@ class AuthResponse {
     );
   }
 }
+
+class VisualAcuityResult {
+  final double logMAR;
+  final String snellen;
+  final String severity;
+
+  VisualAcuityResult({
+    required this.logMAR,
+    required this.snellen,
+    required this.severity,
+  });
+
+  factory VisualAcuityResult.fromJson(Map<String, dynamic> json) {
+    return VisualAcuityResult(
+      logMAR: (json['logMAR'] as num).toDouble(),
+      snellen: json['snellen'] as String,
+      severity: json['severity'] as String,
+    );
+  }
+}

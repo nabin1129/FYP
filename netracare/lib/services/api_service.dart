@@ -150,7 +150,7 @@ class ApiService {
   }
 
   // =========================
-  // FILE UPLOAD (FIXED)
+  // FILE UPLOAD
   // =========================
   static Future<Map<String, dynamic>> uploadTestFile(
     List<int> fileBytes,
@@ -175,7 +175,6 @@ class ApiService {
     final response = await http.Response.fromStream(await request.send());
 
     if (response.statusCode == 200) {
-      // 🔥 FIXED
       return jsonDecode(response.body);
     }
 
@@ -185,6 +184,44 @@ class ApiService {
     }
 
     throw Exception('Upload failed');
+  }
+
+  // =========================
+  // VISUAL ACUITY TEST (Backend DA Model Integration)
+  // =========================
+  static Future<VisualAcuityResult> submitVisualAcuityTest({
+    required int correct,
+    required int total,
+  }) async {
+    final token = await getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Session expired. Please login again.');
+    }
+
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.visualAcuityEndpoint}'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'correct': correct,
+        'total': total,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return VisualAcuityResult.fromJson(data);
+    }
+
+    if (response.statusCode == 401) {
+      await deleteToken();
+      throw Exception('Session expired. Please login again.');
+    }
+
+    _throwReadableError(response);
   }
 
   // =========================

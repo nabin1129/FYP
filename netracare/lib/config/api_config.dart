@@ -13,4 +13,5 @@ class ApiConfig {
   static const String signupEndpoint = '/auth/signup';
   static const String profileEndpoint = '/user/profile';
   static const String testUploadEndpoint = '/tests/upload';
+  static const String visualAcuityEndpoint = '/tests/visual-acuity';
 }
