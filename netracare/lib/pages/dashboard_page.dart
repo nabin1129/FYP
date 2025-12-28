@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:netracare/pages/profile_page.dart';
-import 'visual_acuity_page.dart';
+import 'visual_acuity_page.dart'; // ✅ INTRO + SETUP PAGE
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -60,7 +60,7 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             const SizedBox(height: 12),
 
-            // 🔥 TEST CARDS
+            // ✅ VISUAL ACUITY TEST (FIXED FLOW)
             _testCard(
               Icons.visibility,
               "Visual Acuity Test",
@@ -236,7 +236,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   // ---------------------------
-  // TEST CARD (UPDATED)
+  // TEST CARD
   // ---------------------------
   Widget _testCard(
     IconData icon,

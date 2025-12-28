@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'visual_acuity_test_page.dart';
 
 class VisualAcuityPage extends StatefulWidget {
   const VisualAcuityPage({super.key});
@@ -18,10 +19,8 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
 
   void goBack() {
     if (step == 'setup') {
-      // Go back to intro screen
       setState(() => step = 'intro');
     } else {
-      // Exit page → back to Dashboard
       Navigator.pop(context);
     }
   }
@@ -33,7 +32,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
       body: SafeArea(
         child: Stack(
           children: [
-            // -------- BACK BUTTON --------
+            // Back button
             Positioned(
               top: 10,
               left: 10,
@@ -43,7 +42,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
               ),
             ),
 
-            // -------- MAIN CARD --------
+            // Main Card
             Center(
               child: Container(
                 width: double.infinity,
@@ -75,8 +74,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.remove_red_eye,
-            size: 56, color: Colors.blue),
+        const Icon(Icons.remove_red_eye, size: 56, color: Colors.blue),
         const SizedBox(height: 16),
         const Text(
           "Visual Acuity Test",
@@ -84,14 +82,14 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
         ),
         const SizedBox(height: 10),
         const Text(
-          "This test will measure how clearly you can see letters at different sizes, similar to an eye chart at the doctor’s office.",
+          "This test measures how clearly you can see letters at different sizes, similar to a clinical eye chart.",
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.grey),
         ),
         const SizedBox(height: 20),
 
         _infoRow("Find a quiet, well-lit room"),
-        _infoRow("Position yourself at arm’s length"),
+        _infoRow("Hold the phone at arm’s length"),
         _infoRow("Wear distance glasses if applicable"),
 
         const SizedBox(height: 24),
@@ -114,7 +112,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
     );
   }
 
-  // ---------------- CAMERA SETUP SCREEN ----------------
+  // ---------------- CAMERA SETUP ----------------
   Widget _setupUI() {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -125,7 +123,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
         ),
         const SizedBox(height: 10),
         const Text(
-          "Camera access is required during the test.",
+          "Camera access is required during the test. No video is stored.",
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.grey),
         ),
@@ -138,11 +136,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
             color: Colors.grey.shade200,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: const Icon(
-            Icons.camera_alt,
-            size: 48,
-            color: Colors.grey,
-          ),
+          child: const Icon(Icons.camera_alt, size: 48, color: Colors.grey),
         ),
 
         const SizedBox(height: 30),
@@ -151,7 +145,13 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-              // 🔒 STOP HERE (Backend + AI later)
+              // ✅ Camera + Test starts ONLY here
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => VisualAcuityTestPage(),
+                ),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,
@@ -167,14 +167,12 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
     );
   }
 
-  // ---------------- HELPER ----------------
   Widget _infoRow(String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          const Icon(Icons.check_circle,
-              color: Colors.blue, size: 18),
+          const Icon(Icons.check_circle, color: Colors.blue, size: 18),
           const SizedBox(width: 8),
           Expanded(child: Text(text)),
         ],
