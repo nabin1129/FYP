@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:netracare/pages/profile_page.dart';
-import 'visual_acuity_page.dart'; // ✅ INTRO + SETUP PAGE
+import 'visual_acuity_page.dart';
+import 'eye_tracking_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -60,7 +61,7 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             const SizedBox(height: 12),
 
-            // ✅ VISUAL ACUITY TEST (FIXED FLOW)
+            // VISUAL ACUITY TEST
             _testCard(
               Icons.visibility,
               "Visual Acuity Test",
@@ -77,7 +78,12 @@ class _DashboardPageState extends State<DashboardPage> {
               Icons.remove_red_eye,
               "Eye Tracking Test",
               "Analyzes eye movement patterns.",
-              onStart: _comingSoon,
+              onStart: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EyeTrackingPage()),
+                );
+              },
             ),
 
             _testCard(

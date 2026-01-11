@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import 'visual_acuity_test_page.dart';
+import 'eye_tracking_test_page.dart';
 
-class VisualAcuityPage extends StatefulWidget {
-  const VisualAcuityPage({super.key});
+class EyeTrackingPage extends StatefulWidget {
+  const EyeTrackingPage({super.key});
 
   @override
-  State<VisualAcuityPage> createState() => _VisualAcuityPageState();
+  State<EyeTrackingPage> createState() => _EyeTrackingPageState();
 }
 
-class _VisualAcuityPageState extends State<VisualAcuityPage> {
-  String step = 'intro'; // intro | setup | preparation
+class _EyeTrackingPageState extends State<EyeTrackingPage> {
+  String step = 'intro'; // intro | setup | calibration
 
   void proceed() {
     if (step == 'intro') {
       setState(() => step = 'setup');
     } else if (step == 'setup') {
-      setState(() => step = 'preparation');
+      setState(() => step = 'calibration');
     }
   }
 
@@ -24,7 +24,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
       setState(() {
         if (step == 'setup') {
           step = 'intro';
-        } else if (step == 'preparation') {
+        } else if (step == 'calibration') {
           step = 'setup';
         }
       });
@@ -36,7 +36,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
   void startTest() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const VisualAcuityTestPage()),
+      MaterialPageRoute(builder: (context) => const EyeTrackingTestPage()),
     );
   }
 
@@ -79,7 +79,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
                     ? _introUI()
                     : step == 'setup'
                     ? _setupUI()
-                    : _preparationUI(),
+                    : _calibrationUI(),
               ),
             ),
           ],
@@ -99,16 +99,16 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
             color: Colors.blue.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.remove_red_eye, size: 56, color: Colors.blue),
+          child: const Icon(Icons.track_changes, size: 56, color: Colors.blue),
         ),
         const SizedBox(height: 16),
         const Text(
-          "Visual Acuity Test",
+          "Eye Tracking Test",
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         const Text(
-          "This test measures how clearly you can see letters at different sizes, similar to a clinical eye chart.",
+          "This test tracks your eye movements and gaze patterns to assess eye tracking quality and visual performance.",
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.grey, height: 1.5),
         ),
@@ -116,24 +116,24 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
 
         // Key Information
         _infoCard(
-          icon: Icons.visibility,
+          icon: Icons.info_outline,
           title: "What to expect",
           description:
-              "You'll identify letters displayed at decreasing sizes. Each correct answer reveals a smaller letter.",
+              "You'll follow moving objects on the screen with your eyes. The test takes about 2-3 minutes.",
         ),
         const SizedBox(height: 12),
         _infoCard(
-          icon: Icons.straighten,
-          title: "Distance Viewing",
+          icon: Icons.videocam,
+          title: "Camera Required",
           description:
-              "Hold your phone at arm's length (30-40 cm away) from your eyes.",
+              "This test requires camera access to track your eye movements.",
         ),
         const SizedBox(height: 12),
         _infoCard(
           icon: Icons.lightbulb_outline,
           title: "Good Lighting",
           description:
-              "Make sure you're in a well-lit area for accurate measurements.",
+              "Make sure you're in a well-lit area for accurate tracking.",
         ),
 
         const SizedBox(height: 28),
@@ -180,15 +180,17 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
         const SizedBox(height: 24),
 
         // Setup Checklist
-        _checklistItem("Find a quiet, well-lit room"),
+        _checklistItem("Position your device at eye level"),
         const SizedBox(height: 12),
-        _checklistItem("Hold the phone at arm's length"),
+        _checklistItem("Sit 30-40 cm away from the screen"),
         const SizedBox(height: 12),
-        _checklistItem("Wear distance glasses if applicable"),
+        _checklistItem("Ensure good ambient lighting"),
         const SizedBox(height: 12),
-        _checklistItem("Ensure clear view of the display"),
+        _checklistItem(
+          "Remove glasses if you don't normally wear them for distance",
+        ),
         const SizedBox(height: 12),
-        _checklistItem("Avoid screen glare"),
+        _checklistItem("Keep your head still during the test"),
         const SizedBox(height: 24),
 
         // Instructions Box
@@ -205,7 +207,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
               SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  "You'll be shown 10 letters. Identify each one for accurate results.",
+                  "Camera permission required. Allow access when prompted.",
                   style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ),
@@ -227,7 +229,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
               ),
             ),
             child: const Text(
-              "Proceed to Test",
+              "Proceed to Calibration",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ),
@@ -236,8 +238,8 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
     );
   }
 
-  // ============ PREPARATION SCREEN ============
-  Widget _preparationUI() {
+  // ============ CALIBRATION SCREEN ============
+  Widget _calibrationUI() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -247,26 +249,22 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
             color: Colors.green.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
-          child: const Icon(
-            Icons.visibility_outlined,
-            size: 56,
-            color: Colors.green,
-          ),
+          child: const Icon(Icons.settings, size: 56, color: Colors.green),
         ),
         const SizedBox(height: 16),
         const Text(
-          "Ready to Begin",
+          "Calibration",
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         const Text(
-          "Follow the instructions carefully and identify each letter as it appears.",
+          "Follow the dots on the screen to calibrate the eye tracker.",
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.grey, height: 1.5),
         ),
         const SizedBox(height: 24),
 
-        // Test Instructions
+        // Calibration Info
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -276,13 +274,13 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
           ),
           child: Column(
             children: [
-              _instructionStep("1", "Read each letter carefully"),
+              _calibrationStep("1", "Focus on the first dot"),
               const SizedBox(height: 12),
-              _instructionStep("2", "Select the correct letter from options"),
+              _calibrationStep("2", "Keep your head steady"),
               const SizedBox(height: 12),
-              _instructionStep("3", "Letters get progressively smaller"),
+              _calibrationStep("3", "Let your eyes follow smoothly"),
               const SizedBox(height: 12),
-              _instructionStep("4", "Test completes after 10 letters"),
+              _calibrationStep("4", "Calibration takes ~30 seconds"),
             ],
           ),
         ),
@@ -301,7 +299,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
               ),
             ),
             child: const Text(
-              "Start Visual Acuity Test",
+              "Start Eye Tracking Test",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ),
@@ -373,7 +371,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
     );
   }
 
-  Widget _instructionStep(String number, String description) {
+  Widget _calibrationStep(String number, String description) {
     return Row(
       children: [
         Container(

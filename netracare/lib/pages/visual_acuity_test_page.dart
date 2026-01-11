@@ -1,8 +1,6 @@
 import 'dart:math';
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:netracare/services/api_service.dart';
-import 'package:netracare/models/user_model.dart';
 
 class VisualAcuityTestPage extends StatefulWidget {
   const VisualAcuityTestPage({super.key});
@@ -12,7 +10,6 @@ class VisualAcuityTestPage extends StatefulWidget {
 }
 
 class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
-  CameraController? _controller;
   bool cameraReady = false;
   bool isSubmitting = false;
 
@@ -26,19 +23,12 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
   @override
   void initState() {
     super.initState();
-    _initCamera();
+    _initTest();
   }
 
-  Future<void> _initCamera() async {
+  Future<void> _initTest() async {
     try {
-      final cameras = await availableCameras();
-      _controller = CameraController(
-        cameras.first,
-        ResolutionPreset.medium,
-        enableAudio: false,
-      );
-
-      await _controller!.initialize();
+      await Future.delayed(const Duration(milliseconds: 500));
       if (mounted) {
         setState(() => cameraReady = true);
         _nextLetter();
@@ -47,7 +37,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Camera initialization failed: $e'),
+            content: Text('Test initialization failed: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -162,9 +152,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
         context: context,
         builder: (_) => AlertDialog(
           title: const Text("Error"),
-          content: Text(
-            e.toString().replaceAll('Exception:', '').trim(),
-          ),
+          content: Text(e.toString().replaceAll('Exception:', '').trim()),
           actions: [
             TextButton(
               onPressed: () {
@@ -191,10 +179,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
         Text(
           value,
@@ -255,141 +240,253 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
 
   @override
   void dispose() {
-    _controller?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         title: const Text("Visual Acuity Test"),
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.white,
+        elevation: 1,
+        titleTextStyle: const TextStyle(
+          color: Colors.black87,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+        iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: cameraReady
-          ? Stack(
-              children: [
-                CameraPreview(_controller!),
-
-                // Progress indicator
-                Positioned(
-                  top: 16,
-                  left: 16,
-                  right: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.visibility, color: Colors.white, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: LinearProgressIndicator(
-                            value: total / 10,
-                            backgroundColor: Colors.grey.shade700,
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Colors.white,
+          ? SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 20,
+                ),
+                child: Column(
+                  children: [
+                    // Progress Section
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Progress",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  "$total/10",
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: LinearProgressIndicator(
+                              value: total / 10,
+                              minHeight: 8,
+                              backgroundColor: Colors.grey.shade200,
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                Colors.blue,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          "$total/10",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Current letter display
-                Center(
-                  child: Text(
-                    currentLetter,
-                    style: TextStyle(
-                      fontSize: fontSize,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      shadows: [
-                        Shadow(
-                          offset: const Offset(2, 2),
-                          blurRadius: 4,
-                          color: Colors.black.withOpacity(0.8),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Answer buttons
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.8),
                         ],
                       ),
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (isSubmitting)
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 16),
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
+
+                    const SizedBox(height: 32),
+
+                    // Letter Display Area
+                    Container(
+                      width: double.infinity,
+                      height: MediaQuery.of(context).size.height * 0.35,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          currentLetter,
+                          style: TextStyle(
+                            fontSize: fontSize,
+                            color: const Color(0xFF1F2937),
+                            fontWeight: FontWeight.w700,
+                            fontFamily: 'Courier New',
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Instructions
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.blue.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info,
+                            color: Colors.blue.shade600,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Select the letter displayed above',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.blue.shade700,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: letters.map((l) {
-                            return ElevatedButton(
-                              onPressed: isSubmitting ? null : () => _submitAnswer(l),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white.withOpacity(0.9),
-                                foregroundColor: Colors.black,
-                                minimumSize: const Size(50, 50),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: Text(
-                                l,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+
+                    const SizedBox(height: 28),
+
+                    // Answer Buttons
+                    if (isSubmitting)
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 16),
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.blue,
+                          ),
+                        ),
+                      ),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            "Select your answer",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          GridView.count(
+                            crossAxisCount: isMobile ? 4 : 4,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            children: letters.map((l) {
+                              return Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: isSubmitting
+                                      ? null
+                                      : () => _submitAnswer(l),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.withOpacity(0.08),
+                                      border: Border.all(
+                                        color: Colors.blue.withOpacity(0.3),
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        l,
+                                        style: const TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue,
+                                          fontFamily: 'Courier New',
+                                          letterSpacing: 1,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+                  ],
                 ),
-              ],
+              ),
             )
           : const Center(
-              child: CircularProgressIndicator(color: Colors.white),
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+              ),
             ),
     );
   }
