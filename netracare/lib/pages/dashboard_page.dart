@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:netracare/pages/profile_page.dart';
 import 'visual_acuity_page.dart';
 import 'eye_tracking_page.dart';
+import 'pupil_reflex_page.dart';
+import 'colour_vision_page.dart';
+import 'blink_fatigue_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -90,21 +93,36 @@ class _DashboardPageState extends State<DashboardPage> {
               Icons.bedtime,
               "Blink & Fatigue Test",
               "Evaluates blink rate & eye fatigue.",
-              onStart: _comingSoon,
+              onStart: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const BlinkFatiguePage()),
+                );
+              },
             ),
 
             _testCard(
               Icons.flash_on,
               "Pupil Reflex Test",
               "Tests eye response to light.",
-              onStart: _comingSoon,
+              onStart: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PupilReflexPage()),
+                );
+              },
             ),
 
             _testCard(
               Icons.color_lens,
               "Colour Vision Test",
               "Detects colour deficiencies.",
-              onStart: _comingSoon,
+              onStart: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ColourVisionPage()),
+                );
+              },
             ),
 
             const SizedBox(height: 25),
@@ -287,14 +305,5 @@ class _DashboardPageState extends State<DashboardPage> {
         ],
       ),
     );
-  }
-
-  // ---------------------------
-  // TEMP PLACEHOLDER
-  // ---------------------------
-  void _comingSoon() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("Coming soon 🚧")));
   }
 }

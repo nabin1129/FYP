@@ -139,7 +139,26 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                 Navigator.pop(context); // Close dialog
                 Navigator.pop(context); // Go back to previous page
               },
-              child: const Text("Done"),
+              child: const Text("Save Results"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                setState(() {
+                  total = 0;
+                  correct = 0;
+                  isSubmitting = false;
+                });
+                _nextLetter();
+              },
+              child: const Text("Retry Test"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                Navigator.popUntil(context, (route) => route.isFirst);
+              },
+              child: const Text("Back to Home"),
             ),
           ],
         ),
@@ -157,9 +176,21 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context); // Close error dialog
-                Navigator.pop(context); // Go back to previous page
+                setState(() {
+                  total = 0;
+                  correct = 0;
+                  isSubmitting = false;
+                });
+                _nextLetter();
               },
-              child: const Text("OK"),
+              child: const Text("Retry Test"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close error dialog
+                Navigator.popUntil(context, (route) => route.isFirst);
+              },
+              child: const Text("Back to Home"),
             ),
           ],
         ),
