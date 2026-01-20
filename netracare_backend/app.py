@@ -8,6 +8,7 @@ from config import SECRET_KEY
 from auth import auth_ns
 from user import user_ns
 from test import test_ns
+from camera_eye_tracking_routes import camera_eye_tracking_ns
 
 app = Flask(__name__)
 # Configure CORS to allow Flutter app requests
@@ -37,6 +38,7 @@ api = Api(
 api.add_namespace(auth_ns)
 api.add_namespace(user_ns)
 api.add_namespace(test_ns)
+api.add_namespace(camera_eye_tracking_ns)
 
 
 @app.route("/")
@@ -153,6 +155,7 @@ def home():
                     <li><strong>/auth</strong> - Authentication (Login & Signup)</li>
                     <li><strong>/user</strong> - User Profile Management</li>
                     <li><strong>/tests</strong> - Eye Test Uploads</li>
+                    <li><strong>/camera-eye-tracking</strong> - Camera Eye Tracking Sessions</li>
                     <li><strong>/docs</strong> - Interactive API Documentation</li>
                 </ul>
             </div>

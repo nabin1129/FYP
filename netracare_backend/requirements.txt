@@ -4,3 +4,6 @@ Flask-Cors
 Flask-RESTX
 bcrypt
 PyJWT
+opencv-python
+mediapipe
+numpy

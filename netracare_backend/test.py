@@ -10,6 +10,7 @@ from va_model import (
     logmar_to_snellen,
     classify_severity,
 )
+from db_model import db, VisualAcuityTest
 
 test_ns = Namespace(
     "tests",
@@ -92,6 +93,18 @@ class VisualAcuity(Resource):
             logmar = calculate_logmar(correct, total)
             snellen = logmar_to_snellen(logmar)
             severity = classify_severity(logmar)
+
+            # Save to database
+            test_result = VisualAcuityTest(
+                user_id=user.id,
+                correct_answers=correct,
+                total_questions=total,
+                logmar_value=logmar,
+                snellen_value=snellen,
+                severity=severity
+            )
+            db.session.add(test_result)
+            db.session.commit()
 
             return {
                 "logMAR": logmar,

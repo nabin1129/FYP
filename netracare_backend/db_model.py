@@ -88,3 +88,177 @@ class EyeTrackingTest(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
+
+
+class VisualAcuityTest(db.Model):
+    """Database model for visual acuity test results"""
+    __tablename__ = 'visual_acuity_tests'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    # Test results
+    correct_answers = db.Column(db.Integer, nullable=False)
+    total_questions = db.Column(db.Integer, nullable=False)
+    logmar_value = db.Column(db.Float, nullable=False)
+    snellen_value = db.Column(db.String(50), nullable=False)
+    severity = db.Column(db.String(50), nullable=False)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('visual_acuity_tests', lazy=True))
+    
+    def to_dict(self) -> dict:
+        """Convert test to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'correct_answers': self.correct_answers,
+            'total_questions': self.total_questions,
+            'logmar_value': self.logmar_value,
+            'snellen_value': self.snellen_value,
+            'severity': self.severity,
+            'created_at': self.created_at.isoformat()
+        }
+
+
+class CameraEyeTrackingSession(db.Model):
+    """Database model for camera-based eye tracking sessions (OpenCV + MediaPipe)"""
+    __tablename__ = 'camera_eye_tracking_sessions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    session_name = db.Column(db.String(255), default='Camera Eye Tracking Session')
+    
+    # Session details
+    duration_seconds = db.Column(db.Float, nullable=False)
+    start_time = db.Column(db.DateTime, nullable=False)
+    end_time = db.Column(db.DateTime, nullable=False)
+    
+    # Blink metrics
+    total_blinks = db.Column(db.Integer, default=0)
+    blink_rate_per_minute = db.Column(db.Float)
+    
+    # Eye Aspect Ratio (EAR) statistics
+    left_eye_ear_mean = db.Column(db.Float)
+    left_eye_ear_std = db.Column(db.Float)
+    left_eye_ear_min = db.Column(db.Float)
+    left_eye_ear_max = db.Column(db.Float)
+    
+    right_eye_ear_mean = db.Column(db.Float)
+    right_eye_ear_std = db.Column(db.Float)
+    right_eye_ear_min = db.Column(db.Float)
+    right_eye_ear_max = db.Column(db.Float)
+    
+    average_ear_mean = db.Column(db.Float)
+    average_ear_std = db.Column(db.Float)
+    average_ear_min = db.Column(db.Float)
+    average_ear_max = db.Column(db.Float)
+    
+    # Gaze direction distribution (stored as JSON)
+    gaze_distribution = db.Column(db.Text)  # JSON: {'center': count, 'left': count, ...}
+    
+    # Raw session data
+    total_frames = db.Column(db.Integer, default=0)
+    frames_with_face = db.Column(db.Integer, default=0)
+    detection_rate = db.Column(db.Float)  # percentage
+    
+    # Detailed data (optional, can be large)
+    blink_events = db.Column(db.Text)  # JSON array of blink events with timestamps
+    gaze_events = db.Column(db.Text)  # JSON array of gaze movements with timestamps
+    
+    # Device and settings
+    camera_id = db.Column(db.Integer, default=0)
+    ear_threshold = db.Column(db.Float, default=0.21)
+    
+    # Status
+    status = db.Column(db.String(50), default='completed')  # pending, in_progress, completed, failed
+    notes = db.Column(db.Text)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('camera_eye_tracking_sessions', lazy=True))
+    
+    def set_gaze_distribution(self, distribution: dict) -> None:
+        """Store gaze distribution as JSON"""
+        self.gaze_distribution = json.dumps(distribution)
+    
+    def get_gaze_distribution(self) -> dict:
+        """Retrieve gaze distribution from JSON"""
+        return json.loads(self.gaze_distribution) if self.gaze_distribution else {}
+    
+    def set_blink_events(self, events: list) -> None:
+        """Store blink events as JSON"""
+        self.blink_events = json.dumps(events)
+    
+    def get_blink_events(self) -> list:
+        """Retrieve blink events from JSON"""
+        return json.loads(self.blink_events) if self.blink_events else []
+    
+    def set_gaze_events(self, events: list) -> None:
+        """Store gaze events as JSON"""
+        self.gaze_events = json.dumps(events)
+    
+    def get_gaze_events(self) -> list:
+        """Retrieve gaze events from JSON"""
+        return json.loads(self.gaze_events) if self.gaze_events else []
+    
+    def to_dict(self, include_events: bool = False) -> dict:
+        """Convert session to dictionary"""
+        result = {
+            'id': self.id,
+            'user_id': self.user_id,
+            'session_name': self.session_name,
+            'duration_seconds': self.duration_seconds,
+            'start_time': self.start_time.isoformat() if self.start_time else None,
+            'end_time': self.end_time.isoformat() if self.end_time else None,
+            'blink_metrics': {
+                'total_blinks': self.total_blinks,
+                'blink_rate_per_minute': self.blink_rate_per_minute
+            },
+            'ear_statistics': {
+                'left_eye': {
+                    'mean': self.left_eye_ear_mean,
+                    'std': self.left_eye_ear_std,
+                    'min': self.left_eye_ear_min,
+                    'max': self.left_eye_ear_max
+                },
+                'right_eye': {
+                    'mean': self.right_eye_ear_mean,
+                    'std': self.right_eye_ear_std,
+                    'min': self.right_eye_ear_min,
+                    'max': self.right_eye_ear_max
+                },
+                'average': {
+                    'mean': self.average_ear_mean,
+                    'std': self.average_ear_std,
+                    'min': self.average_ear_min,
+                    'max': self.average_ear_max
+                }
+            },
+            'gaze_distribution': self.get_gaze_distribution(),
+            'detection_metrics': {
+                'total_frames': self.total_frames,
+                'frames_with_face': self.frames_with_face,
+                'detection_rate': self.detection_rate
+            },
+            'settings': {
+                'camera_id': self.camera_id,
+                'ear_threshold': self.ear_threshold
+            },
+            'status': self.status,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+        
+        if include_events:
+            result['blink_events'] = self.get_blink_events()
+            result['gaze_events'] = self.get_gaze_events()
+        
+        return result
