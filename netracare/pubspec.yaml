@@ -23,6 +23,14 @@ dependencies:
   # 📸 Camera (Visual Acuity, Eye Tracking, Pupil Reflex)
   camera: ^0.10.5+9
 
+  # 📊 Charts for data visualization
+  fl_chart: ^0.69.2
+
+  # 📄 PDF generation
+  pdf: ^3.11.1
+  path_provider: ^2.1.4
+  share_plus: ^10.1.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

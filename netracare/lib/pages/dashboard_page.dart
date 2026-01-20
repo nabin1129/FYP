@@ -5,6 +5,7 @@ import 'eye_tracking_page.dart';
 import 'pupil_reflex_page.dart';
 import 'colour_vision_page.dart';
 import 'blink_fatigue_page.dart';
+import 'results_report_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -251,12 +252,7 @@ class _DashboardPageState extends State<DashboardPage> {
   // REPORTS PAGE
   // ---------------------------
   Widget _reportsPage() {
-    return const Center(
-      child: Text(
-        "Reports Page will be here.",
-        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-      ),
-    );
+    return const ResultsReportPage();
   }
 
   // ---------------------------

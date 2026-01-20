@@ -8,6 +8,8 @@ import 'package:netracare/pages/visual_acuity_page.dart';
 import 'package:netracare/pages/pupil_reflex_page.dart';
 import 'package:netracare/pages/colour_vision_page.dart';
 import 'package:netracare/pages/blink_fatigue_page.dart';
+import 'package:netracare/pages/results_report_page.dart';
+import 'package:netracare/pages/results_demo.dart';
 import 'package:netracare/services/api_service.dart';
 
 void main() {
@@ -39,6 +41,8 @@ class NetraCareApp extends StatelessWidget {
         "/pupil-reflex": (_) => const PupilReflexPage(),
         "/colour-vision": (_) => const ColourVisionPage(),
         "/blink-fatigue": (_) => const BlinkFatiguePage(),
+        "/results-report": (_) => const ResultsReportPage(),
+        "/results-demo": (_) => const ResultsDemoPage(),
       },
     );
   }
