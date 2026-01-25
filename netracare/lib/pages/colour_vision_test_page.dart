@@ -128,7 +128,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
     if (backendDiagnosis != null) {
       return getBackendResultMessage(backendDiagnosis!);
     }
-    
+
     // Otherwise, use local score calculation
     final score = calculateScore();
 
@@ -183,7 +183,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
       };
     }
   }
-  
+
   Map<String, dynamic> getBackendResultMessage(String diagnosis) {
     // Handle Test Unreliable status
     if (diagnosis.contains('Unreliable') || diagnosis.contains('Retake')) {
@@ -195,17 +195,18 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         'icon': Icons.refresh,
       };
     }
-    
+
     // Handle Normal Color Vision
     if (diagnosis.contains('Normal')) {
       return {
         'status': diagnosis,
-        'message': 'Your colour vision appears to be normal. No deficiency detected.',
+        'message':
+            'Your colour vision appears to be normal. No deficiency detected.',
         'color': Colors.green,
         'icon': Icons.check_circle,
       };
     }
-    
+
     // Handle Red-Green Deficiency
     if (diagnosis.contains('Red-Green')) {
       if (diagnosis.contains('Severe')) {
@@ -234,7 +235,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         };
       }
     }
-    
+
     // Handle Blue-Yellow Deficiency
     if (diagnosis.contains('Blue-Yellow')) {
       if (diagnosis.contains('Severe')) {
@@ -263,7 +264,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         };
       }
     }
-    
+
     // Handle Total Color Blindness
     if (diagnosis.contains('Total') || diagnosis.contains('Monochromacy')) {
       return {
@@ -274,7 +275,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         'icon': Icons.error_outline,
       };
     }
-    
+
     // Handle Borderline
     if (diagnosis.contains('Borderline')) {
       return {
@@ -285,7 +286,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         'icon': Icons.info,
       };
     }
-    
+
     // Default fallback
     return {
       'status': diagnosis,
