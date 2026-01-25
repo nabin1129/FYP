@@ -7,11 +7,13 @@ class ApiConfig {
   //
   // NOTE: Use 10.0.2.2 on Android emulator to reach host machine
   static const String baseUrl = 'http://10.0.2.2:5000';
-  
+
   // API endpoints
   static const String loginEndpoint = '/auth/login';
   static const String signupEndpoint = '/auth/signup';
   static const String profileEndpoint = '/user/profile';
   static const String testUploadEndpoint = '/tests/upload';
   static const String visualAcuityEndpoint = '/tests/visual-acuity';
+  static const String colourVisionPlatesEndpoint = '/colour-vision/plates';
+  static const String colourVisionTestsEndpoint = '/colour-vision/tests';
 }

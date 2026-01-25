@@ -1,20 +1,34 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import '../services/api_service.dart';
 
 class IshiharaPlate {
   final int id;
+  final int plateNumber;
+  final String imagePath;
   final String correctAnswer;
   final List<String> options;
   final String description;
-  final Color plateBgColor;
 
   IshiharaPlate({
     required this.id,
+    required this.plateNumber,
+    required this.imagePath,
     required this.correctAnswer,
     required this.options,
     required this.description,
-    required this.plateBgColor,
   });
+
+  factory IshiharaPlate.fromJson(Map<String, dynamic> json) {
+    return IshiharaPlate(
+      id: json['id'],
+      plateNumber: json['plate_number'],
+      imagePath: json['image_path'],
+      correctAnswer: json['correct_answer'],
+      options: List<String>.from(json['options']),
+      description: json['description'] ?? '',
+    );
+  }
 }
 
 class ColourVisionTestPage extends StatefulWidget {
@@ -25,48 +39,49 @@ class ColourVisionTestPage extends StatefulWidget {
 }
 
 class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
-  final List<IshiharaPlate> ishiharaPlates = [
-    IshiharaPlate(
-      id: 1,
-      correctAnswer: '12',
-      options: ['12', '15', '17', '21'],
-      description: 'Normal vision sees 12',
-      plateBgColor: Colors.red,
-    ),
-    IshiharaPlate(
-      id: 2,
-      correctAnswer: '8',
-      options: ['3', '5', '8', '9'],
-      description: 'Normal vision sees 8',
-      plateBgColor: Colors.amber,
-    ),
-    IshiharaPlate(
-      id: 3,
-      correctAnswer: '29',
-      options: ['29', '70', '79', 'Nothing'],
-      description: 'Normal vision sees 29',
-      plateBgColor: Colors.green,
-    ),
-    IshiharaPlate(
-      id: 4,
-      correctAnswer: '5',
-      options: ['2', '5', '6', '9'],
-      description: 'Normal vision sees 5',
-      plateBgColor: Colors.orange,
-    ),
-    IshiharaPlate(
-      id: 5,
-      correctAnswer: '74',
-      options: ['21', '74', '71', 'Nothing'],
-      description: 'Normal vision sees 74',
-      plateBgColor: Colors.purple,
-    ),
-  ];
+  List<IshiharaPlate> ishiharaPlates = [];
+  bool isLoading = true;
+  String? errorMessage;
+  DateTime? testStartTime;
 
   int currentPlate = 0;
   List<String> answers = [];
   double progress = 0;
   bool isTestComplete = false;
+  String? backendDiagnosis; // Stores the specific diagnosis from backend
+  bool resultsSaved = false;
+
+  @override
+  void initState() {
+    super.initState();
+    testStartTime = DateTime.now();
+    _loadPlates();
+  }
+
+  Future<void> _loadPlates() async {
+    try {
+      setState(() {
+        isLoading = true;
+        errorMessage = null;
+      });
+
+      // Request 10 plates for standard Ishihara screening test
+      final platesData = await ApiService.getColorVisionPlates(count: 10);
+      final plates = platesData
+          .map((data) => IshiharaPlate.fromJson(data))
+          .toList();
+
+      setState(() {
+        ishiharaPlates = plates;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = e.toString();
+        isLoading = false;
+      });
+    }
+  }
 
   void handleAnswer(String answer) {
     setState(() {
@@ -95,7 +110,12 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
 
   int calculateScore() {
     int correct = 0;
-    for (int i = 0; i < answers.length; i++) {
+    // Use minimum length to prevent index out of bounds
+    final minLength = answers.length < ishiharaPlates.length
+        ? answers.length
+        : ishiharaPlates.length;
+
+    for (int i = 0; i < minLength; i++) {
       if (answers[i] == ishiharaPlates[i].correctAnswer) {
         correct++;
       }
@@ -104,31 +124,176 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
   }
 
   Map<String, dynamic> getResultMessage() {
+    // If backend diagnosis is available, use it
+    if (backendDiagnosis != null) {
+      return getBackendResultMessage(backendDiagnosis!);
+    }
+    
+    // Otherwise, use local score calculation
     final score = calculateScore();
-    if (score >= 80) {
+
+    // Map specific deficiency types to appropriate UI
+    if (score >= 90) {
       return {
-        'status': 'Normal',
-        'message': 'Your colour vision appears to be normal.',
+        'status': 'Normal Color Vision',
+        'message':
+            'Your colour vision appears to be normal. No deficiency detected.',
         'color': Colors.green,
         'icon': Icons.check_circle,
       };
+    } else if (score >= 80) {
+      return {
+        'status': 'Borderline - Possible Mild Deficiency',
+        'message':
+            'Your results are borderline. Consider retaking the test in better lighting or consulting an eye specialist.',
+        'color': Colors.lightGreen,
+        'icon': Icons.info,
+      };
     } else if (score >= 60) {
       return {
-        'status': 'Mild Deficiency',
+        'status': 'Mild Color Vision Deficiency',
         'message':
-            'You may have mild colour vision deficiency. Consider consulting an eye specialist.',
+            'You may have mild colour vision deficiency. Consider consulting an eye specialist for detailed evaluation.',
         'color': Colors.amber,
         'icon': Icons.warning,
       };
-    } else {
+    } else if (score >= 40) {
       return {
-        'status': 'Deficiency Detected',
+        'status': 'Moderate Color Vision Deficiency',
         'message':
-            'Colour vision deficiency detected. We recommend consulting an eye specialist for a comprehensive evaluation.',
-        'color': Colors.red,
+            'Moderate colour vision deficiency detected. We recommend consulting an eye specialist for proper diagnosis.',
+        'color': Colors.orange,
+        'icon': Icons.warning_amber,
+      };
+    } else if (score >= 30) {
+      return {
+        'status': 'Severe Color Vision Deficiency',
+        'message':
+            'Significant colour vision deficiency detected. Please consult an eye care professional for comprehensive evaluation.',
+        'color': Colors.deepOrange,
         'icon': Icons.error,
       };
+    } else {
+      return {
+        'status': 'Total Color Blindness',
+        'message':
+            'Possible total color blindness detected. Immediate consultation with an eye care specialist is strongly recommended.',
+        'color': Colors.red,
+        'icon': Icons.error_outline,
+      };
     }
+  }
+  
+  Map<String, dynamic> getBackendResultMessage(String diagnosis) {
+    // Handle Test Unreliable status
+    if (diagnosis.contains('Unreliable') || diagnosis.contains('Retake')) {
+      return {
+        'status': diagnosis,
+        'message':
+            'The control plate was answered incorrectly. This may indicate poor lighting, screen issues, or misunderstanding of instructions. Please retake the test in better conditions.',
+        'color': Colors.orange,
+        'icon': Icons.refresh,
+      };
+    }
+    
+    // Handle Normal Color Vision
+    if (diagnosis.contains('Normal')) {
+      return {
+        'status': diagnosis,
+        'message': 'Your colour vision appears to be normal. No deficiency detected.',
+        'color': Colors.green,
+        'icon': Icons.check_circle,
+      };
+    }
+    
+    // Handle Red-Green Deficiency
+    if (diagnosis.contains('Red-Green')) {
+      if (diagnosis.contains('Severe')) {
+        return {
+          'status': diagnosis,
+          'message':
+              'Severe red-green color deficiency detected (Protanopia or Deuteranopia). You have difficulty distinguishing between red and green colors. Please consult an eye specialist.',
+          'color': Colors.red,
+          'icon': Icons.error,
+        };
+      } else if (diagnosis.contains('Moderate')) {
+        return {
+          'status': diagnosis,
+          'message':
+              'Moderate red-green color deficiency detected. You may have difficulty with red and green colors. Consider consulting an eye specialist.',
+          'color': Colors.orange,
+          'icon': Icons.warning_amber,
+        };
+      } else {
+        return {
+          'status': diagnosis,
+          'message':
+              'Mild red-green color deficiency detected. You may have slight difficulty distinguishing red and green colors. Consider consulting an eye specialist for confirmation.',
+          'color': Colors.amber,
+          'icon': Icons.warning,
+        };
+      }
+    }
+    
+    // Handle Blue-Yellow Deficiency
+    if (diagnosis.contains('Blue-Yellow')) {
+      if (diagnosis.contains('Severe')) {
+        return {
+          'status': diagnosis,
+          'message':
+              'Severe blue-yellow color deficiency detected (Tritanopia). You have difficulty distinguishing between blue and yellow colors. Please consult an eye specialist.',
+          'color': Colors.red,
+          'icon': Icons.error,
+        };
+      } else if (diagnosis.contains('Moderate')) {
+        return {
+          'status': diagnosis,
+          'message':
+              'Moderate blue-yellow color deficiency detected. You may have difficulty with blue and yellow colors. Consider consulting an eye specialist.',
+          'color': Colors.orange,
+          'icon': Icons.warning_amber,
+        };
+      } else {
+        return {
+          'status': diagnosis,
+          'message':
+              'Mild blue-yellow color deficiency detected. You may have slight difficulty distinguishing blue and yellow colors. Consider consulting an eye specialist for confirmation.',
+          'color': Colors.amber,
+          'icon': Icons.warning,
+        };
+      }
+    }
+    
+    // Handle Total Color Blindness
+    if (diagnosis.contains('Total') || diagnosis.contains('Monochromacy')) {
+      return {
+        'status': diagnosis,
+        'message':
+            'Total color blindness (Monochromacy) detected. You may see only in shades of gray. Immediate consultation with an eye care specialist is strongly recommended.',
+        'color': Colors.red,
+        'icon': Icons.error_outline,
+      };
+    }
+    
+    // Handle Borderline
+    if (diagnosis.contains('Borderline')) {
+      return {
+        'status': diagnosis,
+        'message':
+            'Your results are borderline. Consider retaking the test in better lighting or consulting an eye specialist.',
+        'color': Colors.lightGreen,
+        'icon': Icons.info,
+      };
+    }
+    
+    // Default fallback
+    return {
+      'status': diagnosis,
+      'message':
+          'Color vision deficiency detected. Please consult an eye specialist for proper diagnosis and evaluation.',
+      'color': Colors.amber,
+      'icon': Icons.warning,
+    };
   }
 
   @override
@@ -161,6 +326,52 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Show loading state
+    if (isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text("Colour Vision Test"),
+          backgroundColor: Colors.teal[800],
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text("Loading test plates..."),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Show error state
+    if (errorMessage != null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text("Colour Vision Test"),
+          backgroundColor: Colors.teal[800],
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text("Error: $errorMessage"),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadPlates,
+                child: const Text("Retry"),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Show test UI
     return WillPopScope(
       onWillPop: () async {
         if (!isTestComplete) {
@@ -220,41 +431,48 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                 border: Border.all(color: Colors.white24, width: 2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Base gradient background
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          plate.plateBgColor.withOpacity(0.3),
-                          plate.plateBgColor.withOpacity(0.1),
-                        ],
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.network(
+                  '${ApiService.getBaseUrl()}${plate.imagePath}',
+                  width: 280,
+                  height: 280,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                            : null,
+                        color: Colors.white,
                       ),
-                    ),
-                  ),
-                  // Ishihara pattern visualization
-                  Text(
-                    plate.correctAnswer,
-                    style: TextStyle(
-                      fontSize: 72,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white.withOpacity(0.15),
-                    ),
-                  ),
-                  // Color dots pattern (simplified visualization)
-                  CustomPaint(
-                    size: const Size(260, 260),
-                    painter: _IsihharaPatternPainter(
-                      color: plate.plateBgColor,
-                      answer: plate.correctAnswer,
-                    ),
-                  ),
-                ],
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[800],
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 48,
+                              color: Colors.white54,
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Image failed to load',
+                              style: TextStyle(color: Colors.white54),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 32),
@@ -340,7 +558,12 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
     final resultMsg = getResultMessage();
     final score = calculateScore();
     int correct = 0;
-    for (int i = 0; i < answers.length; i++) {
+    // Use minimum length to prevent index out of bounds
+    final minLength = answers.length < ishiharaPlates.length
+        ? answers.length
+        : ishiharaPlates.length;
+
+    for (int i = 0; i < minLength; i++) {
       if (answers[i] == ishiharaPlates[i].correctAnswer) {
         correct++;
       }
@@ -406,7 +629,11 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                 const SizedBox(height: 12),
                 Divider(color: Colors.white12),
                 const SizedBox(height: 12),
-                _resultRow("Status", resultMsg['status'], resultMsg['color']),
+                _resultRow(
+                  "Status",
+                  resultMsg['status'], // Always use resultMsg which now handles backend diagnosis
+                  resultMsg['color'],
+                ),
               ],
             ),
           ),
@@ -433,14 +660,82 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                // TODO: Save results to backend
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Results saved successfully!"),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
+              onPressed: () async {
+                try {
+                  final testDuration = testStartTime != null
+                      ? DateTime.now()
+                            .difference(testStartTime!)
+                            .inSeconds
+                            .toDouble()
+                      : null;
+
+                  // Extract image filenames from image paths
+                  final plateImages = ishiharaPlates.map((p) {
+                    final path = p.imagePath;
+                    return path.split('/').last; // Get filename from path
+                  }).toList();
+
+                  final response = await ApiService.submitColorVisionTest(
+                    plateIds: ishiharaPlates.map((p) => p.plateNumber).toList(),
+                    plateImages: plateImages,
+                    userAnswers: answers,
+                    score: calculateScore(),
+                    testDuration: testDuration,
+                  );
+
+                  if (mounted) {
+                    // Store the backend diagnosis
+                    setState(() {
+                      backendDiagnosis = response['severity'];
+                      resultsSaved = true;
+                    });
+
+                    // Show warning if control plate failed
+                    String message = "Results saved successfully!";
+                    if (backendDiagnosis != null) {
+                      message += "\nDiagnosis: $backendDiagnosis";
+                    }
+                    Color bgColor = Colors.green;
+
+                    if (response['warning'] != null) {
+                      message = response['warning'];
+                      bgColor = Colors.orange;
+                    }
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(message),
+                        backgroundColor: bgColor,
+                        duration: const Duration(seconds: 4),
+                      ),
+                    );
+
+                    // Show medical disclaimer
+                    if (response['medical_disclaimer'] != null) {
+                      Future.delayed(const Duration(seconds: 4), () {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(response['medical_disclaimer']),
+                              backgroundColor: Colors.blueGrey,
+                              duration: const Duration(seconds: 6),
+                            ),
+                          );
+                        }
+                      });
+                    }
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Failed to save results: $e"),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue[600],
@@ -536,41 +831,5 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         ),
       ],
     );
-  }
-}
-
-// Custom painter for Ishihara pattern visualization
-class _IsihharaPatternPainter extends CustomPainter {
-  final Color color;
-  final String answer;
-
-  _IsihharaPatternPainter({required this.color, required this.answer});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Draw a simple pattern of colored circles to simulate Ishihara plates
-    final paint = Paint()..color = color.withOpacity(0.6);
-    final dotRadius = 4.0;
-    final spacing = 15.0;
-
-    for (int i = 0; i < 15; i++) {
-      for (int j = 0; j < 15; j++) {
-        final x = j * spacing + 5;
-        final y = i * spacing + 5;
-
-        if (x < size.width && y < size.height) {
-          // Random visibility to create number pattern effect
-          final shouldDraw = (i + j) % 3 != 0;
-          if (shouldDraw) {
-            canvas.drawCircle(Offset(x, y), dotRadius, paint);
-          }
-        }
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_IsihharaPatternPainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.answer != answer;
   }
 }

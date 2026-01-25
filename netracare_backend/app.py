@@ -1,14 +1,16 @@
 # app.py
 import os
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_restx import Api
 from flask_cors import CORS
 from db_model import db
 from config import SECRET_KEY
 from auth import auth_ns
 from user import user_ns
-from test import test_ns
 from camera_eye_tracking_routes import camera_eye_tracking_ns
+from visual_acuity_routes import visual_acuity_ns
+from eye_tracking_routes import eye_tracking_ns
+from colour_vision_routes import colour_vision_ns
 
 app = Flask(__name__)
 # Configure CORS to allow Flutter app requests
@@ -37,8 +39,26 @@ api = Api(
 
 api.add_namespace(auth_ns)
 api.add_namespace(user_ns)
-api.add_namespace(test_ns)
 api.add_namespace(camera_eye_tracking_ns)
+api.add_namespace(visual_acuity_ns)
+api.add_namespace(eye_tracking_ns)
+api.add_namespace(colour_vision_ns)
+api.add_namespace(colour_vision_ns)
+
+
+@app.route("/static/ishihara/<path:filename>")
+def serve_ishihara_image(filename):
+    """Serve Ishihara plate images from the dataset"""
+    # Try primary dataset path
+    dataset_path = os.path.join(os.path.dirname(BASE_DIR), 'ishihara_data_set')
+    if not os.path.exists(dataset_path):
+        # Try alternative path
+        dataset_path = os.path.join(os.path.dirname(BASE_DIR), 'FYP', 'ishihara_data_set')
+    
+    if os.path.exists(dataset_path):
+        return send_from_directory(dataset_path, filename)
+    else:
+        return {"error": "Dataset not found"}, 404
 
 
 @app.route("/")

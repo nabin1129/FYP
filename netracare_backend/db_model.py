@@ -262,3 +262,77 @@ class CameraEyeTrackingSession(db.Model):
             result['gaze_events'] = self.get_gaze_events()
         
         return result
+
+
+class ColourVisionTest(db.Model):
+    """Database model for Ishihara color vision test results"""
+    __tablename__ = 'colour_vision_tests'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    # Test configuration
+    total_plates = db.Column(db.Integer, nullable=False)
+    plate_ids = db.Column(db.Text, nullable=False)  # JSON: [0, 3, 5, 7, 9]
+    plate_images = db.Column(db.Text, nullable=False)  # JSON: ["0_Font1...", "3_Font2..."]
+    
+    # User responses
+    user_answers = db.Column(db.Text, nullable=False)  # JSON: ["12", "8", "29", "5", "74"]
+    correct_answers = db.Column(db.Text, nullable=False)  # JSON: ["12", "8", "29", "5", "74"]
+    
+    # Scoring
+    correct_count = db.Column(db.Integer, nullable=False)
+    score = db.Column(db.Integer, nullable=False)  # Percentage: 0-100
+    severity = db.Column(db.String(50), nullable=False)  # Normal, Mild, Deficiency
+    
+    # Metadata
+    test_duration = db.Column(db.Float)  # seconds
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('colour_vision_tests', lazy=True))
+    
+    def set_plate_data(self, plate_ids: list, plate_images: list):
+        """Store plate data as JSON"""
+        self.plate_ids = json.dumps(plate_ids)
+        self.plate_images = json.dumps(plate_images)
+    
+    def set_answers(self, user_answers: list, correct_answers: list):
+        """Store answer data as JSON"""
+        self.user_answers = json.dumps(user_answers)
+        self.correct_answers = json.dumps(correct_answers)
+    
+    def get_plate_ids(self) -> list:
+        """Retrieve plate IDs as list"""
+        return json.loads(self.plate_ids) if self.plate_ids else []
+    
+    def get_plate_images(self) -> list:
+        """Retrieve plate images as list"""
+        return json.loads(self.plate_images) if self.plate_images else []
+    
+    def get_user_answers(self) -> list:
+        """Retrieve user answers as list"""
+        return json.loads(self.user_answers) if self.user_answers else []
+    
+    def get_correct_answers(self) -> list:
+        """Retrieve correct answers as list"""
+        return json.loads(self.correct_answers) if self.correct_answers else []
+    
+    def to_dict(self) -> dict:
+        """Convert test to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'total_plates': self.total_plates,
+            'plate_ids': self.get_plate_ids(),
+            'plate_images': self.get_plate_images(),
+            'user_answers': self.get_user_answers(),
+            'correct_answers': self.get_correct_answers(),
+            'correct_count': self.correct_count,
+            'score': self.score,
+            'severity': self.severity,
+            'test_duration': self.test_duration,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }

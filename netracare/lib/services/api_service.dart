@@ -205,10 +205,7 @@ class ApiService {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({
-        'correct': correct,
-        'total': total,
-      }),
+      body: jsonEncode({'correct': correct, 'total': total}),
     );
 
     if (response.statusCode == 200) {
@@ -219,6 +216,78 @@ class ApiService {
     if (response.statusCode == 401) {
       await deleteToken();
       throw Exception('Session expired. Please login again.');
+    }
+
+    _throwReadableError(response);
+  }
+
+  // ===========================
+  // COLOR VISION TEST
+  // ===========================
+  static String getBaseUrl() {
+    return ApiConfig.baseUrl;
+  }
+
+  static Future<List<Map<String, dynamic>>> getColorVisionPlates({
+    int count = 5,
+  }) async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.colourVisionPlatesEndpoint}?count=$count',
+      ),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final plates = data['plates'] as List;
+      return plates.map((p) => p as Map<String, dynamic>).toList();
+    }
+
+    _throwReadableError(response);
+  }
+
+  static Future<Map<String, dynamic>> submitColorVisionTest({
+    required List<int> plateIds,
+    required List<String> plateImages,
+    required List<String> userAnswers,
+    required int score,
+    double? testDuration,
+  }) async {
+    final token = await getToken();
+
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.colourVisionTestsEndpoint}'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'plate_ids': plateIds,
+        'plate_images': plateImages,
+        'user_answers': userAnswers,
+        'test_duration': testDuration,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    }
+
+    _throwReadableError(response);
+  }
+
+  static Future<List<Map<String, dynamic>>> getColorVisionTests() async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.colourVisionTestsEndpoint}'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((test) => test as Map<String, dynamic>).toList();
     }
 
     _throwReadableError(response);
