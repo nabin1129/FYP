@@ -56,11 +56,55 @@ class _ProfilePageState extends State<ProfilePage> {
     } catch (e) {
       if (!mounted) return;
 
-      setState(() {
-        isLoading = false;
-        errorMessage = e.toString().replaceAll('Exception:', '').trim();
-      });
+      final errorMsg = e.toString().replaceAll('Exception:', '').trim();
+
+      // Check if it's a session expiration error
+      if (errorMsg.contains('Session expired') || errorMsg.contains('401')) {
+        setState(() {
+          isLoading = false;
+        });
+        _showSessionExpiredDialog();
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = errorMsg;
+        });
+      }
     }
+  }
+
+  void _showSessionExpiredDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber, color: Colors.orange[700]),
+            const SizedBox(width: 8),
+            const Text('Session Expired'),
+          ],
+        ),
+        content: const Text(
+          'Your session has expired. Please login again to continue.',
+          style: TextStyle(fontSize: 15),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              await ApiService.deleteToken();
+              if (!mounted) return;
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginPage()),
+                (_) => false,
+              );
+            },
+            child: const Text('Go to Login'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _saveProfile() async {
@@ -152,7 +196,7 @@ class _ProfilePageState extends State<ProfilePage> {
       );
     }
 
-    // ERROR
+    // ERROR (Show generic error for non-auth errors)
     if (errorMessage != null) {
       return Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
@@ -171,16 +215,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () async {
-                    await ApiService.deleteToken();
-                    if (!mounted) return;
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginPage()),
-                      (_) => false,
-                    );
+                  onPressed: () {
+                    setState(() {
+                      errorMessage = null;
+                      isLoading = true;
+                    });
+                    _loadProfile();
                   },
-                  child: const Text("Go to Login"),
+                  child: const Text("Retry"),
                 ),
               ],
             ),
@@ -239,8 +281,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                 height: 16,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               )
                             : const Text("Save"),
@@ -355,10 +398,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                user!.email,
-                style: const TextStyle(color: Colors.grey),
-              ),
+              Text(user!.email, style: const TextStyle(color: Colors.grey)),
               if (user!.age != null || user!.sex != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
@@ -367,10 +407,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       if (user!.age != null) "Age: ${user!.age}",
                       if (user!.sex != null) user!.sex,
                     ].join(' | '),
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ),
             ],
@@ -413,9 +450,7 @@ class _ProfilePageState extends State<ProfilePage> {
           decoration: InputDecoration(
             labelText: 'Name',
             prefixIcon: const Icon(Icons.person),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -431,9 +466,7 @@ class _ProfilePageState extends State<ProfilePage> {
           decoration: InputDecoration(
             labelText: 'Email',
             prefixIcon: const Icon(Icons.email),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -449,9 +482,7 @@ class _ProfilePageState extends State<ProfilePage> {
           decoration: InputDecoration(
             labelText: 'Age (Optional)',
             prefixIcon: const Icon(Icons.calendar_today),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -467,9 +498,7 @@ class _ProfilePageState extends State<ProfilePage> {
           decoration: InputDecoration(
             labelText: 'Sex (Optional)',
             prefixIcon: const Icon(Icons.person_outline),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),

@@ -336,3 +336,51 @@ class ColourVisionTest(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
+
+
+class BlinkFatigueTest(db.Model):
+    """Database model for blink and eye fatigue detection results"""
+    __tablename__ = 'blink_fatigue_tests'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    # Prediction results
+    prediction = db.Column(db.String(50), nullable=False)  # 'drowsy' or 'notdrowsy'
+    confidence = db.Column(db.Float, nullable=False)  # 0-1
+    drowsy_probability = db.Column(db.Float, nullable=False)  # 0-1
+    notdrowsy_probability = db.Column(db.Float, nullable=False)  # 0-1
+    
+    # Fatigue classification
+    fatigue_level = db.Column(db.String(100), nullable=False)  # Alert, Low Fatigue, etc.
+    alert_triggered = db.Column(db.Boolean, default=False)  # True if drowsy_prob > 0.7
+    
+    # Test metadata
+    test_duration = db.Column(db.Float)  # seconds (if applicable)
+    image_filename = db.Column(db.String(255))  # stored image filename (optional)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('blink_fatigue_tests', lazy=True))
+    
+    def to_dict(self) -> dict:
+        """Convert test to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'prediction': self.prediction,
+            'confidence': self.confidence,
+            'probabilities': {
+                'drowsy': self.drowsy_probability,
+                'notdrowsy': self.notdrowsy_probability
+            },
+            'fatigue_level': self.fatigue_level,
+            'alert_triggered': self.alert_triggered,
+            'test_duration': self.test_duration,
+            'image_filename': self.image_filename,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }

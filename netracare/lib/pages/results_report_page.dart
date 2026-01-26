@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:io';
-import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../services/api_service.dart';
+import '../services/blink_fatigue_service.dart';
 
 class ResultsReportPage extends StatefulWidget {
   const ResultsReportPage({super.key});
@@ -16,12 +17,76 @@ class ResultsReportPage extends StatefulWidget {
 class _ResultsReportPageState extends State<ResultsReportPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _sendingReport = false;
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  // Real data from backend
+  List<Map<String, dynamic>> _visualAcuityTests = [];
+  List<Map<String, dynamic>> _colourVisionTests = [];
+  List<Map<String, dynamic>> _eyeTrackingTests = [];
+  List<Map<String, dynamic>> _blinkFatigueTests = [];
+  Map<String, dynamic>? _blinkFatigueStats;
+
+  DateTime? _lastUpdated;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
+    _loadTestResults();
+  }
+
+  Future<void> _loadTestResults() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      final data = await ApiService.getAllTestResults();
+
+      // Load blink fatigue data
+      Map<String, dynamic>? blinkFatigueData;
+      Map<String, dynamic>? blinkFatigueStats;
+      try {
+        blinkFatigueData = await BlinkFatigueService.getHistory();
+        blinkFatigueStats = await BlinkFatigueService.getStatistics();
+      } catch (e) {
+        // Blink fatigue might not have data yet
+        print('Blink fatigue data not available: $e');
+      }
+
+      setState(() {
+        _visualAcuityTests =
+            (data['visual_acuity']?['tests'] as List?)
+                ?.map((e) => e as Map<String, dynamic>)
+                .toList() ??
+            [];
+        _colourVisionTests =
+            (data['colour_vision']?['tests'] as List?)
+                ?.map((e) => e as Map<String, dynamic>)
+                .toList() ??
+            [];
+        _eyeTrackingTests =
+            (data['eye_tracking']?['tests'] as List?)
+                ?.map((e) => e as Map<String, dynamic>)
+                .toList() ??
+            [];
+        _blinkFatigueTests =
+            (blinkFatigueData?['tests'] as List?)
+                ?.map((e) => e as Map<String, dynamic>)
+                .toList() ??
+            [];
+        _blinkFatigueStats = blinkFatigueStats;
+        _lastUpdated = DateTime.now();
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -106,9 +171,7 @@ This report has been generated using advanced AI analysis of your test results. 
 ''';
 
   Future<void> _handleSendToDoctor() async {
-    setState(() => _sendingReport = true);
     await Future.delayed(const Duration(seconds: 2));
-    setState(() => _sendingReport = false);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -198,11 +261,99 @@ This report has been generated using advanced AI analysis of your test results. 
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF5F7FA),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 1,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: const Text(
+            'Your Eye Health Report',
+            style: TextStyle(
+              color: Colors.black87,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF5F7FA),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 1,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: const Text(
+            'Your Eye Health Report',
+            style: TextStyle(
+              color: Colors.black87,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(
+                'Error loading results',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  _errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.black54),
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _loadTestResults,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 12,
+                  ),
+                ),
+                child: const Text(
+                  'Retry',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final lastUpdatedText = _lastUpdated != null
+        ? '${_lastUpdated!.day}/${_lastUpdated!.month}/${_lastUpdated!.year} ${_lastUpdated!.hour}:${_lastUpdated!.minute.toString().padLeft(2, '0')}'
+        : 'Never';
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0,
+        elevation: 1,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
@@ -211,6 +362,12 @@ This report has been generated using advanced AI analysis of your test results. 
           'Your Eye Health Report',
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.black87),
+            onPressed: _loadTestResults,
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
@@ -220,9 +377,9 @@ This report has been generated using advanced AI analysis of your test results. 
               width: double.infinity,
               color: Colors.white,
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: const Text(
-                'Last updated: 15th May 2023',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
+              child: Text(
+                'Last updated: $lastUpdatedText',
+                style: const TextStyle(color: Colors.grey, fontSize: 14),
               ),
             ),
 
@@ -255,6 +412,35 @@ This report has been generated using advanced AI analysis of your test results. 
   }
 
   Widget _buildHealthScoreCard() {
+    // Calculate overall score based on latest tests
+    int totalScore = 0;
+    int testCount = 0;
+
+    if (_visualAcuityTests.isNotEmpty) {
+      final latestVA = _visualAcuityTests.first;
+      totalScore += (latestVA['score'] as num?)?.toInt() ?? 70;
+      testCount++;
+    }
+
+    if (_colourVisionTests.isNotEmpty) {
+      final latestCV = _colourVisionTests.first;
+      totalScore += (latestCV['score'] as num?)?.toInt() ?? 80;
+      testCount++;
+    }
+
+    if (_eyeTrackingTests.isNotEmpty) {
+      final latestET = _eyeTrackingTests.first;
+      final accuracy = (latestET['gaze_accuracy'] as num?)?.toDouble() ?? 75.0;
+      totalScore += accuracy.toInt();
+      testCount++;
+    }
+
+    final overallScore = testCount > 0 ? (totalScore / testCount).round() : 0;
+    final totalTests =
+        _visualAcuityTests.length +
+        _colourVisionTests.length +
+        _eyeTrackingTests.length;
+
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(24),
@@ -308,7 +494,7 @@ This report has been generated using advanced AI analysis of your test results. 
                       width: 80,
                       height: 80,
                       child: CircularProgressIndicator(
-                        value: 0.85,
+                        value: overallScore / 100,
                         strokeWidth: 8,
                         backgroundColor: Colors.white.withOpacity(0.3),
                         valueColor: const AlwaysStoppedAnimation<Color>(
@@ -316,10 +502,10 @@ This report has been generated using advanced AI analysis of your test results. 
                         ),
                       ),
                     ),
-                    const Center(
+                    Center(
                       child: Text(
-                        '85',
-                        style: TextStyle(
+                        '$overallScore',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -341,19 +527,19 @@ This report has been generated using advanced AI analysis of your test results. 
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Column(
+                  child: Column(
                     children: [
-                      Text(
+                      const Text(
                         'Tests Completed',
                         style: TextStyle(
                           color: Color(0xFFBFDBFE),
                           fontSize: 12,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        '5/5',
-                        style: TextStyle(
+                        '$totalTests',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -371,7 +557,7 @@ This report has been generated using advanced AI analysis of your test results. 
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Column(
+                  child: Column(
                     children: [
                       Text(
                         'Improvement',
@@ -430,6 +616,15 @@ This report has been generated using advanced AI analysis of your test results. 
               Tab(
                 child: Row(
                   children: [
+                    Icon(Icons.visibility_off, size: 16),
+                    SizedBox(width: 4),
+                    Text('Blink & Fatigue'),
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  children: [
                     Icon(Icons.psychology, size: 16),
                     SizedBox(width: 4),
                     Text('AI Report'),
@@ -446,6 +641,7 @@ This report has been generated using advanced AI analysis of your test results. 
                 _buildSummaryTab(),
                 _buildDetailsTab(),
                 _buildHistoryTab(),
+                _buildBlinkFatigueTab(),
                 _buildAIReportTab(),
               ],
             ),
@@ -528,32 +724,45 @@ This report has been generated using advanced AI analysis of your test results. 
             children: [
               _buildTestCard(
                 'Visual Acuity',
-                '20/25',
-                'Slightly reduced',
+                _visualAcuityTests.isNotEmpty
+                    ? '${_visualAcuityTests.first['correct'] ?? 0}/${_visualAcuityTests.first['total'] ?? 0}'
+                    : 'No data',
+                _visualAcuityTests.isNotEmpty
+                    ? '${_visualAcuityTests.first['score'] ?? 0}% score'
+                    : 'Not tested',
                 Icons.remove_red_eye,
                 const Color(0xFF3B82F6),
                 const Color(0xFFEFF6FF),
               ),
               _buildTestCard(
                 'Eye Tracking',
-                'Normal',
-                'Smooth pursuit',
+                _eyeTrackingTests.isNotEmpty
+                    ? (_eyeTrackingTests.first['performance_classification'] ??
+                          'Normal')
+                    : 'No data',
+                _eyeTrackingTests.isNotEmpty
+                    ? '${(_eyeTrackingTests.first['gaze_accuracy'] ?? 0).toStringAsFixed(1)}% accuracy'
+                    : 'Not tested',
                 Icons.my_location,
                 const Color(0xFF10B981),
                 const Color(0xFFECFDF5),
               ),
               _buildTestCard(
                 'Colour Vision',
-                '85%',
-                'Normal range',
+                _colourVisionTests.isNotEmpty
+                    ? '${_colourVisionTests.first['correct_count'] ?? 0}/${_colourVisionTests.first['total_plates'] ?? 0}'
+                    : 'No data',
+                _colourVisionTests.isNotEmpty
+                    ? (_colourVisionTests.first['severity'] ?? 'Normal')
+                    : 'Not tested',
                 Icons.palette,
                 const Color(0xFF9333EA),
                 const Color(0xFFFAF5FF),
               ),
               _buildTestCard(
                 'Fatigue Level',
-                'Mild',
-                '12 blinks/min',
+                'Coming Soon',
+                'Blink analysis',
                 Icons.visibility,
                 const Color(0xFFF97316),
                 const Color(0xFFFFF7ED),
@@ -566,8 +775,8 @@ This report has been generated using advanced AI analysis of your test results. 
           // Pupil Reflex Card (full width)
           _buildFullWidthTestCard(
             'Pupil Reflex',
-            'Normal',
-            '0.3s reaction time',
+            'Coming Soon',
+            'Reaction time analysis',
             Icons.flash_on,
             const Color(0xFF6366F1),
             const Color(0xFFEEF2FF),
@@ -844,6 +1053,44 @@ This report has been generated using advanced AI analysis of your test results. 
   }
 
   Widget _buildColourVisionDetails() {
+    if (_colourVisionTests.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Colour Vision Test Details',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FAFB),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Center(
+              child: Text(
+                'No colour vision test data available',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final latestTest = _colourVisionTests.first;
+    final totalPlates = latestTest['total_plates'] ?? 0;
+    final correctCount = latestTest['correct_count'] ?? 0;
+    final plateIds = latestTest['plate_ids'] as List<dynamic>? ?? [];
+    final userAnswers = latestTest['user_answers'] as List<dynamic>? ?? [];
+    final correctAnswers =
+        latestTest['correct_answers'] as List<dynamic>? ?? [];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -864,22 +1111,25 @@ This report has been generated using advanced AI analysis of your test results. 
           ),
           child: Column(
             children: [
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     'Correct Plates',
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                   Text(
-                    '4 / 5',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    '$correctCount / $totalPlates',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
               LinearProgressIndicator(
-                value: 0.8,
+                value: totalPlates > 0 ? correctCount / totalPlates : 0,
                 backgroundColor: Colors.grey[200],
                 valueColor: const AlwaysStoppedAnimation<Color>(
                   Color(0xFF9333EA),
@@ -888,11 +1138,23 @@ This report has been generated using advanced AI analysis of your test results. 
                 borderRadius: BorderRadius.circular(4),
               ),
               const SizedBox(height: 16),
-              _buildPlateResult('Plate 1: Correctly identified (12)', true),
-              _buildPlateResult('Plate 2: Correctly identified (8)', true),
-              _buildPlateResult('Plate 3: Incorrectly identified', false),
-              _buildPlateResult('Plate 4: Correctly identified (5)', true),
-              _buildPlateResult('Plate 5: Correctly identified (74)', true),
+              ...List.generate(
+                plateIds.length < totalPlates ? plateIds.length : totalPlates,
+                (index) {
+                  final userAnswer = index < userAnswers.length
+                      ? userAnswers[index]
+                      : '';
+                  final correctAnswer = index < correctAnswers.length
+                      ? correctAnswers[index]
+                      : '';
+                  final isCorrect = userAnswer == correctAnswer;
+
+                  return _buildPlateResult(
+                    'Plate ${index + 1}: ${isCorrect ? "Correctly" : "Incorrectly"} identified ($correctAnswer)',
+                    isCorrect,
+                  );
+                },
+              ),
             ],
           ),
         ),
@@ -1038,6 +1300,349 @@ This report has been generated using advanced AI analysis of your test results. 
               fontWeight: FontWeight.w600,
               color: Color(0xFF10B981),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBlinkFatigueTab() {
+    if (_blinkFatigueTests.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.visibility_off,
+                  size: 48,
+                  color: Colors.orange,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'No Blink & Fatigue Tests Yet',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Take a test to see your drowsiness detection results here',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Statistics Card
+          if (_blinkFatigueStats != null) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.orange.shade50, Colors.red.shade50],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.orange.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.analytics,
+                          color: Colors.orange,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Fatigue Statistics',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          'Total Tests',
+                          '${_blinkFatigueStats!['total_tests'] ?? 0}',
+                          Icons.assessment,
+                          Colors.blue,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          'Drowsy',
+                          '${_blinkFatigueStats!['drowsy_percentage']?.toStringAsFixed(0) ?? 0}%',
+                          Icons.warning,
+                          Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          'Alerts',
+                          '${_blinkFatigueStats!['alert_percentage']?.toStringAsFixed(0) ?? 0}%',
+                          Icons.notifications_active,
+                          Colors.orange,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          'Confidence',
+                          '${(_blinkFatigueStats!['average_confidence'] * 100)?.toStringAsFixed(0) ?? 0}%',
+                          Icons.verified,
+                          Colors.green,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.trending_up,
+                          color: Colors.blue.shade700,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _blinkFatigueStats!['recent_trend'] ??
+                                'No trend data',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blue.shade900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+
+          // Recent Tests List
+          const Text(
+            'Recent Tests',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...(_blinkFatigueTests.take(10).map((test) {
+            final prediction = test['prediction'] as String;
+            final confidence = (test['confidence'] as num).toDouble();
+            final fatigueLevel = test['fatigue_level'] as String;
+            final alertTriggered = test['alert_triggered'] as bool;
+            final createdAt = DateTime.parse(test['created_at'] as String);
+
+            final isDrowsy = prediction == 'drowsy';
+            final statusColor = isDrowsy ? Colors.red : Colors.green;
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: alertTriggered
+                      ? Colors.red.shade300
+                      : Colors.grey.shade200,
+                  width: alertTriggered ? 2 : 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          isDrowsy ? Icons.warning : Icons.check_circle,
+                          color: statusColor,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isDrowsy ? 'Drowsy Detected' : 'Alert State',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: statusColor,
+                              ),
+                            ),
+                            Text(
+                              fatigueLevel,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (alertTriggered)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade100,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'ALERT',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.percent,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Confidence: ${(confidence * 100).toStringAsFixed(1)}%',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        '${createdAt.day}/${createdAt.month}/${createdAt.year}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          })),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 11, color: Colors.black54),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

@@ -13,7 +13,9 @@ class ApiConfig {
   static const String signupEndpoint = '/auth/signup';
   static const String profileEndpoint = '/user/profile';
   static const String testUploadEndpoint = '/tests/upload';
-  static const String visualAcuityEndpoint = '/tests/visual-acuity';
+  static const String visualAcuityEndpoint = '/visual-acuity/tests';
+  static const String visualAcuityTestsEndpoint = '/visual-acuity/tests';
   static const String colourVisionPlatesEndpoint = '/colour-vision/plates';
   static const String colourVisionTestsEndpoint = '/colour-vision/tests';
+  static const String eyeTrackingTestsEndpoint = '/eye-tracking/tests';
 }

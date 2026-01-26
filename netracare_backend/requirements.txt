@@ -7,3 +7,5 @@ PyJWT
 opencv-python
 mediapipe
 numpy
+tensorflow
+Pillow

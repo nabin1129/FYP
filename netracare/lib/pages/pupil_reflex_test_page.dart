@@ -159,14 +159,20 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
         return true;
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: const Color(0xFFF5F7FA),
         appBar: AppBar(
-          backgroundColor: const Color(0xFF16213E),
-          elevation: 0,
+          backgroundColor: Colors.white,
+          elevation: 1,
+          titleTextStyle: const TextStyle(
+            color: Colors.black87,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+          iconTheme: const IconThemeData(color: Colors.black87),
           leading: isTestComplete
               ? null
               : IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close, color: Colors.black87),
                   onPressed: () => _showExitDialog(),
                 ),
           title: const Text("Pupil Reflex Test"),
@@ -183,7 +189,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
       children: [
         // Background
         Container(
-          color: const Color(0xFF1A1A2E),
+          color: const Color(0xFFF5F7FA),
           width: double.infinity,
           height: double.infinity,
         ),
@@ -221,7 +227,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
               return Container(
                 color: _flashAnimationController.value > 0.5
                     ? Colors.white.withOpacity(0.8)
-                    : const Color(0xFF1A1A2E),
+                    : Colors.white,
                 width: double.infinity,
                 height: double.infinity,
               );
@@ -259,7 +265,11 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                 const SizedBox(height: 24),
                 const Text(
                   "Look directly at the camera",
-                  style: TextStyle(fontSize: 16, color: Colors.white70),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -357,7 +367,11 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
           const Text(
             "Your pupil reflex test has been successfully completed.",
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.white70),
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black87,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 32),
           Container(
@@ -385,7 +399,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                   Colors.green[400]!,
                 ),
                 const SizedBox(height: 12),
-                Divider(color: Colors.white12),
+                const Divider(color: Colors.black12),
                 const SizedBox(height: 12),
                 _resultRow(
                   "Constriction Amplitude",
@@ -393,7 +407,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                   Colors.green[400]!,
                 ),
                 const SizedBox(height: 12),
-                Divider(color: Colors.white12),
+                const Divider(color: Colors.black12),
                 const SizedBox(height: 12),
                 _resultRow("Symmetry", symmetry, Colors.green[400]!),
               ],
@@ -494,7 +508,11 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 14, color: Colors.white70),
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.black87,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         Text(
           value,

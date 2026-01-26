@@ -332,8 +332,16 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
       return Scaffold(
         appBar: AppBar(
           title: const Text("Colour Vision Test"),
-          backgroundColor: Colors.teal[800],
+          backgroundColor: Colors.white,
+          elevation: 1,
+          titleTextStyle: const TextStyle(
+            color: Colors.black87,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+          iconTheme: const IconThemeData(color: Colors.black87),
         ),
+        backgroundColor: const Color(0xFFF5F7FA),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -352,8 +360,16 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
       return Scaffold(
         appBar: AppBar(
           title: const Text("Colour Vision Test"),
-          backgroundColor: Colors.teal[800],
+          backgroundColor: Colors.white,
+          elevation: 1,
+          titleTextStyle: const TextStyle(
+            color: Colors.black87,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+          iconTheme: const IconThemeData(color: Colors.black87),
         ),
+        backgroundColor: const Color(0xFFF5F7FA),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -381,14 +397,20 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         return true;
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: const Color(0xFFF5F7FA),
         appBar: AppBar(
-          backgroundColor: const Color(0xFF16213E),
-          elevation: 0,
+          backgroundColor: Colors.white,
+          elevation: 1,
+          titleTextStyle: const TextStyle(
+            color: Colors.black87,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+          iconTheme: const IconThemeData(color: Colors.black87),
           leading: isTestComplete
               ? null
               : IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close, color: Colors.black87),
                   onPressed: () => _showExitDialog(),
                 ),
           title: const Text("Colour Vision Test"),
@@ -404,149 +426,210 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
     final plate = ishiharaPlates[currentPlate];
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         child: Column(
           children: [
-            const SizedBox(height: 16),
-            // Plate info
+            // Progress Card
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Progress",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black54,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          "${currentPlate + 1}/${ishiharaPlates.length}",
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: progress / 100,
+                      minHeight: 8,
+                      backgroundColor: Colors.grey.shade200,
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        Colors.blue,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Question Text
             Text(
               "What number do you see?",
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Colors.black87,
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Plate ${currentPlate + 1} of ${ishiharaPlates.length}",
-              style: const TextStyle(fontSize: 14, color: Colors.white70),
             ),
             const SizedBox(height: 24),
 
             // Plate display
             Container(
-              width: 280,
-              height: 280,
+              width: double.infinity,
+              height: 300,
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.white24, width: 2),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  '${ApiService.getBaseUrl()}${plate.imagePath}',
-                  width: 280,
-                  height: 280,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Center(
-                      child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                            : null,
-                        color: Colors.white,
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[800],
-                      child: const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              size: 48,
-                              color: Colors.white54,
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Image failed to load',
-                              style: TextStyle(color: Colors.white54),
-                            ),
-                          ],
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Image.network(
+                    '${ApiService.getBaseUrl()}${plate.imagePath}',
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                              : null,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            Colors.blue,
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey.shade100,
+                        child: const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                size: 48,
+                                color: Colors.black45,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Image failed to load',
+                                style: TextStyle(color: Colors.black54),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
 
             // Answer options
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              children: plate.options.map((option) {
-                return GestureDetector(
-                  onTap: () => handleAnswer(option),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white10,
-                      border: Border.all(color: Colors.white24),
-                      borderRadius: BorderRadius.circular(12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    "Select your answer",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black54,
                     ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => handleAnswer(option),
-                        child: Center(
-                          child: Text(
-                            option,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                  ),
+                  const SizedBox(height: 16),
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    children: plate.options.map((option) {
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => handleAnswer(option),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.08),
+                              border: Border.all(
+                                color: Colors.blue.withOpacity(0.3),
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: Text(
+                                option,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    }).toList(),
                   ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 32),
-
-            // Progress bar
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Progress",
-                      style: TextStyle(fontSize: 14, color: Colors.white70),
-                    ),
-                    Text(
-                      "${progress.round()}%",
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: progress / 100,
-                    minHeight: 8,
-                    backgroundColor: Colors.white24,
-                    valueColor: AlwaysStoppedAnimation(Colors.purple[400]),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -571,17 +654,17 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Column(
         children: [
           const SizedBox(height: 20),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: (resultMsg['color'] as Color).withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(resultMsg['icon'], size: 48, color: resultMsg['color']),
+            child: Icon(resultMsg['icon'], size: 64, color: resultMsg['color']),
           ),
           const SizedBox(height: 24),
           const Text(
@@ -589,22 +672,28 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: Colors.black87,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
             "Your colour vision test has been successfully completed.",
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.white70),
+            style: TextStyle(fontSize: 14, color: Colors.black54),
           ),
           const SizedBox(height: 32),
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
-              border: Border.all(color: Colors.white24),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -614,21 +703,21 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 16),
                 _resultRow(
                   "Correct Answers",
                   "$correct / ${ishiharaPlates.length}",
-                  Colors.white70,
+                  Colors.black87,
                 ),
                 const SizedBox(height: 12),
-                Divider(color: Colors.white12),
+                const Divider(color: Colors.black12),
                 const SizedBox(height: 12),
-                _resultRow("Score", "$score%", Colors.purple[400]!),
+                _resultRow("Score", "$score%", Colors.blue),
                 const SizedBox(height: 12),
-                Divider(color: Colors.white12),
+                const Divider(color: Colors.black12),
                 const SizedBox(height: 12),
                 _resultRow(
                   "Status",
@@ -707,9 +796,16 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                       SnackBar(
                         content: Text(message),
                         backgroundColor: bgColor,
-                        duration: const Duration(seconds: 4),
+                        duration: const Duration(seconds: 3),
                       ),
                     );
+
+                    // Navigate to home page after short delay
+                    Future.delayed(const Duration(seconds: 3), () {
+                      if (mounted) {
+                        Navigator.popUntil(context, (route) => route.isFirst);
+                      }
+                    });
 
                     // Show medical disclaimer
                     if (response['medical_disclaimer'] != null) {
@@ -793,17 +889,17 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                   Navigator.popUntil(context, (route) => route.isFirst),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                side: BorderSide(color: Colors.grey.withOpacity(0.5)),
+                side: BorderSide(color: Colors.grey.shade400),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: Text(
+              child: const Text(
                 "Back to Home",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey.withOpacity(0.7),
+                  color: Colors.black54,
                 ),
               ),
             ),
@@ -820,12 +916,16 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 14, color: Colors.white70),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
+          ),
         ),
         Text(
           value,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
             color: valueColor,
           ),

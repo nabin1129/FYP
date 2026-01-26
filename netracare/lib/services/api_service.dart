@@ -205,10 +205,10 @@ class ApiService {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({'correct': correct, 'total': total}),
+      body: jsonEncode({'correct_answers': correct, 'total_questions': total}),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       final data = jsonDecode(response.body);
       return VisualAcuityResult.fromJson(data);
     }
@@ -291,6 +291,51 @@ class ApiService {
     }
 
     _throwReadableError(response);
+  }
+
+  static Future<Map<String, dynamic>> getVisualAcuityTests() async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.visualAcuityTestsEndpoint}'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+
+    _throwReadableError(response);
+  }
+
+  static Future<Map<String, dynamic>> getEyeTrackingTests() async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.eyeTrackingTestsEndpoint}'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+
+    _throwReadableError(response);
+  }
+
+  static Future<Map<String, dynamic>> getAllTestResults() async {
+    // Fetch all test types in parallel
+    final results = await Future.wait([
+      getVisualAcuityTests().catchError((e) => {'tests': [], 'total': 0}),
+      getColorVisionTests()
+          .then((tests) => {'tests': tests, 'total': tests.length})
+          .catchError((e) => {'tests': [], 'total': 0}),
+      getEyeTrackingTests().catchError((e) => {'tests': [], 'total': 0}),
+    ]);
+
+    return {
+      'visual_acuity': results[0],
+      'colour_vision': results[1],
+      'eye_tracking': results[2],
+    };
   }
 
   // =========================

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'dart:async';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import '../services/blink_fatigue_service.dart';
 
 class BlinkFatigueTestPage extends StatefulWidget {
   const BlinkFatigueTestPage({super.key});
@@ -201,14 +205,20 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
         return true;
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: const Color(0xFFF5F7FA),
         appBar: AppBar(
-          backgroundColor: const Color(0xFF16213E),
-          elevation: 0,
+          backgroundColor: Colors.white,
+          elevation: 1,
+          titleTextStyle: const TextStyle(
+            color: Colors.black87,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+          iconTheme: const IconThemeData(color: Colors.black87),
           leading: isTestComplete
               ? null
               : IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close, color: Colors.black87),
                   onPressed: () => _showExitDialog(),
                 ),
           title: const Text("Blink & Fatigue Test"),
@@ -402,13 +412,17 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
                   children: [
                     const Text(
                       "Progress",
-                      style: TextStyle(fontSize: 14, color: Colors.white70),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     Text(
                       "${progress.round()}%",
                       style: const TextStyle(
                         fontSize: 14,
-                        color: Colors.white70,
+                        color: Colors.black54,
                       ),
                     ),
                   ],
@@ -427,7 +441,11 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
                 const Text(
                   "Look at the centre point and blink naturally. The AI is monitoring your blink patterns.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: Colors.white70),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.black54,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -530,19 +548,19 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
                   Colors.blue[400]!,
                 ),
                 const SizedBox(height: 12),
-                Divider(color: Colors.white12),
+                const Divider(color: Colors.black12),
                 const SizedBox(height: 12),
                 _resultRow(
                   "Total Blinks",
                   blinkCount.toString(),
-                  Colors.white70,
+                  Colors.black87,
                 ),
                 const SizedBox(height: 12),
-                Divider(color: Colors.white12),
+                const Divider(color: Colors.black12),
                 const SizedBox(height: 12),
-                _resultRow("Test Duration", "${testDuration}s", Colors.white70),
+                _resultRow("Test Duration", "${testDuration}s", Colors.black87),
                 const SizedBox(height: 12),
-                Divider(color: Colors.white12),
+                const Divider(color: Colors.black12),
                 const SizedBox(height: 12),
                 _resultRow(
                   "Fatigue Level",
@@ -685,7 +703,11 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 14, color: Colors.white70),
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.black87,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         Text(
           value,

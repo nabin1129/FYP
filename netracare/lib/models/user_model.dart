@@ -24,13 +24,7 @@ class User {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'email': email,
-      'age': age,
-      'sex': sex,
-    };
+    return {'id': id, 'name': name, 'email': email, 'age': age, 'sex': sex};
   }
 }
 
@@ -38,10 +32,7 @@ class AuthResponse {
   final String token;
   final User user;
 
-  AuthResponse({
-    required this.token,
-    required this.user,
-  });
+  AuthResponse({required this.token, required this.user});
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     return AuthResponse(
@@ -64,9 +55,9 @@ class VisualAcuityResult {
 
   factory VisualAcuityResult.fromJson(Map<String, dynamic> json) {
     return VisualAcuityResult(
-      logMAR: (json['logMAR'] as num).toDouble(),
-      snellen: json['snellen'] as String,
-      severity: json['severity'] as String,
+      logMAR: (json['logmar_value'] as num?)?.toDouble() ?? 0.0,
+      snellen: json['snellen_value'] as String? ?? 'Unknown',
+      severity: json['severity'] as String? ?? 'Unknown',
     );
   }
 }

@@ -137,7 +137,10 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context); // Close dialog
-                Navigator.pop(context); // Go back to previous page
+                Navigator.popUntil(
+                  context,
+                  (route) => route.isFirst,
+                ); // Go to home page
               },
               child: const Text("Save Results"),
             ),

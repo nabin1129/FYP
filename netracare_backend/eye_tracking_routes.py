@@ -51,7 +51,7 @@ class EyeTrackingTests(Resource):
     @token_required
     @eye_tracking_ns.doc('save_test_results')
     @eye_tracking_ns.expect(test_submission_model)
-    def post(current_user, self):
+    def post(self, current_user):
         """Save eye tracking test results"""
         try:
             data = request.get_json()
@@ -104,7 +104,7 @@ class EyeTrackingTests(Resource):
     
     @token_required
     @eye_tracking_ns.doc('get_tests')
-    def get(current_user, self):
+    def get(self, current_user):
         """Get all eye tracking tests for the current user"""
         try:
             limit = request.args.get('limit', 50, type=int)
@@ -130,7 +130,7 @@ class EyeTrackingUploadData(Resource):
     @token_required
     @eye_tracking_ns.doc('upload_test_data')
     @eye_tracking_ns.expect(upload_data_model)
-    def post(current_user, self):
+    def post(self, current_user):
         """Upload and process raw eye tracking data"""
         try:
             data = request.get_json()

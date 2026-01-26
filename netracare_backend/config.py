@@ -3,4 +3,4 @@ import os
 
 # config.py
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me")
-JWT_EXP_MINUTES = 60
+JWT_EXP_MINUTES = 1440  # 24 hours (1440 minutes) for better user experience

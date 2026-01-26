@@ -11,6 +11,7 @@ from camera_eye_tracking_routes import camera_eye_tracking_ns
 from visual_acuity_routes import visual_acuity_ns
 from eye_tracking_routes import eye_tracking_ns
 from colour_vision_routes import colour_vision_ns
+from blink_fatigue_routes import blink_fatigue_ns
 
 app = Flask(__name__)
 # Configure CORS to allow Flutter app requests
@@ -43,7 +44,7 @@ api.add_namespace(camera_eye_tracking_ns)
 api.add_namespace(visual_acuity_ns)
 api.add_namespace(eye_tracking_ns)
 api.add_namespace(colour_vision_ns)
-api.add_namespace(colour_vision_ns)
+api.add_namespace(blink_fatigue_ns)
 
 
 @app.route("/static/ishihara/<path:filename>")

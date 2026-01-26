@@ -35,7 +35,7 @@ class VisualAcuityTests(Resource):
     @visual_acuity_ns.doc('submit_test')
     @visual_acuity_ns.expect(test_submission_model)
     @visual_acuity_ns.marshal_with(test_response_model, code=201)
-    def post(current_user, self):
+    def post(self, current_user):
         """Submit a new visual acuity test result"""
         try:
             data = request.get_json()
@@ -75,7 +75,7 @@ class VisualAcuityTests(Resource):
     
     @token_required
     @visual_acuity_ns.doc('get_tests')
-    def get(current_user, self):
+    def get(self, current_user):
         """Get all visual acuity tests for the current user"""
         try:
             # Query parameters
@@ -105,7 +105,7 @@ class VisualAcuityTestDetail(Resource):
     @token_required
     @visual_acuity_ns.doc('get_test')
     @visual_acuity_ns.marshal_with(test_response_model)
-    def get(current_user, self, test_id):
+    def get(self, current_user, test_id):
         """Get a specific visual acuity test"""
         try:
             test = VisualAcuityTest.query.filter_by(

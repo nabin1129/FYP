@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'blink_fatigue_test_page.dart';
+import 'blink_fatigue_cnn_test_page.dart';
+import '../services/api_service.dart';
 
 class BlinkFatiguePage extends StatefulWidget {
   const BlinkFatiguePage({super.key});
@@ -29,10 +30,63 @@ class _BlinkFatiguePageState extends State<BlinkFatiguePage> {
     }
   }
 
-  void startTest() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const BlinkFatigueTestPage()),
+  Future<void> startTest() async {
+    // Check if user is authenticated
+    try {
+      final token = await ApiService.getToken();
+      if (token == null || token.isEmpty) {
+        if (mounted) {
+          _showSessionExpiredDialog();
+        }
+        return;
+      }
+
+      // Token exists, proceed to test
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const BlinkFatigueCNNTestPage(),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSessionExpiredDialog();
+      }
+    }
+  }
+
+  void _showSessionExpiredDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber, color: Colors.orange[700]),
+            const SizedBox(width: 8),
+            const Text('Session Expired'),
+          ],
+        ),
+        content: const Text(
+          'Your session has expired. Please login again to continue.',
+          style: TextStyle(fontSize: 15),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close dialog
+              Navigator.of(context).pop(); // Go back to dashboard
+              // Navigate to login
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil('/login', (route) => false);
+            },
+            child: const Text('Login'),
+          ),
+        ],
+      ),
     );
   }
 

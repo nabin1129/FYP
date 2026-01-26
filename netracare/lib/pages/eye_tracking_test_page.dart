@@ -98,14 +98,20 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
         return true;
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: const Color(0xFFF5F7FA),
         appBar: AppBar(
-          backgroundColor: const Color(0xFF16213E),
-          elevation: 0,
+          backgroundColor: Colors.white,
+          elevation: 1,
+          titleTextStyle: const TextStyle(
+            color: Colors.black87,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+          iconTheme: const IconThemeData(color: Colors.black87),
           leading: isTestComplete
               ? null
               : IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close, color: Colors.black87),
                   onPressed: () => _showExitDialog(),
                 ),
           title: const Text("Eye Tracking Test"),
@@ -122,7 +128,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
       children: [
         // Background tracking area
         Container(
-          color: const Color(0xFF1A1A2E),
+          color: const Color(0xFFF5F7FA),
           width: double.infinity,
           height: double.infinity,
         ),
@@ -149,7 +155,11 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
             children: [
               Text(
                 "Phase ${testPhase + 1}/$totalPhases",
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 8),
               SizedBox(
@@ -175,14 +185,19 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
             children: [
               Text(
                 _getPhaseDescription(),
-                style: const TextStyle(color: Colors.white70, fontSize: 14),
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
                 "Follow the dot with your eyes",
-                style: TextStyle(
-                  color: Colors.green.withOpacity(0.8),
+                style: const TextStyle(
+                  color: Colors.blue,
                   fontSize: 12,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -302,7 +317,11 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
               children: [
                 const Text(
                   "Gaze Tracking Accuracy",
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -456,7 +475,11 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
         children: [
           Text(
             label,
-            style: const TextStyle(color: Colors.white70, fontSize: 14),
+            style: const TextStyle(
+              color: Colors.black87,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           Text(
             value,
@@ -504,7 +527,11 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
             ),
             content: const Text(
               "Are you sure you want to exit? Your progress will not be saved.",
-              style: TextStyle(color: Colors.white70),
+              style: const TextStyle(
+                color: Colors.black87,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
             ),
             actions: [
               TextButton(
