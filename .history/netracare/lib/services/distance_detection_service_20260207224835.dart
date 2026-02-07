@@ -87,10 +87,8 @@ class DistanceDetectionService {
   /// Set calibration data
   void setCalibration(DistanceCalibrationData calibration) {
     _calibrationData = calibration;
-    debugPrint(
-      'DistanceDetection: Calibration set - ref: ${calibration.referenceDistance}cm, '
-      'IPD: ${calibration.baselineIpdPixels}px',
-    );
+    debugPrint('DistanceDetection: Calibration set - ref: ${calibration.referenceDistance}cm, '
+        'IPD: ${calibration.baselineIpdPixels}px');
   }
 
   /// Clear calibration
@@ -202,7 +200,10 @@ class DistanceDetectionService {
         bytesPerRow: plane.bytesPerRow,
       );
 
-      return InputImage.fromBytes(bytes: plane.bytes, metadata: metadata);
+      return InputImage.fromBytes(
+        bytes: plane.bytes,
+        metadata: metadata,
+      );
     } catch (e) {
       debugPrint('DistanceDetection: Image conversion error: $e');
       return null;
@@ -321,8 +322,8 @@ class DistanceDetectionService {
 
       // Calculate distance
       // Distance = (FocalLength × RealIPD) / PixelIPD
-      final distance =
-          (_calibrationData!.focalLength * _calibrationData!.realWorldIpd) /
+      final distance = (_calibrationData!.focalLength *
+              _calibrationData!.realWorldIpd) /
           ipdPixels;
 
       return distance;
@@ -396,15 +397,11 @@ class DistanceDetectionService {
       final faces = await _faceDetector!.processImage(inputImage);
 
       if (faces.isEmpty) {
-        throw Exception(
-          'No face detected. Please ensure your face is visible.',
-        );
+        throw Exception('No face detected. Please ensure your face is visible.');
       }
 
       if (faces.length > 1) {
-        throw Exception(
-          'Multiple faces detected. Only one person should be in frame.',
-        );
+        throw Exception('Multiple faces detected. Only one person should be in frame.');
       }
 
       final face = faces.first;
@@ -412,9 +409,7 @@ class DistanceDetectionService {
       // Calculate baseline IPD
       final ipdPixels = _calculateIpdPixels(face);
       if (ipdPixels == null || ipdPixels < 10) {
-        throw Exception(
-          'Could not detect eye landmarks. Please face the camera directly.',
-        );
+        throw Exception('Could not detect eye landmarks. Please face the camera directly.');
       }
 
       // Calculate face width
@@ -445,9 +440,7 @@ class DistanceDetectionService {
         isActive: true,
       );
 
-      debugPrint(
-        'DistanceDetection: Calibration successful - $calibrationData',
-      );
+      debugPrint('DistanceDetection: Calibration successful - $calibrationData');
       return calibrationData;
     } catch (e) {
       debugPrint('DistanceDetection: Calibration error: $e');
