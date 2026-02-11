@@ -9,8 +9,7 @@ import 'package:flutter/material.dart';
 
 /// Singleton service for managing camera lifecycle
 class CameraManagerService {
-  static final CameraManagerService _instance =
-      CameraManagerService._internal();
+  static final CameraManagerService _instance = CameraManagerService._internal();
   factory CameraManagerService() => _instance;
   CameraManagerService._internal();
 
@@ -30,9 +29,7 @@ class CameraManagerService {
   ResolutionPreset _resolution = ResolutionPreset.high;
 
   /// Stream controller for camera state changes
-  final _stateChangeNotifier = ValueNotifier<CameraState>(
-    CameraState.uninitialized,
-  );
+  final _stateChangeNotifier = ValueNotifier<CameraState>(CameraState.uninitialized);
 
   /// Get state change notifier
   ValueNotifier<CameraState> get stateNotifier => _stateChangeNotifier;
@@ -45,9 +42,7 @@ class CameraManagerService {
 
   /// Get current camera description
   CameraDescription? get currentCamera =>
-      _cameras != null && _cameras!.isNotEmpty
-      ? _cameras![_currentCameraIndex]
-      : null;
+      _cameras != null && _cameras!.isNotEmpty ? _cameras![_currentCameraIndex] : null;
 
   /// Initialize cameras
   Future<void> initialize({
@@ -123,9 +118,7 @@ class CameraManagerService {
       _isInitialized = true;
       _stateChangeNotifier.value = CameraState.ready;
 
-      debugPrint(
-        'CameraManager: Initialized ${selectedCamera.lensDirection} camera',
-      );
+      debugPrint('CameraManager: Initialized ${selectedCamera.lensDirection} camera');
     } catch (e) {
       _isInitialized = false;
       _stateChangeNotifier.value = CameraState.error;
@@ -137,10 +130,7 @@ class CameraManagerService {
   /// Switch between front and back camera
   Future<void> switchCamera() async {
     if (_cameras == null || _cameras!.length < 2) {
-      throw CameraException(
-        'NO_ALTERNATE_CAMERA',
-        'No alternate camera available',
-      );
+      throw CameraException('NO_ALTERNATE_CAMERA', 'No alternate camera available');
     }
 
     try {
@@ -162,9 +152,7 @@ class CameraManagerService {
       _isInitialized = true;
       _stateChangeNotifier.value = CameraState.ready;
 
-      debugPrint(
-        'CameraManager: Switched to ${_currentCameraIndex == 1 ? 'front' : 'back'} camera',
-      );
+      debugPrint('CameraManager: Switched to ${_currentCameraIndex == 1 ? 'front' : 'back'} camera');
     } catch (e) {
       _isInitialized = false;
       _stateChangeNotifier.value = CameraState.error;

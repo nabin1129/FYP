@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:netracare/pages/profile_page.dart';
 import 'package:netracare/config/app_theme.dart';
+import 'package:netracare/config/test_config.dart';
 import 'package:netracare/models/consultation/consultation_model.dart';
 import 'visual_acuity_page.dart';
 import 'eye_tracking_page.dart';
@@ -9,6 +10,8 @@ import 'colour_vision_page.dart';
 import 'blink_fatigue_page.dart';
 import 'results_report_page.dart';
 import 'consultation/doctor_consultation_page.dart';
+import 'test/test_selection_page.dart';
+import 'package:intl/intl.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -91,6 +94,96 @@ class _DashboardPageState extends State<DashboardPage> {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
+
+            // CAMERA-BASED TESTING (Test Mode)
+            if (TestModeConfig.isTestMode)
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFF9800), Color(0xFFFF5722)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFF9800).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMedium),
+                      ),
+                      child: const Icon(
+                        Icons.science,
+                        size: 28,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '🎥 Camera Testing Mode',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Test all eye tests using laptop webcam',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const TestSelectionPage(),
+                          ),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFFFF9800),
+                        backgroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusSmall),
+                        ),
+                      ),
+                      child: const Text(
+                        'Start',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
             // VISUAL ACUITY TEST
             _testCard(
