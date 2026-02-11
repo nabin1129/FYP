@@ -31,12 +31,12 @@ class _DashboardPageState extends State<DashboardPage> {
   void _loadNextConsultation() {
     // Get all consultations
     final consultations = Consultation.getMockHistory();
-
+    
     // Filter for scheduled consultations
     final scheduled = consultations
         .where((c) => c.status == ConsultationStatus.scheduled)
         .toList();
-
+    
     // If there are scheduled consultations, get the first one
     if (scheduled.isNotEmpty) {
       setState(() {

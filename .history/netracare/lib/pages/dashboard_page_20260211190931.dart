@@ -23,29 +23,6 @@ class _DashboardPageState extends State<DashboardPage> {
   Consultation? nextConsultation;
 
   @override
-  void initState() {
-    super.initState();
-    _loadNextConsultation();
-  }
-
-  void _loadNextConsultation() {
-    // Get all consultations
-    final consultations = Consultation.getMockHistory();
-
-    // Filter for scheduled consultations
-    final scheduled = consultations
-        .where((c) => c.status == ConsultationStatus.scheduled)
-        .toList();
-
-    // If there are scheduled consultations, get the first one
-    if (scheduled.isNotEmpty) {
-      setState(() {
-        nextConsultation = scheduled.first;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       _homePage(),
