@@ -351,8 +351,7 @@ class ApiService {
         'gaze_accuracy': gazeAccuracy,
         'test_duration': testDuration,
         if (fixationStability != null) 'fixation_stability': fixationStability,
-        if (saccadeConsistency != null)
-          'saccade_consistency': saccadeConsistency,
+        if (saccadeConsistency != null) 'saccade_consistency': saccadeConsistency,
         if (overallScore != null) 'overall_score': overallScore,
         if (classification != null) 'classification': classification,
         if (testName != null) 'test_name': testName,

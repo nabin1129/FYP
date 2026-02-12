@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math' as math;
-import '../services/api_service.dart';
 
 class EyeTrackingTestPage extends StatefulWidget {
   const EyeTrackingTestPage({super.key});
@@ -552,11 +551,11 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
   Future<void> _saveResults() async {
     try {
       // Calculate metrics
-      final gazeAccuracy = gazeDataPoints > 0
-          ? (successfulTracking / gazeDataPoints) * 100
-          : 0.0;
+      final gazeAccuracy = gazeDataPoints > 0 
+          ? (successfulTracking / gazeDataPoints) * 100 
+          : 0;
       final testDuration = (totalPhases * 3).toDouble();
-
+      
       // Determine classification based on accuracy
       String classification;
       if (gazeAccuracy >= 90) {
@@ -595,7 +594,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
       });
     } catch (e) {
       if (!mounted) return;
-
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Failed to save results: $e"),

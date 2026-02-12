@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import '../services/blink_fatigue_service.dart';
-import '../utils/permission_helper.dart';
 
 /// Real-time blink and fatigue detection using CNN model
 class BlinkFatigueCNNTestPage extends StatefulWidget {
@@ -37,19 +36,6 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
 
   Future<void> _initializeCameras() async {
     try {
-      // Request camera permission first
-      if (mounted) {
-        final hasPermission = await PermissionHelper.requestCameraPermission(context);
-        if (!hasPermission) {
-          if (mounted) {
-            setState(() {
-              errorMessage = 'Camera permission denied. Please enable it in settings.';
-            });
-          }
-          return;
-        }
-      }
-
       cameras = await availableCameras();
       if (cameras != null && cameras!.isNotEmpty && mounted) {
         _initializeCamera();

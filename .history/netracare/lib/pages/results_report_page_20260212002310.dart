@@ -123,10 +123,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     String getLatestVisualAcuity() {
       if (_visualAcuityTests.isEmpty) return 'Not tested';
       final test = _visualAcuityTests.first;
-      final correct = test['correct_answers'] ?? test['correct'] ?? 0;
-      final total = test['total_questions'] ?? test['total'] ?? 0;
-      final score = test['score'] ?? (total > 0 ? ((correct / total) * 100).round() : 0);
-      return '$correct/$total ($score%)';
+      return '${test['correct']}/${test['total']} (${test['score']}%)';
     }
 
     String getLatestEyeTracking() {
@@ -610,28 +607,18 @@ class _ResultsReportPageState extends State<ResultsReportPage>
 
   Widget _buildSummaryTab() {
     // Calculate overall statistics
-    final totalTests =
-        _visualAcuityTests.length +
-        _colourVisionTests.length +
-        _eyeTrackingTests.length +
-        _blinkFatigueTests.length;
-
+    final totalTests = _visualAcuityTests.length + 
+                      _colourVisionTests.length + 
+                      _eyeTrackingTests.length + 
+                      _blinkFatigueTests.length;
+    
     final hasAnyTest = totalTests > 0;
-    final double overallScore = hasAnyTest
-        ? ((_visualAcuityTests.isNotEmpty
-                      ? (_visualAcuityTests.first['score'] ?? 0)
-                      : 0) +
-                  (_eyeTrackingTests.isNotEmpty
-                      ? (_eyeTrackingTests.first['gaze_accuracy'] ?? 0)
-                      : 0) +
-                  (_colourVisionTests.isNotEmpty
-                      ? (_colourVisionTests.first['score'] ?? 0)
-                      : 0) +
-                  (_blinkFatigueTests.isNotEmpty
-                      ? (_blinkFatigueTests.first['alertness_percentage'] ?? 0)
-                      : 0)) /
-              4
-        : 0;
+    final double overallScore = hasAnyTest ? (
+      (_visualAcuityTests.isNotEmpty ? (_visualAcuityTests.first['score'] ?? 0) : 0) +
+      (_eyeTrackingTests.isNotEmpty ? (_eyeTrackingTests.first['gaze_accuracy'] ?? 0) : 0) +
+      (_colourVisionTests.isNotEmpty ? (_colourVisionTests.first['score'] ?? 0) : 0) +
+      (_blinkFatigueTests.isNotEmpty ? (_blinkFatigueTests.first['alertness_percentage'] ?? 0) : 0)
+    ) / 4 : 0;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -711,9 +698,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        totalTests > 0
-                            ? '$totalTests test${totalTests != 1 ? 's' : ''} completed'
-                            : 'No tests completed yet',
+                        totalTests > 0 
+                          ? '$totalTests test${totalTests != 1 ? 's' : ''} completed'
+                          : 'No tests completed yet',
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.black54,
@@ -807,38 +794,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                       borderWidth: 3,
                       entryRadius: 4,
                       dataEntries: [
-                        RadarEntry(
-                          value: _visualAcuityTests.isNotEmpty
-                              ? (() {
-                                  final test = _visualAcuityTests.first;
-                                  final score = test['score'];
-                                  if (score != null) return score.toDouble();
-                                  final correct = test['correct_answers'] ?? test['correct'] ?? 0;
-                                  final total = test['total_questions'] ?? test['total'] ?? 1;
-                                  return ((correct / total) * 100).toDouble();
-                                })()
-                              : 0,
-                        ),
-                        RadarEntry(
-                          value: _eyeTrackingTests.isNotEmpty
-                              ? (_eyeTrackingTests.first['gaze_accuracy'] ?? 0)
-                                    .toDouble()
-                              : 0,
-                        ),
-                        RadarEntry(
-                          value: _colourVisionTests.isNotEmpty
-                              ? ((_colourVisionTests.first['score'] ?? 0)
-                                    .toDouble())
-                              : 0,
-                        ),
-                        RadarEntry(
-                          value: _blinkFatigueTests.isNotEmpty
-                              ? (_blinkFatigueTests
-                                            .first['alertness_percentage'] ??
-                                        0)
-                                    .toDouble()
-                              : 0,
-                        ),
+                        RadarEntry(value: _visualAcuityTests.isNotEmpty ? (_visualAcuityTests.first['score'] ?? 0).toDouble() : 0),
+                        RadarEntry(value: _eyeTrackingTests.isNotEmpty ? (_eyeTrackingTests.first['gaze_accuracy'] ?? 0).toDouble() : 0),
+                        RadarEntry(value: _colourVisionTests.isNotEmpty ? ((_colourVisionTests.first['score'] ?? 0).toDouble()) : 0),
+                        RadarEntry(value: _blinkFatigueTests.isNotEmpty ? (_blinkFatigueTests.first['alertness_percentage'] ?? 0).toDouble() : 0),
                         RadarEntry(value: 0),
                       ],
                     ),
@@ -876,26 +835,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
             ),
             const SizedBox(height: 12),
             _buildInsightCard(
-              overallScore >= 80
-                  ? Icons.check_circle
-                  : overallScore >= 60
-                  ? Icons.info
-                  : Icons.warning,
-              overallScore >= 80
-                  ? 'Excellent eye health!'
-                  : overallScore >= 60
-                  ? 'Good progress'
-                  : 'Needs attention',
-              overallScore >= 80
-                  ? 'Your eye health metrics are looking great. Keep up the good work!'
-                  : overallScore >= 60
-                  ? 'Your eye health is on track. Consider regular testing to maintain it.'
-                  : 'Some metrics need improvement. Consult with an eye care professional.',
-              overallScore >= 80
-                  ? const Color(0xFF10B981)
-                  : overallScore >= 60
-                  ? const Color(0xFF3B82F6)
-                  : const Color(0xFFF97316),
+              overallScore >= 80 ? Icons.check_circle : overallScore >= 60 ? Icons.info : Icons.warning,
+              overallScore >= 80 ? 'Excellent eye health!' : overallScore >= 60 ? 'Good progress' : 'Needs attention',
+              overallScore >= 80 
+                ? 'Your eye health metrics are looking great. Keep up the good work!'
+                : overallScore >= 60
+                ? 'Your eye health is on track. Consider regular testing to maintain it.'
+                : 'Some metrics need improvement. Consult with an eye care professional.',
+              overallScore >= 80 ? const Color(0xFF10B981) : overallScore >= 60 ? const Color(0xFF3B82F6) : const Color(0xFFF97316),
             ),
             const SizedBox(height: 16),
           ],
@@ -974,23 +921,22 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           ),
 
           const SizedBox(height: 16),
+
         ],
       ),
     );
   }
 
-  Widget _buildInsightCard(
-    IconData icon,
-    String title,
-    String description,
-    Color color,
-  ) {
+  Widget _buildInsightCard(IconData icon, String title, String description, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1.5,
+        ),
       ),
       child: Row(
         children: [
@@ -1000,7 +946,11 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -1049,7 +999,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2), width: 1.5),
+        border: Border.all(
+          color: color.withOpacity(0.2),
+          width: 1.5,
+        ),
       ),
       child: Row(
         children: [
@@ -1084,7 +1037,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 11, color: Colors.black54),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.black54,
+                  ),
                 ),
               ],
             ),
@@ -1117,55 +1073,47 @@ class _ResultsReportPageState extends State<ResultsReportPage>
             ),
           ),
           const SizedBox(height: 16),
-
+          
           // Visual Acuity Tests
           _buildExpandableTestSection(
             'Visual Acuity Tests',
             _visualAcuityTests.length,
             Icons.remove_red_eye,
             const Color(0xFF3B82F6),
-            _visualAcuityTests
-                .map((test) => _buildVisualAcuityTestCard(test))
-                .toList(),
+            _visualAcuityTests.map((test) => _buildVisualAcuityTestCard(test)).toList(),
           ),
           const SizedBox(height: 12),
-
+          
           // Eye Tracking Tests
           _buildExpandableTestSection(
             'Eye Tracking Tests',
             _eyeTrackingTests.length,
             Icons.my_location,
             const Color(0xFF10B981),
-            _eyeTrackingTests
-                .map((test) => _buildEyeTrackingTestCard(test))
-                .toList(),
+            _eyeTrackingTests.map((test) => _buildEyeTrackingTestCard(test)).toList(),
           ),
           const SizedBox(height: 12),
-
+          
           // Colour Vision Tests
           _buildExpandableTestSection(
             'Colour Vision Tests',
             _colourVisionTests.length,
             Icons.palette,
             const Color(0xFF9333EA),
-            _colourVisionTests
-                .map((test) => _buildColourVisionTestCard(test))
-                .toList(),
+            _colourVisionTests.map((test) => _buildColourVisionTestCard(test)).toList(),
           ),
           const SizedBox(height: 12),
-
+          
           // Blink & Fatigue Tests
           _buildExpandableTestSection(
             'Blink & Fatigue Tests',
             _blinkFatigueTests.length,
             Icons.visibility_off,
             const Color(0xFFF97316),
-            _blinkFatigueTests
-                .map((test) => _buildBlinkFatigueTestCard(test))
-                .toList(),
+            _blinkFatigueTests.map((test) => _buildBlinkFatigueTestCard(test)).toList(),
           ),
           const SizedBox(height: 12),
-
+          
           // Pupil Reflex Tests (Coming Soon)
           _buildExpandableTestSection(
             'Pupil Reflex Tests',
@@ -1208,7 +1156,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Text(
             'Pupil reflex testing will be available soon',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[600],
+            ),
           ),
         ],
       ),
@@ -1231,7 +1182,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           leading: Icon(icon, color: color),
           title: Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+            ),
           ),
           subtitle: Text(
             '$count test${count != 1 ? 's' : ''} available',
@@ -1255,9 +1209,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
   }
 
   Widget _buildVisualAcuityTestCard(Map<String, dynamic> test) {
-    final correct = test['correct_answers'] ?? test['correct'] ?? 0;
-    final total = test['total_questions'] ?? test['total'] ?? 0;
-    final score = test['score'] ?? (total > 0 ? ((correct / total) * 100).round() : 0);
+    final score = test['score'] ?? 0;
+    final correct = test['correct'] ?? test['correct_answers'] ?? 0;
+    final total = test['total'] ?? test['total_questions'] ?? 0;
     final date = _formatDate(test['date'] ?? test['created_at'] ?? '');
     final snellen = test['snellen'] ?? test['snellen_value'] ?? 'N/A';
     final severity = test['severity'] ?? 'Normal';
@@ -1276,18 +1230,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Text(
-                  date,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+              Text(
+                date,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -1308,8 +1258,12 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _buildDetailItem('Score', '$correct/$total')),
-              Expanded(child: _buildDetailItem('Snellen', snellen)),
+              Expanded(
+                child: _buildDetailItem('Score', '$correct/$total'),
+              ),
+              Expanded(
+                child: _buildDetailItem('Snellen', snellen),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -1329,13 +1283,11 @@ class _ResultsReportPageState extends State<ResultsReportPage>
 
   Widget _buildEyeTrackingTestCard(Map<String, dynamic> test) {
     final date = _formatDate(test['date'] ?? test['created_at'] ?? '');
-    final accuracy = (test['gaze_accuracy'] ?? 0).toDouble();
+    final accuracy = test['gaze_accuracy'] ?? 0;
     final classification = test['performance_classification'] ?? 'Fair';
-    final duration = (test['test_duration'] ?? 0).toDouble();
-    final fixationStability = (test['fixation_stability_score'] ?? 
-        test['fixation_stability'] ?? 0).toDouble();
-    final saccadeConsistency = (test['saccade_consistency_score'] ?? 
-        test['saccade_consistency'] ?? 0).toDouble();
+    final duration = test['test_duration'] ?? 0;
+    final fixationStability = test['fixation_stability_score'] ?? test['fixation_stability'] ?? 0;
+    final saccadeConsistency = test['saccade_consistency_score'] ?? test['saccade_consistency'] ?? 0;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -1351,18 +1303,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Text(
-                  date,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+              Text(
+                date,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -1384,16 +1332,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Row(
             children: [
               Expanded(
-                child: _buildDetailItem(
-                  'Accuracy',
-                  '${accuracy.toStringAsFixed(1)}%',
-                ),
+                child: _buildDetailItem('Accuracy', '${accuracy.toStringAsFixed(1)}%'),
               ),
               Expanded(
-                child: _buildDetailItem(
-                  'Duration',
-                  '${duration.toStringAsFixed(1)}s',
-                ),
+                child: _buildDetailItem('Duration', '${duration.toStringAsFixed(1)}s'),
               ),
             ],
           ),
@@ -1401,16 +1343,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Row(
             children: [
               Expanded(
-                child: _buildDetailItem(
-                  'Fixation Stability',
-                  '${fixationStability.toStringAsFixed(1)}',
-                ),
+                child: _buildDetailItem('Fixation Stability', '${fixationStability.toStringAsFixed(1)}'),
               ),
               Expanded(
-                child: _buildDetailItem(
-                  'Saccade',
-                  '${saccadeConsistency.toStringAsFixed(1)}',
-                ),
+                child: _buildDetailItem('Saccade', '${saccadeConsistency.toStringAsFixed(1)}'),
               ),
             ],
           ),
@@ -1450,18 +1386,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Text(
-                  date,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+              Text(
+                date,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -1483,12 +1415,11 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Row(
             children: [
               Expanded(
-                child: _buildDetailItem(
-                  'Correct',
-                  '$correctCount/$totalPlates',
-                ),
+                child: _buildDetailItem('Correct', '$correctCount/$totalPlates'),
               ),
-              Expanded(child: _buildDetailItem('Score', '$score%')),
+              Expanded(
+                child: _buildDetailItem('Score', '$score%'),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -1513,18 +1444,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
             ),
             const SizedBox(height: 8),
             ...List.generate(
-              userAnswers.length < totalPlates
-                  ? userAnswers.length
-                  : totalPlates,
+              userAnswers.length < totalPlates ? userAnswers.length : totalPlates,
               (index) {
-                final userAnswer =
-                    userAnswers[index]?.toString().trim() ?? 'No answer';
-                final correctAnswer = index < correctAnswers.length
-                    ? correctAnswers[index]?.toString().trim() ?? 'Unknown'
+                final userAnswer = userAnswers[index]?.toString().trim() ?? 'No answer';
+                final correctAnswer = index < correctAnswers.length 
+                    ? correctAnswers[index]?.toString().trim() ?? 'Unknown' 
                     : 'Unknown';
-                final isCorrect =
-                    userAnswer.toLowerCase() == correctAnswer.toLowerCase();
-
+                final isCorrect = userAnswer.toLowerCase() == correctAnswer.toLowerCase();
+                
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Row(
@@ -1554,12 +1481,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
 
   Widget _buildBlinkFatigueTestCard(Map<String, dynamic> test) {
     final date = _formatDate(test['date'] ?? test['created_at'] ?? '');
-    final classification = test['classification'] ?? 
-        test['fatigue_level'] ?? 
-        (test['prediction'] == 'notdrowsy' ? 'Alert' : 'Drowsy');
-    final alertness = (test['alertness_percentage'] ?? 0).toDouble();
-    final avgBpm = (test['avg_blinks_per_minute'] ?? 0).toDouble();
-    final duration = (test['duration_seconds'] ?? test['test_duration'] ?? 0).toDouble();
+    final classification = test['classification'] ?? 'Unknown';
+    final alertness = test['alertness_percentage'] ?? 0;
+    final avgBpm = test['avg_blinks_per_minute'] ?? 0;
+    final duration = test['duration_seconds'] ?? 0;
     final totalBlinks = test['total_blinks'] ?? 0;
 
     Color getClassificationColor(String classification) {
@@ -1589,24 +1514,18 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Text(
-                  date,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+              Text(
+                date,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: getClassificationColor(
-                    classification,
-                  ).withOpacity(0.1),
+                  color: getClassificationColor(classification).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -1623,9 +1542,11 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _buildDetailItem('Alertness', '${alertness.toStringAsFixed(0)}%')),
               Expanded(
-                child: _buildDetailItem('Avg BPM', avgBpm > 0 ? avgBpm.toStringAsFixed(1) : 'N/A'),
+                child: _buildDetailItem('Alertness', '$alertness%'),
+              ),
+              Expanded(
+                child: _buildDetailItem('Avg BPM', avgBpm.toStringAsFixed(1)),
               ),
             ],
           ),
@@ -1633,18 +1554,18 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Row(
             children: [
               Expanded(
-                child: _buildDetailItem('Total Blinks', totalBlinks > 0 ? totalBlinks.toString() : 'N/A'),
+                child: _buildDetailItem('Total Blinks', totalBlinks.toString()),
               ),
-              Expanded(child: _buildDetailItem('Duration', duration > 0 ? '${duration.toStringAsFixed(0)}s' : 'N/A')),
+              Expanded(
+                child: _buildDetailItem('Duration', '${duration}s'),
+              ),
             ],
           ),
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: alertness / 100,
             backgroundColor: Colors.grey[200],
-            valueColor: AlwaysStoppedAnimation<Color>(
-              getClassificationColor(classification),
-            ),
+            valueColor: AlwaysStoppedAnimation<Color>(getClassificationColor(classification)),
             minHeight: 8,
             borderRadius: BorderRadius.circular(4),
           ),
@@ -1657,7 +1578,13 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            color: Colors.grey,
+          ),
+        ),
         const SizedBox(height: 2),
         Text(
           value,

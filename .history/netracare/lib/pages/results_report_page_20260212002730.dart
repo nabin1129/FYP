@@ -123,10 +123,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     String getLatestVisualAcuity() {
       if (_visualAcuityTests.isEmpty) return 'Not tested';
       final test = _visualAcuityTests.first;
-      final correct = test['correct_answers'] ?? test['correct'] ?? 0;
-      final total = test['total_questions'] ?? test['total'] ?? 0;
-      final score = test['score'] ?? (total > 0 ? ((correct / total) * 100).round() : 0);
-      return '$correct/$total ($score%)';
+      return '${test['correct']}/${test['total']} (${test['score']}%)';
     }
 
     String getLatestEyeTracking() {
@@ -809,14 +806,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                       dataEntries: [
                         RadarEntry(
                           value: _visualAcuityTests.isNotEmpty
-                              ? (() {
-                                  final test = _visualAcuityTests.first;
-                                  final score = test['score'];
-                                  if (score != null) return score.toDouble();
-                                  final correct = test['correct_answers'] ?? test['correct'] ?? 0;
-                                  final total = test['total_questions'] ?? test['total'] ?? 1;
-                                  return ((correct / total) * 100).toDouble();
-                                })()
+                              ? (_visualAcuityTests.first['score'] ?? 0)
+                                    .toDouble()
                               : 0,
                         ),
                         RadarEntry(
@@ -1255,9 +1246,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
   }
 
   Widget _buildVisualAcuityTestCard(Map<String, dynamic> test) {
-    final correct = test['correct_answers'] ?? test['correct'] ?? 0;
-    final total = test['total_questions'] ?? test['total'] ?? 0;
-    final score = test['score'] ?? (total > 0 ? ((correct / total) * 100).round() : 0);
+    final score = test['score'] ?? 0;
+    final correct = test['correct'] ?? test['correct_answers'] ?? 0;
+    final total = test['total'] ?? test['total_questions'] ?? 0;
     final date = _formatDate(test['date'] ?? test['created_at'] ?? '');
     final snellen = test['snellen'] ?? test['snellen_value'] ?? 'N/A';
     final severity = test['severity'] ?? 'Normal';
@@ -1276,18 +1267,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Text(
-                  date,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+              Text(
+                date,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -1329,13 +1316,13 @@ class _ResultsReportPageState extends State<ResultsReportPage>
 
   Widget _buildEyeTrackingTestCard(Map<String, dynamic> test) {
     final date = _formatDate(test['date'] ?? test['created_at'] ?? '');
-    final accuracy = (test['gaze_accuracy'] ?? 0).toDouble();
+    final accuracy = test['gaze_accuracy'] ?? 0;
     final classification = test['performance_classification'] ?? 'Fair';
-    final duration = (test['test_duration'] ?? 0).toDouble();
-    final fixationStability = (test['fixation_stability_score'] ?? 
-        test['fixation_stability'] ?? 0).toDouble();
-    final saccadeConsistency = (test['saccade_consistency_score'] ?? 
-        test['saccade_consistency'] ?? 0).toDouble();
+    final duration = test['test_duration'] ?? 0;
+    final fixationStability =
+        test['fixation_stability_score'] ?? test['fixation_stability'] ?? 0;
+    final saccadeConsistency =
+        test['saccade_consistency_score'] ?? test['saccade_consistency'] ?? 0;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -1351,18 +1338,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Text(
-                  date,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+              Text(
+                date,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -1450,18 +1433,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Text(
-                  date,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+              Text(
+                date,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -1554,12 +1533,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
 
   Widget _buildBlinkFatigueTestCard(Map<String, dynamic> test) {
     final date = _formatDate(test['date'] ?? test['created_at'] ?? '');
-    final classification = test['classification'] ?? 
-        test['fatigue_level'] ?? 
-        (test['prediction'] == 'notdrowsy' ? 'Alert' : 'Drowsy');
-    final alertness = (test['alertness_percentage'] ?? 0).toDouble();
-    final avgBpm = (test['avg_blinks_per_minute'] ?? 0).toDouble();
-    final duration = (test['duration_seconds'] ?? test['test_duration'] ?? 0).toDouble();
+    final classification = test['classification'] ?? 'Unknown';
+    final alertness = test['alertness_percentage'] ?? 0;
+    final avgBpm = test['avg_blinks_per_minute'] ?? 0;
+    final duration = test['duration_seconds'] ?? 0;
     final totalBlinks = test['total_blinks'] ?? 0;
 
     Color getClassificationColor(String classification) {
@@ -1589,18 +1566,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Text(
-                  date,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+              Text(
+                date,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -1623,9 +1596,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _buildDetailItem('Alertness', '${alertness.toStringAsFixed(0)}%')),
+              Expanded(child: _buildDetailItem('Alertness', '$alertness%')),
               Expanded(
-                child: _buildDetailItem('Avg BPM', avgBpm > 0 ? avgBpm.toStringAsFixed(1) : 'N/A'),
+                child: _buildDetailItem('Avg BPM', avgBpm.toStringAsFixed(1)),
               ),
             ],
           ),
@@ -1633,9 +1606,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Row(
             children: [
               Expanded(
-                child: _buildDetailItem('Total Blinks', totalBlinks > 0 ? totalBlinks.toString() : 'N/A'),
+                child: _buildDetailItem('Total Blinks', totalBlinks.toString()),
               ),
-              Expanded(child: _buildDetailItem('Duration', duration > 0 ? '${duration.toStringAsFixed(0)}s' : 'N/A')),
+              Expanded(child: _buildDetailItem('Duration', '${duration}s')),
             ],
           ),
           const SizedBox(height: 8),

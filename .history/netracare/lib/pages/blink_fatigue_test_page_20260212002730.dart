@@ -5,10 +5,13 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import '../services/blink_fatigue_service.dart';
-import '../utils/permission_helper.dart';
 
-/// Simulation-based blink detection test with save capability
-/// This version simulates blink detection and allows saving results to the database.
+/// DEMO VERSION: This is a simulation-based blink detection test
+/// For real ML-based fatigue detection with database storage,
+/// use BlinkFatigueCNNTestPage instead.
+///
+/// This version simulates blink detection without actual eye tracking
+/// and does NOT save results to the database.
 class BlinkFatigueTestPage extends StatefulWidget {
   const BlinkFatigueTestPage({super.key});
 
@@ -26,8 +29,6 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
   int blinkCount = 0;
   double fatigueLevel = 0;
   int testDuration = 0;
-  bool isSaving = false;
-  bool isSaved = false;
 
   Timer? _testTimer;
   Timer? _blinkTimer;
@@ -42,36 +43,12 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
 
   Future<void> _initializeCameras() async {
     try {
-      // Request camera permission first
-      if (mounted) {
-        final hasPermission = await PermissionHelper.requestCameraPermission(context);
-        if (!hasPermission) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Camera permission denied. Please enable it in settings.'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-          return;
-        }
-      }
-
       cameras = await availableCameras();
       if (cameras != null && cameras!.isNotEmpty && mounted) {
         _initializeCamera();
       }
     } catch (e) {
       debugPrint('Error initializing cameras: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Camera error: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
   }
 
@@ -190,87 +167,6 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
   int getBlinkRate() {
     if (testDuration == 0) return 0;
     return ((blinkCount / testDuration) * 60).round();
-  }
-
-  Future<void> _saveResults() async {
-    if (isSaved) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Results already saved!'),
-          backgroundColor: Colors.blue,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      isSaving = true;
-    });
-
-    try {
-      // Capture current frame as proof image
-      XFile? imageFile;
-      if (_cameraController != null && _cameraController!.value.isInitialized) {
-        try {
-          imageFile = await _cameraController!.takePicture();
-        } catch (e) {
-          debugPrint('Could not capture image: $e');
-        }
-      }
-
-      // Create temporary file if no capture
-      File testImage;
-      if (imageFile != null) {
-        testImage = File(imageFile.path);
-      } else {
-        // Create a dummy file for tests without camera
-        final directory = await getTemporaryDirectory();
-        final filePath = '${directory.path}/temp_blink_test.jpg';
-        testImage = File(filePath);
-        await testImage.writeAsBytes([]);
-      }
-
-      // Submit test to backend
-      await BlinkFatigueService.submitTest(
-        imageFile: testImage,
-        testDuration: testDuration.toDouble(),
-      );
-
-      // Clean up temporary file
-      try {
-        await testImage.delete();
-      } catch (_) {}
-
-      if (mounted) {
-        setState(() {
-          isSaved = true;
-          isSaving = false;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Results saved successfully!'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          isSaving = false;
-        });
-
-        final errorMsg = e.toString().replaceAll('Exception: ', '');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to save: $errorMsg'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
-    }
   }
 
   Map<String, dynamic> getFatigueStatus() {
@@ -746,56 +642,34 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: isSaving ? null : _saveResults,
+              onPressed: () {
+                // NOTE: This is a demo version - results are simulated
+                // For real results with database storage, use BlinkFatigueCNNTestPage
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text(
+                      "Demo mode: Results not saved. Use CNN-based test for real analysis.",
+                    ),
+                    backgroundColor: Colors.orange[700],
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              },
               style: ElevatedButton.styleFrom(
-                backgroundColor: isSaved ? Colors.green[600] : Colors.blue[600],
-                disabledBackgroundColor: Colors.grey[400],
+                backgroundColor: Colors.orange[600],
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: isSaving
-                  ? const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        ),
-                        SizedBox(width: 12),
-                        Text(
-                          "Saving...",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          isSaved ? Icons.check_circle : Icons.save,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          isSaved ? "Results Saved" : "Save Results",
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
+              child: const Text(
+                "Demo Mode (Not Saved)",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 12),

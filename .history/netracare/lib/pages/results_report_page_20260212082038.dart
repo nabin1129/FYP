@@ -1589,18 +1589,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Text(
-                  date,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+              Text(
+                date,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -1623,9 +1619,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _buildDetailItem('Alertness', '${alertness.toStringAsFixed(0)}%')),
+              Expanded(child: _buildDetailItem('Alertness', '$alertness%')),
               Expanded(
-                child: _buildDetailItem('Avg BPM', avgBpm > 0 ? avgBpm.toStringAsFixed(1) : 'N/A'),
+                child: _buildDetailItem('Avg BPM', avgBpm.toStringAsFixed(1)),
               ),
             ],
           ),
@@ -1633,9 +1629,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Row(
             children: [
               Expanded(
-                child: _buildDetailItem('Total Blinks', totalBlinks > 0 ? totalBlinks.toString() : 'N/A'),
+                child: _buildDetailItem('Total Blinks', totalBlinks.toString()),
               ),
-              Expanded(child: _buildDetailItem('Duration', duration > 0 ? '${duration.toStringAsFixed(0)}s' : 'N/A')),
+              Expanded(child: _buildDetailItem('Duration', '${duration}s')),
             ],
           ),
           const SizedBox(height: 8),

@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import '../services/blink_fatigue_service.dart';
-import '../utils/permission_helper.dart';
 
 /// Simulation-based blink detection test with save capability
 /// This version simulates blink detection and allows saving results to the database.
@@ -42,36 +41,12 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
 
   Future<void> _initializeCameras() async {
     try {
-      // Request camera permission first
-      if (mounted) {
-        final hasPermission = await PermissionHelper.requestCameraPermission(context);
-        if (!hasPermission) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Camera permission denied. Please enable it in settings.'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-          return;
-        }
-      }
-
       cameras = await availableCameras();
       if (cameras != null && cameras!.isNotEmpty && mounted) {
         _initializeCamera();
       }
     } catch (e) {
       debugPrint('Error initializing cameras: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Camera error: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
   }
 

@@ -5,15 +5,13 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import '../services/blink_fatigue_service.dart';
-import '../utils/permission_helper.dart';
 
 /// Real-time blink and fatigue detection using CNN model
 class BlinkFatigueCNNTestPage extends StatefulWidget {
   const BlinkFatigueCNNTestPage({super.key});
 
   @override
-  State<BlinkFatigueCNNTestPage> createState() =>
-      _BlinkFatigueCNNTestPageState();
+  State<BlinkFatigueCNNTestPage> createState() => _BlinkFatigueCNNTestPageState();
 }
 
 class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
@@ -24,7 +22,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
   int testPhase = 0; // 0: ready, 1: testing, 2: results
   bool isProcessing = false;
   DateTime? testStartTime;
-
+  
   // Results from CNN
   Map<String, dynamic>? predictionResult;
   String? errorMessage;
@@ -37,19 +35,6 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
 
   Future<void> _initializeCameras() async {
     try {
-      // Request camera permission first
-      if (mounted) {
-        final hasPermission = await PermissionHelper.requestCameraPermission(context);
-        if (!hasPermission) {
-          if (mounted) {
-            setState(() {
-              errorMessage = 'Camera permission denied. Please enable it in settings.';
-            });
-          }
-          return;
-        }
-      }
-
       cameras = await availableCameras();
       if (cameras != null && cameras!.isNotEmpty && mounted) {
         _initializeCamera();
@@ -102,14 +87,14 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
     try {
       // Capture image
       final XFile imageFile = await _cameraController!.takePicture();
-
+      
       // Convert to File
       final File imageToAnalyze = File(imageFile.path);
 
       // Call CNN model prediction API
       final result = await BlinkFatigueService.submitTest(
         imageFile: imageToAnalyze,
-        testDuration: testStartTime != null
+        testDuration: testStartTime != null 
             ? DateTime.now().difference(testStartTime!).inSeconds.toDouble()
             : null,
       );
@@ -126,9 +111,10 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
       try {
         await imageToAnalyze.delete();
       } catch (_) {}
+
     } catch (e) {
       final errorMsg = e.toString().replaceAll('Exception: ', '');
-
+      
       if (mounted) {
         // Check if it's a session expiration error
         if (errorMsg.contains('Session expired') || errorMsg.contains('401')) {
@@ -220,7 +206,9 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
         title: const Text("Blink & Fatigue Detection"),
         centerTitle: true,
       ),
-      body: SafeArea(child: testPhase == 2 ? _buildResults() : _buildCamera()),
+      body: SafeArea(
+        child: testPhase == 2 ? _buildResults() : _buildCamera(),
+      ),
     );
   }
 
@@ -258,7 +246,9 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
     return Stack(
       children: [
         // Camera preview
-        Positioned.fill(child: CameraPreview(_cameraController!)),
+        Positioned.fill(
+          child: CameraPreview(_cameraController!),
+        ),
 
         // Processing overlay
         if (isProcessing)
@@ -302,7 +292,11 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
               ),
               child: Column(
                 children: [
-                  const Icon(Icons.visibility, size: 48, color: Colors.white),
+                  const Icon(
+                    Icons.visibility,
+                    size: 48,
+                    color: Colors.white,
+                  ),
                   const SizedBox(height: 16),
                   const Text(
                     "Position your face in the frame",
@@ -317,7 +311,10 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                   const Text(
                     "Make sure your eyes are clearly visible and well-lit",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.white70),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white70,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
@@ -353,9 +350,8 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
     final confidence = (predictionResult!['confidence'] as num).toDouble();
     final fatigueLevel = predictionResult!['fatigue_level'] as String;
     final alertTriggered = predictionResult!['alert_triggered'] as bool;
-    final probabilities =
-        predictionResult!['probabilities'] as Map<String, dynamic>;
-
+    final probabilities = predictionResult!['probabilities'] as Map<String, dynamic>;
+    
     final isDrowsy = prediction == 'drowsy';
     final statusColor = isDrowsy ? Colors.red : Colors.green;
     final statusIcon = isDrowsy ? Icons.warning_amber : Icons.check_circle;
@@ -365,7 +361,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
       child: Column(
         children: [
           const SizedBox(height: 20),
-
+          
           // Status Card
           Container(
             width: double.infinity,
@@ -504,7 +500,10 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                 Expanded(
                   child: Text(
                     'Results saved to your profile. View history in Results page.',
-                    style: TextStyle(fontSize: 13, color: Colors.blue[900]),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.blue[900],
+                    ),
                   ),
                 ),
               ],
@@ -603,25 +602,25 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
             ),
           ),
           const SizedBox(height: 20),
-
+          
           // Drowsy probability
           _buildProbabilityBar(
             label: 'Drowsy',
             probability: drowsyProb,
             color: Colors.red,
           ),
-
+          
           const SizedBox(height: 16),
-
+          
           // Not drowsy probability
           _buildProbabilityBar(
             label: 'Alert',
             probability: notDrowsyProb,
             color: Colors.green,
           ),
-
+          
           const SizedBox(height: 24),
-
+          
           // Save confirmation message
           Container(
             padding: const EdgeInsets.all(12),
@@ -647,9 +646,9 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
               ],
             ),
           ),
-
+          
           const SizedBox(height: 16),
-
+          
           // Action buttons
           Row(
             children: [
@@ -659,6 +658,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                     setState(() {
                       testPhase = 0;
                       predictionResult = null;
+                      alertTriggered = false;
                     });
                   },
                   icon: const Icon(Icons.refresh, size: 20),

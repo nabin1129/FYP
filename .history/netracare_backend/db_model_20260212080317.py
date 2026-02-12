@@ -368,10 +368,6 @@ class BlinkFatigueTest(db.Model):
     test_duration = db.Column(db.Float)  # seconds (if applicable)
     image_filename = db.Column(db.String(255))  # stored image filename (optional)
     
-    # Blink metrics (optional - from camera tracking)
-    total_blinks = db.Column(db.Integer)
-    avg_blinks_per_minute = db.Column(db.Float)
-    
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -381,14 +377,6 @@ class BlinkFatigueTest(db.Model):
     
     def to_dict(self) -> dict:
         """Convert test to dictionary"""
-        # Calculate alertness percentage (inverse of drowsiness)
-        alertness_percentage = round((1 - self.drowsy_probability) * 100)
-        
-        # Map fatigue_level to classification for frontend compatibility
-        classification = self.fatigue_level if self.fatigue_level else (
-            'Alert' if self.prediction == 'notdrowsy' else 'Drowsy'
-        )
-        
         return {
             'id': self.id,
             'user_id': self.user_id,
@@ -399,13 +387,8 @@ class BlinkFatigueTest(db.Model):
                 'notdrowsy': self.notdrowsy_probability
             },
             'fatigue_level': self.fatigue_level,
-            'classification': classification,
-            'alertness_percentage': alertness_percentage,
             'alert_triggered': self.alert_triggered,
             'test_duration': self.test_duration,
-            'duration_seconds': self.test_duration if self.test_duration else 0,
-            'total_blinks': self.total_blinks if self.total_blinks else 0,
-            'avg_blinks_per_minute': self.avg_blinks_per_minute if self.avg_blinks_per_minute else 0,
             'image_filename': self.image_filename,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()

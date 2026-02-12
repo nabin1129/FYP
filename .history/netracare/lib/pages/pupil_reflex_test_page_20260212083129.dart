@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'dart:async';
 import 'dart:math';
-import '../utils/permission_helper.dart';
 
 class PupilReflexTestPage extends StatefulWidget {
   const PupilReflexTestPage({super.key});
@@ -43,36 +42,12 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
 
   Future<void> _initializeCameras() async {
     try {
-      // Request camera permission first
-      if (mounted) {
-        final hasPermission = await PermissionHelper.requestCameraPermission(context);
-        if (!hasPermission) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Camera permission denied. Please enable it in settings.'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-          return;
-        }
-      }
-
       cameras = await availableCameras();
       if (cameras != null && cameras!.isNotEmpty && mounted) {
         _initializeCamera();
       }
     } catch (e) {
       debugPrint('Error initializing cameras: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Camera error: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
   }
 
