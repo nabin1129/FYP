@@ -365,7 +365,10 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
               const SizedBox(height: 8),
               Text(
                 'Loading distance calibration',
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
               ),
             ],
           ),

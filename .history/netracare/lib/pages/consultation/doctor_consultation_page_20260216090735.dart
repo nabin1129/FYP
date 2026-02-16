@@ -113,14 +113,7 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage>
             child: TabBarView(
               controller: _tabController,
               children: [
-                BookConsultationTab(
-                  doctors: doctors,
-                  onConsultationRequested: () {
-                    _loadConsultations();
-                    // Switch to history tab to show the pending request
-                    _tabController.animateTo(1);
-                  },
-                ),
+                BookConsultationTab(doctors: doctors),
                 ConsultationHistoryTab(consultations: consultationHistory),
               ],
             ),

@@ -6,8 +6,13 @@ import 'package:netracare/widgets/consultation/consultation_history_card.dart';
 /// Consultation History Tab Content
 class ConsultationHistoryTab extends StatelessWidget {
   final List<Consultation> consultations;
+  final Function(String consultationId)? onAcceptConsultation;
 
-  const ConsultationHistoryTab({super.key, required this.consultations});
+  const ConsultationHistoryTab({
+    super.key,
+    required this.consultations,
+    this.onAcceptConsultation,
+  });
 
   @override
   Widget build(BuildContext context) {

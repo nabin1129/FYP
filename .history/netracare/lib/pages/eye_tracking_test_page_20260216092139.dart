@@ -141,10 +141,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
             width: MediaQuery.of(context).size.width * 0.85,
             height: MediaQuery.of(context).size.height * 0.6,
             decoration: BoxDecoration(
-              border: Border.all(
-                color: AppTheme.primary.withOpacity(0.3),
-                width: 2,
-              ),
+              border: Border.all(color: AppTheme.primary.withOpacity(0.3), width: 2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: _buildTrackingArea(),
@@ -454,7 +451,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
                   Navigator.of(context).popUntil((route) => route.isFirst),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                side: BorderSide(color: AppTheme.textLight.withOpacity(0.5)),
+                side: BorderSide(color: Colors.grey.withOpacity(0.5)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -464,7 +461,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.textSecondary,
+                  color: Colors.grey.withOpacity(0.7),
                 ),
               ),
             ),
@@ -547,10 +544,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text(
-                  "Exit",
-                  style: TextStyle(color: AppTheme.error),
-                ),
+                child: const Text("Exit", style: TextStyle(color: AppTheme.error)),
               ),
             ],
           ),

@@ -39,6 +39,50 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage>
     });
   }
 
+  void _acceptConsultation(String consultationId) {
+    final consultationService = ConsultationService();
+    
+    // Schedule for 7 days from now (for demo purposes)
+    final scheduledDate = _formatFutureDate(7);
+    
+    final success = consultationService.acceptConsultation(
+      consultationId,
+      scheduledDate,
+    );
+    
+    if (success) {
+      _loadConsultations(); // Refresh the list
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Consultation accepted! Scheduled for $scheduledDate'),
+          backgroundColor: AppTheme.success,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  String _formatFutureDate(int daysFromNow) {
+    final now = DateTime.now();
+    final futureDate = now.add(Duration(days: daysFromNow));
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return '${months[futureDate.month - 1]} ${futureDate.day}, ${futureDate.year}';
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -121,7 +165,10 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage>
                     _tabController.animateTo(1);
                   },
                 ),
-                ConsultationHistoryTab(consultations: consultationHistory),
+                ConsultationHistoryTab(
+                  consultations: consultationHistory,
+                  onAcceptConsultation: _acceptConsultation,
+                ),
               ],
             ),
           ),

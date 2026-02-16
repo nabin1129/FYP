@@ -365,7 +365,10 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
               const SizedBox(height: 8),
               Text(
                 'Loading distance calibration',
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
               ),
             ],
           ),
@@ -451,56 +454,6 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                               backgroundColor: Colors.grey.shade200,
                               valueColor: const AlwaysStoppedAnimation<Color>(
                                 Colors.blue,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Distance Monitoring Status
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: calibration != null
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.orange.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: calibration != null
-                              ? Colors.green.withOpacity(0.3)
-                              : Colors.orange.withOpacity(0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            calibration != null
-                                ? Icons.verified_user
-                                : Icons.info_outline,
-                            size: 16,
-                            color: calibration != null
-                                ? Colors.green.shade700
-                                : Colors.orange.shade700,
-                          ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              calibration != null
-                                  ? 'Distance monitoring active'
-                                  : 'Testing without distance monitoring',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: calibration != null
-                                    ? Colors.green.shade700
-                                    : Colors.orange.shade700,
                               ),
                             ),
                           ),

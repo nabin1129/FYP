@@ -6,7 +6,6 @@ import 'dart:math';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import '../services/blink_fatigue_service.dart';
 import '../services/blink_detection_service.dart';
 import '../services/blink_detection_engine.dart';

@@ -141,10 +141,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
             width: MediaQuery.of(context).size.width * 0.85,
             height: MediaQuery.of(context).size.height * 0.6,
             decoration: BoxDecoration(
-              border: Border.all(
-                color: AppTheme.primary.withOpacity(0.3),
-                width: 2,
-              ),
+              border: Border.all(color: AppTheme.primary.withOpacity(0.3), width: 2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: _buildTrackingArea(),
@@ -547,10 +544,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text(
-                  "Exit",
-                  style: TextStyle(color: AppTheme.error),
-                ),
+                child: const Text("Exit", style: TextStyle(color: AppTheme.error)),
               ),
             ],
           ),

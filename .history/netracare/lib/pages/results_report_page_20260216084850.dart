@@ -665,9 +665,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               }
             }
 
-            return count > 0 ? (sum / count) : 0.0;
+            return count > 0 ? (sum / count) : 0;
           })()
-        : 0.0;
+        : 0;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -875,10 +875,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                         ),
                         RadarEntry(
                           value: _blinkFatigueTests.isNotEmpty
-                              ? (_resolveAlertnessPercent(
-                                      _blinkFatigueTests.first,
-                                    ) ??
-                                    0)
+                              ? (_blinkFatigueTests
+                                            .first['alertness_percentage'] ??
+                                        0)
+                                    .toDouble()
                               : 0,
                         ),
                         RadarEntry(value: 0),
@@ -1711,102 +1711,17 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     );
   }
 
-  double? _resolveAlertnessPercent(Map<String, dynamic> test) {
-    final raw =
-        test['alertness_percentage'] ??
-        test['alertness'] ??
-        test['alertness_percent'] ??
-        test['alertness_score'];
-    if (raw is num) {
-      return raw.toDouble();
-    }
-    if (raw is String) {
-      final parsed = double.tryParse(raw);
-      if (parsed != null) {
-        return parsed;
-      }
-    }
-
-    final probabilities = test['probabilities'];
-    if (probabilities is Map) {
-      final drowsy = probabilities['drowsy'];
-      final notDrowsy = probabilities['notdrowsy'];
-      if (drowsy is num) {
-        return (1 - drowsy.toDouble()) * 100;
-      }
-      if (notDrowsy is num) {
-        return notDrowsy.toDouble() * 100;
-      }
-    }
-
-    final drowsyProb = test['drowsy_probability'];
-    if (drowsyProb is num) {
-      return (1 - drowsyProb.toDouble()) * 100;
-    }
-
-    return null;
-  }
-
-  String _resolveBlinkClassification(Map<String, dynamic> test) {
-    final classification = test['classification'] ?? test['fatigue_level'];
-    if (classification is String && classification.trim().isNotEmpty) {
-      return classification;
-    }
-
-    final prediction = test['prediction'];
-    if (prediction == 'notdrowsy') {
-      return 'Alert';
-    }
-    if (prediction == 'drowsy') {
-      return 'Drowsy';
-    }
-    return 'Unknown';
-  }
-
-  double? _resolveBlinkAvgBpm(Map<String, dynamic> test) {
-    final raw =
-        test['avg_blinks_per_minute'] ??
-        test['blink_rate_per_minute'] ??
-        test['blink_rate'];
-    if (raw is num) {
-      return raw.toDouble();
-    }
-    if (raw is String) {
-      return double.tryParse(raw);
-    }
-    return null;
-  }
-
-  int? _resolveBlinkTotalBlinks(Map<String, dynamic> test) {
-    final raw = test['total_blinks'] ?? test['blink_count'];
-    if (raw is num) {
-      return raw.toInt();
-    }
-    if (raw is String) {
-      return int.tryParse(raw);
-    }
-    return null;
-  }
-
-  double? _resolveBlinkDuration(Map<String, dynamic> test) {
-    final raw =
-        test['duration_seconds'] ?? test['test_duration'] ?? test['duration'];
-    if (raw is num) {
-      return raw.toDouble();
-    }
-    if (raw is String) {
-      return double.tryParse(raw);
-    }
-    return null;
-  }
-
   Widget _buildBlinkFatigueTestCard(Map<String, dynamic> test) {
     final date = _formatDate(test['date'] ?? test['created_at'] ?? '');
-    final classification = _resolveBlinkClassification(test);
-    final alertness = _resolveAlertnessPercent(test);
-    final avgBpm = _resolveBlinkAvgBpm(test);
-    final duration = _resolveBlinkDuration(test);
-    final totalBlinks = _resolveBlinkTotalBlinks(test);
+    final classification =
+        test['classification'] ??
+        test['fatigue_level'] ??
+        (test['prediction'] == 'notdrowsy' ? 'Alert' : 'Drowsy');
+    final alertness = (test['alertness_percentage'] ?? 0).toDouble();
+    final avgBpm = (test['avg_blinks_per_minute'] ?? 0).toDouble();
+    final duration = (test['duration_seconds'] ?? test['test_duration'] ?? 0)
+        .toDouble();
+    final totalBlinks = test['total_blinks'] ?? 0;
 
     Color getClassificationColor(String classification) {
       switch (classification.toLowerCase()) {
@@ -1872,15 +1787,13 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               Expanded(
                 child: _buildDetailItem(
                   'Alertness',
-                  alertness != null
-                      ? '${alertness.toStringAsFixed(0)}%'
-                      : 'N/A',
+                  '${alertness.toStringAsFixed(0)}%',
                 ),
               ),
               Expanded(
                 child: _buildDetailItem(
                   'Avg BPM',
-                  avgBpm != null ? avgBpm.toStringAsFixed(1) : 'N/A',
+                  avgBpm > 0 ? avgBpm.toStringAsFixed(1) : 'N/A',
                 ),
               ),
             ],
@@ -1891,22 +1804,20 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               Expanded(
                 child: _buildDetailItem(
                   'Total Blinks',
-                  totalBlinks != null ? totalBlinks.toString() : 'N/A',
+                  totalBlinks > 0 ? totalBlinks.toString() : 'N/A',
                 ),
               ),
               Expanded(
                 child: _buildDetailItem(
                   'Duration',
-                  duration != null && duration > 0
-                      ? '${duration.toStringAsFixed(0)}s'
-                      : 'N/A',
+                  duration > 0 ? '${duration.toStringAsFixed(0)}s' : 'N/A',
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
           LinearProgressIndicator(
-            value: (alertness ?? 0) / 100,
+            value: alertness / 100,
             backgroundColor: Colors.grey[200],
             valueColor: AlwaysStoppedAnimation<Color>(
               getClassificationColor(classification),

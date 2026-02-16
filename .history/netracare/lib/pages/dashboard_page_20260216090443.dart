@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:netracare/pages/profile_page.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/models/consultation/consultation_model.dart';
-import 'package:netracare/services/consultation_service.dart';
 import 'visual_acuity_page.dart';
 import 'eye_tracking_page.dart';
 import 'pupil_reflex_page.dart';
@@ -29,13 +28,25 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   void _loadNextConsultation() {
-    // Get consultations from service
-    final consultationService = ConsultationService();
-    final nextScheduled = consultationService.getNextScheduledConsultation();
+    // Get all consultations
+    final consultations = Consultation.getMockHistory();
 
-    setState(() {
-      nextConsultation = nextScheduled;
-    });
+    // Filter for scheduled consultations only (not pending, not completed)
+    // This ensures only confirmed/booked consultations appear in "Upcoming Consultation"
+    final scheduled = consultations
+        .where((c) => c.status == ConsultationStatus.scheduled)
+        .toList();
+
+    // If there are scheduled consultations, get the first one
+    if (scheduled.isNotEmpty) {
+      setState(() {
+        nextConsultation = scheduled.first;
+      });
+    } else {
+      setState(() {
+        nextConsultation = null;
+      });
+    }
   }
 
   @override
@@ -342,10 +353,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   MaterialPageRoute(
                     builder: (_) => const DoctorConsultationPage(),
                   ),
-                ).then((_) {
-                  // Reload consultations when returning
-                  _loadNextConsultation();
-                });
+                );
               },
               child: const Text(
                 "Book Consultation",

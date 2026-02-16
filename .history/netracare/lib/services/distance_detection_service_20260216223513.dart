@@ -81,14 +81,10 @@ class DistanceDetectionService {
       );
 
       _faceDetector = FaceDetector(options: options);
-      debugPrint(
-        'DistanceDetection: Face detector initialized (Debug mode: $debugMode)',
-      );
+      debugPrint('DistanceDetection: Face detector initialized (Debug mode: $debugMode)');
     } catch (e) {
       debugPrint('DistanceDetection: Initialization error: $e');
-      throw Exception(
-        'Failed to initialize face detection. Please ensure camera permissions are granted.',
-      );
+      throw Exception('Failed to initialize face detection. Please ensure camera permissions are granted.');
     }
   }
 
@@ -119,9 +115,7 @@ class DistanceDetectionService {
     }
 
     if (!debugMode && !_cameraManager.isReady) {
-      throw Exception(
-        'Camera not ready. Please ensure camera permissions are granted and try again.',
-      );
+      throw Exception('Camera not ready. Please ensure camera permissions are granted and try again.');
     }
 
     try {
@@ -135,9 +129,7 @@ class DistanceDetectionService {
     } catch (e) {
       _isDetecting = false;
       debugPrint('DistanceDetection: Error starting detection: $e');
-      throw Exception(
-        'Failed to start camera stream. Please check camera permissions.',
-      );
+      throw Exception('Failed to start camera stream. Please check camera permissions.');
     }
   }
 
@@ -393,9 +385,7 @@ class DistanceDetectionService {
     }
 
     if (!debugMode && !_cameraManager.isReady) {
-      throw Exception(
-        'Camera not ready. Please ensure camera permissions are granted.',
-      );
+      throw Exception('Camera not ready. Please ensure camera permissions are granted.');
     }
 
     // Debug mode: Return mock calibration data

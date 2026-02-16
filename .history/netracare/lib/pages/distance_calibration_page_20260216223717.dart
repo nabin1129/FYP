@@ -58,8 +58,7 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage =
-              'Camera initialization failed:\n'
+          _errorMessage = 'Camera initialization failed:\n'
               'Please ensure camera permissions are granted.\n\n'
               'Error: ${e.toString().replaceAll('Exception: ', '')}';
         });
@@ -217,11 +216,7 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
                       SizedBox(height: 20),
                       Text(
                         'Calibrating...',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 8),
                       Padding(
@@ -359,11 +354,11 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: Colors.blue, width: 2),
             ),
-            child: Column(
+            child: const Column(
               children: [
-                const Icon(Icons.pan_tool, color: Colors.blue, size: 50),
-                const SizedBox(height: 15),
-                const Text(
+                Icon(Icons.pan_tool, color: Colors.blue, size: 50),
+                SizedBox(height: 15),
+                Text(
                   'Extend Your Arm Fully',
                   style: TextStyle(
                     color: Colors.white,
@@ -372,13 +367,13 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 10),
-                const Text(
+                SizedBox(height: 10),
+                Text(
                   'Hold the phone at arm\'s length (about 40-50 cm)',
                   style: TextStyle(color: Colors.white70, fontSize: 16),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text(
                   'Your arm should be fully extended, not bent',
                   style: TextStyle(
@@ -627,11 +622,7 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
                   '• Look directly at the camera\n'
                   '• Keep eyes open and visible\n'
                   '• Remove glasses if detection fails',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
                 ),
               ],
             ),

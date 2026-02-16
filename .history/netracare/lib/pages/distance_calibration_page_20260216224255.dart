@@ -58,8 +58,7 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage =
-              'Camera initialization failed:\n'
+          _errorMessage = 'Camera initialization failed:\n'
               'Please ensure camera permissions are granted.\n\n'
               'Error: ${e.toString().replaceAll('Exception: ', '')}';
         });
@@ -217,11 +216,7 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
                       SizedBox(height: 20),
                       Text(
                         'Calibrating...',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 8),
                       Padding(
@@ -627,11 +622,7 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
                   '• Look directly at the camera\n'
                   '• Keep eyes open and visible\n'
                   '• Remove glasses if detection fails',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
                 ),
               ],
             ),

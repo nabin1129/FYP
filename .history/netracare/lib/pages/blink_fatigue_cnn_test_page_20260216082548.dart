@@ -6,11 +6,10 @@ import 'dart:math';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import '../services/blink_fatigue_service.dart';
 import '../services/blink_detection_service.dart';
-import '../services/blink_detection_engine.dart';
 import '../utils/permission_helper.dart';
+import '../utils/blink_detector.dart';
 
 /// Real-time blink and fatigue detection using CNN model
 class BlinkFatigueCNNTestPage extends StatefulWidget {
@@ -39,11 +38,9 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
   double progress = 0;
   int blinkCount = 0;
   int testDuration = 0; // in seconds
-  int _faceDetectionCount = 0;
-  int _totalFramesProcessed = 0;
 
-  // Blink detection engine
-  BlinkDetectionEngine? _blinkEngine;
+  // Blink detector
+  BlinkDetector? _blinkDetector;
 
   // Save state
   bool isSaving = false;
@@ -57,7 +54,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
   @override
   void initState() {
     super.initState();
-    _blinkEngine = BlinkDetectionEngine();
+    _blinkDetector = BlinkDetector();
     _initializeCameras();
   }
 
@@ -107,9 +104,9 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
 
     _cameraController = CameraController(
       cameras![0],
-      ResolutionPreset.medium,
+      ResolutionPreset.low, // Lower resolution to avoid capture stalls
       enableAudio: false,
-      imageFormatGroup: ImageFormatGroup.yuv420,
+      imageFormatGroup: ImageFormatGroup.jpeg,
     );
 
     try {
@@ -139,12 +136,10 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
       testDuration = 0;
       testStartTime = DateTime.now();
       errorMessage = null;
-      _faceDetectionCount = 0;
-      _totalFramesProcessed = 0;
     });
 
-    // Start real-time blink detection using ML Kit classification
-    await _blinkEngine?.start(
+    // Start real-time blink detection using BlinkDetector
+    _blinkDetector?.startDetection(
       _cameraController!,
       (count) {
         if (mounted) {
@@ -159,7 +154,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
     );
 
     // Test progression (40 seconds for accurate blink detection)
-    _testTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+    _testTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
@@ -171,9 +166,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
 
       if (progress >= 100) {
         timer.cancel();
-        if (_blinkEngine != null) {
-          await _blinkEngine!.stop(_cameraController!);
-        }
+        _blinkDetector?.stopDetection();
         _durationTimer?.cancel();
         _captureAndAnalyze();
       }
@@ -193,9 +186,6 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
   }
 
   Future<void> _captureAndAnalyze() async {
-    if (_blinkEngine != null && _cameraController != null) {
-      await _blinkEngine!.stop(_cameraController!);
-    }
     if (_cameraController == null ||
         !_cameraController!.value.isInitialized ||
         _isCapturing) {
@@ -221,28 +211,6 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
 
       // Convert to File
       final File imageToAnalyze = File(imageFile.path);
-
-      // Validate face detection in captured image
-      final faceDetected = await _validateFaceDetection(imageToAnalyze);
-      if (!faceDetected) {
-        // Clean up captured image
-        try {
-          await imageToAnalyze.delete();
-        } catch (_) {}
-
-        if (mounted) {
-          setState(() {
-            errorMessage = 'No face detected in captured image';
-            isProcessing = false;
-            testPhase = 0;
-            _isCapturing = false;
-          });
-          _showError(
-            'Face not detected! Please ensure your face is clearly visible and well-lit, then try again.',
-          );
-        }
-        return;
-      }
 
       // Call CNN prediction API WITHOUT saving (use predictDrowsiness instead of submitTest)
       final result = await BlinkFatigueService.predictDrowsiness(
@@ -287,42 +255,6 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
           _showError(errorMessage ?? 'Analysis failed');
         }
       }
-    } finally {
-      _isCapturing = false;
-    }
-  }
-
-  Future<bool> _validateFaceDetection(File imageFile) async {
-    try {
-      final inputImage = InputImage.fromFile(imageFile);
-      final faceDetector = FaceDetector(
-        options: FaceDetectorOptions(
-          enableLandmarks: false,
-          enableContours: false,
-          enableClassification: true,
-          minFaceSize: 0.15,
-        ),
-      );
-
-      final faces = await faceDetector.processImage(inputImage);
-      await faceDetector.close();
-
-      // Require at least one face with eye detection
-      if (faces.isEmpty) {
-        return false;
-      }
-
-      final face = faces.first;
-      // Check if eyes are detected (needed for blink analysis)
-      if (face.leftEyeOpenProbability == null ||
-          face.rightEyeOpenProbability == null) {
-        return false;
-      }
-
-      return true;
-    } catch (e) {
-      debugPrint('Face validation error: $e');
-      return false;
     }
   }
 
@@ -386,7 +318,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
           (probabilities['drowsy'] as num?)?.toDouble() ?? 0.0;
 
       // Get actual blink count from detector
-      final actualBlinkCount = _blinkEngine?.blinkCount ?? blinkCount;
+      final actualBlinkCount = _blinkDetector?.blinkCount ?? blinkCount;
 
       // Determine fatigue level
       String fatigueLevel;
@@ -441,12 +373,12 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
 
   int getBlinkRate() {
     if (testDuration == 0) return 0;
-    final actualBlinkCount = _blinkEngine?.blinkCount ?? blinkCount;
+    final actualBlinkCount = _blinkDetector?.blinkCount ?? blinkCount;
     return ((actualBlinkCount / testDuration) * 60).round();
   }
 
   void _retakeTest() {
-    _blinkEngine?.reset();
+    _blinkDetector?.reset();
     setState(() {
       testPhase = 0;
       predictionResult = null;
@@ -468,7 +400,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
 
   @override
   void dispose() {
-    _blinkEngine?.dispose();
+    _blinkDetector?.dispose();
     _testTimer?.cancel();
     _durationTimer?.cancel();
     _cameraController?.dispose();
@@ -862,7 +794,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
               Expanded(
                 child: _buildMetricCard(
                   title: 'Total Blinks',
-                  value: (_blinkEngine?.blinkCount ?? blinkCount).toString(),
+                  value: (_blinkDetector?.blinkCount ?? blinkCount).toString(),
                   icon: Icons.remove_red_eye,
                   color: Colors.orange,
                 ),
@@ -999,33 +931,27 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
             child: Icon(icon, color: color, size: 28),
           ),
           const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
-                    fontWeight: FontWeight.w500,
-                  ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),

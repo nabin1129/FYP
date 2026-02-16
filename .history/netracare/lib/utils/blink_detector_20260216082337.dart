@@ -9,9 +9,11 @@ class BlinkDetector {
   int _consecutiveFrames = 0;
   Timer? _captureTimer;
   bool _isProcessing = false;
+  DateTime? _lastBlinkAt;
 
-  static const double EAR_THRESHOLD = 0.25;
-  static const int CONSEC_FRAMES_THRESHOLD = 2;
+  static const double EAR_THRESHOLD = 0.28;
+  static const int CONSEC_FRAMES_THRESHOLD = 1;
+  static const int BLINK_DEBOUNCE_MS = 250;
 
   int get blinkCount => _blinkCount;
   bool get isActive => _captureTimer?.isActive ?? false;
@@ -58,7 +60,8 @@ class BlinkDetector {
 
         if (result['success'] == true) {
           final ear = result['ear'] as double;
-          final isBlink = result['is_blink'] as bool;
+          final isBlink =
+              (result['is_blink'] as bool?) ?? (ear < EAR_THRESHOLD);
 
           _processFrame(ear, isBlink, onBlinkDetected);
         } else {
@@ -82,27 +85,38 @@ class BlinkDetector {
     if (isBlink) {
       // Eyes closed - increment consecutive frame counter
       _consecutiveFrames++;
-      _isBlinking = true;
-    } else {
-      // Eyes open - check if we should count a blink
-      if (_isBlinking && _consecutiveFrames >= CONSEC_FRAMES_THRESHOLD) {
-        // Blink completed!
+      if (!_isBlinking && _canCountBlink()) {
         _blinkCount++;
+        _lastBlinkAt = DateTime.now();
         print('👁️ Blink #$_blinkCount detected! (EAR threshold crossed)');
         onBlinkDetected(_blinkCount);
       }
+      _isBlinking = true;
+    } else {
       _consecutiveFrames = 0;
       _isBlinking = false;
     }
   }
 
+  bool _canCountBlink() {
+    if (_consecutiveFrames < CONSEC_FRAMES_THRESHOLD) {
+      return false;
+    }
+    if (_lastBlinkAt == null) {
+      return true;
+    }
+    final elapsedMs =
+        DateTime.now().difference(_lastBlinkAt!).inMilliseconds;
+    return elapsedMs >= BLINK_DEBOUNCE_MS;
+  }
+
   /// Fallback simulated blink detection (used when backend analysis fails)
   void _simulatedBlink(Function(int) onBlinkDetected) {
-    // Simulate realistic blink pattern (~10-12 blinks/min)
+    // Simulate realistic blink pattern (~10-14 blinks/min)
     // This is a backup when real detection fails
-    if (DateTime.now().millisecondsSinceEpoch % 5000 < 250) {
-      // ~20% chance every 5 seconds = ~12 blinks/min
+    if (_canCountBlink() && DateTime.now().millisecondsSinceEpoch % 4000 < 250) {
       _blinkCount++;
+      _lastBlinkAt = DateTime.now();
       print('👁️ Blink #$_blinkCount detected (simulated fallback)');
       onBlinkDetected(_blinkCount);
     }
@@ -121,6 +135,7 @@ class BlinkDetector {
     _blinkCount = 0;
     _isBlinking = false;
     _consecutiveFrames = 0;
+    _lastBlinkAt = null;
     print('👁️ Blink detector reset');
   }
 

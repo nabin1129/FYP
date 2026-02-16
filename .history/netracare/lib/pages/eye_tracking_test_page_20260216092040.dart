@@ -100,20 +100,20 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
         return true;
       },
       child: Scaffold(
-        backgroundColor: AppTheme.background,
+        backgroundColor: const Color(0xFFF5F7FA),
         appBar: AppBar(
-          backgroundColor: AppTheme.surface,
+          backgroundColor: Colors.white,
           elevation: 1,
           titleTextStyle: const TextStyle(
-            color: AppTheme.textPrimary,
+            color: Colors.black87,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
-          iconTheme: const IconThemeData(color: AppTheme.textPrimary),
+          iconTheme: const IconThemeData(color: Colors.black87),
           leading: isTestComplete
               ? null
               : IconButton(
-                  icon: const Icon(Icons.close, color: AppTheme.textPrimary),
+                  icon: const Icon(Icons.close, color: Colors.black87),
                   onPressed: () => _showExitDialog(),
                 ),
           title: const Text("Eye Tracking Test"),
@@ -130,7 +130,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
       children: [
         // Background tracking area
         Container(
-          color: AppTheme.background,
+          color: const Color(0xFFF5F7FA),
           width: double.infinity,
           height: double.infinity,
         ),
@@ -141,10 +141,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
             width: MediaQuery.of(context).size.width * 0.85,
             height: MediaQuery.of(context).size.height * 0.6,
             decoration: BoxDecoration(
-              border: Border.all(
-                color: AppTheme.primary.withOpacity(0.3),
-                width: 2,
-              ),
+              border: Border.all(color: Colors.blue.withOpacity(0.3), width: 2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: _buildTrackingArea(),
@@ -161,7 +158,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
               Text(
                 "Phase ${testPhase + 1}/$totalPhases",
                 style: const TextStyle(
-                  color: AppTheme.textPrimary,
+                  color: Colors.black87,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -171,9 +168,9 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
                 width: 80,
                 child: LinearProgressIndicator(
                   value: (testPhase + 1) / totalPhases,
-                  backgroundColor: AppTheme.textLight.withOpacity(0.2),
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    AppTheme.primary,
+                  backgroundColor: Colors.grey.withOpacity(0.2),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.blue.withOpacity(0.8),
                   ),
                 ),
               ),
@@ -191,7 +188,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
               Text(
                 _getPhaseDescription(),
                 style: const TextStyle(
-                  color: AppTheme.textPrimary,
+                  color: Colors.black87,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
@@ -200,7 +197,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
               Text(
                 "Follow the dot with your eyes",
                 style: const TextStyle(
-                  color: AppTheme.primary,
+                  color: Colors.blue,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -244,11 +241,11 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
       width: 24,
       height: 24,
       decoration: BoxDecoration(
-        color: AppTheme.primary,
+        color: Colors.blue,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primary.withOpacity(0.5),
+            color: Colors.blue.withOpacity(0.6),
             blurRadius: 12,
             spreadRadius: 2,
           ),
@@ -454,7 +451,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
                   Navigator.of(context).popUntil((route) => route.isFirst),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                side: BorderSide(color: AppTheme.textLight.withOpacity(0.5)),
+                side: BorderSide(color: Colors.grey.withOpacity(0.5)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -464,7 +461,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.textSecondary,
+                  color: Colors.grey.withOpacity(0.7),
                 ),
               ),
             ),
@@ -527,15 +524,15 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
     return await showDialog<bool>(
           context: context,
           builder: (BuildContext context) => AlertDialog(
-            backgroundColor: AppTheme.surface,
+            backgroundColor: const Color(0xFF16213E),
             title: const Text(
               "Exit Test?",
-              style: TextStyle(color: AppTheme.textPrimary),
+              style: TextStyle(color: Colors.white),
             ),
             content: const Text(
               "Are you sure you want to exit? Your progress will not be saved.",
-              style: TextStyle(
-                color: AppTheme.textSecondary,
+              style: const TextStyle(
+                color: Colors.black87,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
@@ -547,10 +544,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text(
-                  "Exit",
-                  style: TextStyle(color: AppTheme.error),
-                ),
+                child: const Text("Exit", style: TextStyle(color: Colors.red)),
               ),
             ],
           ),
@@ -592,7 +586,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Results saved successfully!"),
-          backgroundColor: AppTheme.success,
+          backgroundColor: Colors.green,
           duration: Duration(seconds: 2),
         ),
       );
@@ -608,7 +602,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Failed to save results: $e"),
-          backgroundColor: AppTheme.error,
+          backgroundColor: Colors.red,
           duration: const Duration(seconds: 3),
         ),
       );

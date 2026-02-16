@@ -6,7 +6,6 @@ import 'dart:math';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import '../services/blink_fatigue_service.dart';
 import '../services/blink_detection_service.dart';
 import '../services/blink_detection_engine.dart';
@@ -39,8 +38,6 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
   double progress = 0;
   int blinkCount = 0;
   int testDuration = 0; // in seconds
-  int _faceDetectionCount = 0;
-  int _totalFramesProcessed = 0;
 
   // Blink detection engine
   BlinkDetectionEngine? _blinkEngine;
@@ -139,8 +136,6 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
       testDuration = 0;
       testStartTime = DateTime.now();
       errorMessage = null;
-      _faceDetectionCount = 0;
-      _totalFramesProcessed = 0;
     });
 
     // Start real-time blink detection using ML Kit classification
@@ -159,7 +154,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
     );
 
     // Test progression (40 seconds for accurate blink detection)
-    _testTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+    _testTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
@@ -222,28 +217,6 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
       // Convert to File
       final File imageToAnalyze = File(imageFile.path);
 
-      // Validate face detection in captured image
-      final faceDetected = await _validateFaceDetection(imageToAnalyze);
-      if (!faceDetected) {
-        // Clean up captured image
-        try {
-          await imageToAnalyze.delete();
-        } catch (_) {}
-
-        if (mounted) {
-          setState(() {
-            errorMessage = 'No face detected in captured image';
-            isProcessing = false;
-            testPhase = 0;
-            _isCapturing = false;
-          });
-          _showError(
-            'Face not detected! Please ensure your face is clearly visible and well-lit, then try again.',
-          );
-        }
-        return;
-      }
-
       // Call CNN prediction API WITHOUT saving (use predictDrowsiness instead of submitTest)
       final result = await BlinkFatigueService.predictDrowsiness(
         imageToAnalyze,
@@ -287,42 +260,6 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
           _showError(errorMessage ?? 'Analysis failed');
         }
       }
-    } finally {
-      _isCapturing = false;
-    }
-  }
-
-  Future<bool> _validateFaceDetection(File imageFile) async {
-    try {
-      final inputImage = InputImage.fromFile(imageFile);
-      final faceDetector = FaceDetector(
-        options: FaceDetectorOptions(
-          enableLandmarks: false,
-          enableContours: false,
-          enableClassification: true,
-          minFaceSize: 0.15,
-        ),
-      );
-
-      final faces = await faceDetector.processImage(inputImage);
-      await faceDetector.close();
-
-      // Require at least one face with eye detection
-      if (faces.isEmpty) {
-        return false;
-      }
-
-      final face = faces.first;
-      // Check if eyes are detected (needed for blink analysis)
-      if (face.leftEyeOpenProbability == null ||
-          face.rightEyeOpenProbability == null) {
-        return false;
-      }
-
-      return true;
-    } catch (e) {
-      debugPrint('Face validation error: $e');
-      return false;
     }
   }
 
@@ -999,33 +936,27 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
             child: Icon(icon, color: color, size: 28),
           ),
           const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
-                    fontWeight: FontWeight.w500,
-                  ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),

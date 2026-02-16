@@ -39,6 +39,20 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage>
     });
   }
 
+  void _acceptConsultation(String consultationId) {
+    final consultationService = ConsultationService();
+    consultationService.acceptConsultation(consultationId);
+    _loadConsultations(); // Refresh the list
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Consultation accepted and scheduled!'),
+        backgroundColor: AppTheme.success,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -121,7 +135,10 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage>
                     _tabController.animateTo(1);
                   },
                 ),
-                ConsultationHistoryTab(consultations: consultationHistory),
+                ConsultationHistoryTab(
+                  consultations: consultationHistory,
+                  onAcceptConsultation: _acceptConsultation,
+                ),
               ],
             ),
           ),

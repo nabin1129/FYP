@@ -665,9 +665,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               }
             }
 
-            return count > 0 ? (sum / count) : 0.0;
+            return count > 0 ? (sum / count) : 0;
           })()
-        : 0.0;
+        : 0;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -876,9 +876,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                         RadarEntry(
                           value: _blinkFatigueTests.isNotEmpty
                               ? (_resolveAlertnessPercent(
-                                      _blinkFatigueTests.first,
-                                    ) ??
-                                    0)
+                                        _blinkFatigueTests.first,
+                                      ) ??
+                                      0)
                               : 0,
                         ),
                         RadarEntry(value: 0),
@@ -1880,7 +1880,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               Expanded(
                 child: _buildDetailItem(
                   'Avg BPM',
-                  avgBpm != null ? avgBpm.toStringAsFixed(1) : 'N/A',
+                  avgBpm != null && avgBpm > 0
+                      ? avgBpm.toStringAsFixed(1)
+                      : 'N/A',
                 ),
               ),
             ],
@@ -1891,7 +1893,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               Expanded(
                 child: _buildDetailItem(
                   'Total Blinks',
-                  totalBlinks != null ? totalBlinks.toString() : 'N/A',
+                  totalBlinks != null && totalBlinks > 0
+                      ? totalBlinks.toString()
+                      : 'N/A',
                 ),
               ),
               Expanded(

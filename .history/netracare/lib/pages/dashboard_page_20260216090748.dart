@@ -29,13 +29,25 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   void _loadNextConsultation() {
-    // Get consultations from service
-    final consultationService = ConsultationService();
-    final nextScheduled = consultationService.getNextScheduledConsultation();
+    // Get all consultations
+    final consultations = Consultation.getMockHistory();
 
-    setState(() {
-      nextConsultation = nextScheduled;
-    });
+    // Filter for scheduled consultations only (not pending, not completed)
+    // This ensures only confirmed/booked consultations appear in "Upcoming Consultation"
+    final scheduled = consultations
+        .where((c) => c.status == ConsultationStatus.scheduled)
+        .toList();
+
+    // If there are scheduled consultations, get the first one
+    if (scheduled.isNotEmpty) {
+      setState(() {
+        nextConsultation = scheduled.first;
+      });
+    } else {
+      setState(() {
+        nextConsultation = null;
+      });
+    }
   }
 
   @override
@@ -342,10 +354,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   MaterialPageRoute(
                     builder: (_) => const DoctorConsultationPage(),
                   ),
-                ).then((_) {
-                  // Reload consultations when returning
-                  _loadNextConsultation();
-                });
+                );
               },
               child: const Text(
                 "Book Consultation",
