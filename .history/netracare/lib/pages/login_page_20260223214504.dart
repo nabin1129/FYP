@@ -113,17 +113,12 @@ class _LoginPageState extends State<LoginPage> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                 ),
                               )
                             : const Text(
                                 "Login",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                ),
+                                style: TextStyle(color: Colors.white, fontSize: 18),
                               ),
                       ),
                     ),
@@ -187,7 +182,9 @@ class _LoginPageState extends State<LoginPage> {
         if (mounted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const DoctorDashboardPage()),
+            MaterialPageRoute(
+              builder: (_) => const DoctorDashboardPage(),
+            ),
           );
         }
         return;
@@ -199,7 +196,9 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const DashboardPage()),
+          MaterialPageRoute(
+            builder: (_) => const DashboardPage(),
+          ),
         );
       }
     } catch (e) {

@@ -35,7 +35,6 @@ class NetraCareApp extends StatelessWidget {
         "/login": (_) => const LoginPage(),
         "/signup": (_) => const SignupPage(),
         "/dashboard": (_) => const DashboardPage(),
-        "/doctor-dashboard": (_) => const DoctorDashboardPage(),
         "/profile": (_) => const ProfilePage(),
         "/visual-acuity": (_) => const VisualAcuityPage(),
         "/eye-tracking": (_) => const EyeTrackingPage(),

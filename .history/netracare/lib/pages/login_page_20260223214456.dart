@@ -113,17 +113,12 @@ class _LoginPageState extends State<LoginPage> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                 ),
                               )
                             : const Text(
                                 "Login",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                ),
+                                style: TextStyle(color: Colors.white, fontSize: 18),
                               ),
                       ),
                     ),
@@ -179,27 +174,17 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final email = emailController.text.trim();
-      final password = passwordController.text;
-
-      // Check for doctor login (verified admin account)
-      if (email == 'doctor@gmail.com' && password == '123456') {
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const DoctorDashboardPage()),
-          );
-        }
-        return;
-      }
-
-      // Regular user login through API
-      await ApiService.login(email, password);
+      await ApiService.login(
+        emailController.text.trim(),
+        passwordController.text,
+      );
 
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const DashboardPage()),
+          MaterialPageRoute(
+            builder: (_) => const DashboardPage(),
+          ),
         );
       }
     } catch (e) {
