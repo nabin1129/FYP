@@ -72,10 +72,8 @@ class _AuthCheckPageState extends State<AuthCheckPage> {
 
   Future<void> _checkAuth() async {
     try {
-      final token = await ApiService.getToken().timeout(
-        const Duration(seconds: 1),
-        onTimeout: () => null,
-      );
+      final token = await ApiService.getToken()
+          .timeout(const Duration(seconds: 1), onTimeout: () => null);
 
       if (mounted) {
         setState(() => _isChecking = false);
@@ -108,6 +106,9 @@ class _AuthCheckPageState extends State<AuthCheckPage> {
 
   @override
   Widget build(BuildContext context) {
+    print(
+      'AuthCheckPage: Building widget. _isChecking: $_isChecking, _error: $_error',
+    );
     return Scaffold(
       backgroundColor: const Color(0xFFF2F4F8),
       body: SafeArea(

@@ -23,6 +23,8 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   int selectedIndex = 0;
   Consultation? nextConsultation;
+  int _notificationCount = 0;
+  bool _isLoading = true;
 
   final ConsultationService _consultationService = ConsultationService();
   final NotificationService _notificationService = NotificationService();
@@ -34,10 +36,14 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> _initializeData() async {
+    setState(() => _isLoading = true);
+
     await Future.wait([_loadNextConsultation(), _loadNotificationCount()]);
 
     // Initialize notification polling
     _notificationService.initialize();
+
+    setState(() => _isLoading = false);
   }
 
   Future<void> _loadNextConsultation() async {
@@ -63,7 +69,12 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Future<void> _loadNotificationCount() async {
     try {
-      await _notificationService.getUnreadCount();
+      final count = await _notificationService.getUnreadCount();
+      if (mounted) {
+        setState(() {
+          _notificationCount = count;
+        });
+      }
     } catch (e) {
       // Ignore errors
     }
@@ -89,6 +100,7 @@ class _DashboardPageState extends State<DashboardPage> {
   // APP BAR
   // ---------------------------
   PreferredSizeWidget _buildAppBar() {
+    const titles = ['Dashboard', 'Reports', 'Profile'];
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: AppTheme.surface,
@@ -110,13 +122,26 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ),
           const SizedBox(width: 12),
-          const Text(
-            'Netra Care',
-            style: TextStyle(
-              color: AppTheme.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                titles[selectedIndex],
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Text(
+                'Netra Care',
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -132,7 +157,11 @@ class _DashboardPageState extends State<DashboardPage> {
                 gradient: AppTheme.primaryGradient,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.person, color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.person,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
           ),
         ),
@@ -171,7 +200,11 @@ class _DashboardPageState extends State<DashboardPage> {
                 gradient: AppTheme.primaryGradient,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.person, color: Colors.white, size: 32),
+              child: const Icon(
+                Icons.person,
+                color: Colors.white,
+                size: 32,
+              ),
             ),
             const SizedBox(height: AppTheme.spaceMD),
             const Text(
@@ -185,10 +218,8 @@ class _DashboardPageState extends State<DashboardPage> {
             const SizedBox(height: AppTheme.spaceLG),
             const Divider(),
             ListTile(
-              leading: const Icon(
-                Icons.settings_outlined,
-                color: AppTheme.textSecondary,
-              ),
+              leading: const Icon(Icons.settings_outlined,
+                  color: AppTheme.textSecondary),
               title: const Text('Settings'),
               onTap: () {
                 Navigator.pop(context);
@@ -196,15 +227,14 @@ class _DashboardPageState extends State<DashboardPage> {
               },
             ),
             ListTile(
-              leading: const Icon(
-                Icons.help_outline,
-                color: AppTheme.textSecondary,
-              ),
+              leading: const Icon(Icons.help_outline,
+                  color: AppTheme.textSecondary),
               title: const Text('Help & Support'),
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
-              leading: const Icon(Icons.logout, color: AppTheme.error),
+              leading:
+                  const Icon(Icons.logout, color: AppTheme.error),
               title: const Text(
                 'Logout',
                 style: TextStyle(color: AppTheme.error),
@@ -233,8 +263,7 @@ class _DashboardPageState extends State<DashboardPage> {
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: const Text(
-          'Are you sure you want to logout from your account?',
-        ),
+            'Are you sure you want to logout from your account?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -245,7 +274,8 @@ class _DashboardPageState extends State<DashboardPage> {
               backgroundColor: AppTheme.error,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.radiusMedium),
               ),
             ),
             onPressed: () async {
@@ -253,10 +283,7 @@ class _DashboardPageState extends State<DashboardPage> {
               await ApiService.deleteToken();
               if (mounted) {
                 Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/login',
-                  (route) => false,
-                );
+                    context, '/login', (route) => false);
               }
             },
             child: const Text('Logout'),

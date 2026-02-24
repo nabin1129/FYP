@@ -47,35 +47,6 @@ class ApiService {
     _throwReadableError(response);
   }
 
-  /// Try to login as a doctor via /api/doctors/login.
-  /// Returns true on success (also saves doctor token).
-  /// Returns false if credentials are wrong (401).
-  /// Throws a [String] message for other errors.
-  static Future<bool> doctorLogin(String email, String password) async {
-    final response = await http
-        .post(
-          Uri.parse('${ApiConfig.baseUrl}/api/doctors/login'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'email': email, 'password': password}),
-        )
-        .timeout(const Duration(seconds: 10));
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final token = data['token'] as String?;
-      if (token != null) {
-        await _storage.write(
-          key: 'doctor_token',
-          value: token,
-          aOptions: const AndroidOptions(encryptedSharedPreferences: true),
-        );
-      }
-      return true;
-    }
-    if (response.statusCode == 401) return false;
-    _throwReadableError(response);
-  }
-
   // =========================
   // SIGNUP
   // =========================

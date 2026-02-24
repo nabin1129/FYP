@@ -71,43 +71,69 @@ class _AuthCheckPageState extends State<AuthCheckPage> {
   }
 
   Future<void> _checkAuth() async {
+    print('AuthCheckPage: Starting auth check...');
     try {
-      final token = await ApiService.getToken().timeout(
-        const Duration(seconds: 1),
-        onTimeout: () => null,
+      // Use a timeout wrapper to prevent hanging
+      final token = await Future.any([
+        ApiService.getToken(),
+        Future.delayed(const Duration(seconds: 3), () => null as String?),
+      ]);
+
+      print(
+        'AuthCheckPage: Token check completed. Token: ${token != null ? "exists" : "null"}',
       );
 
       if (mounted) {
-        setState(() => _isChecking = false);
+        setState(() {
+          _isChecking = false;
+        });
+        print('AuthCheckPage: State updated, navigating...');
 
-        if (token != null && token.isNotEmpty) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const DashboardPage()),
-          );
-        } else {
+        // Add a small delay to ensure UI is ready
+        await Future.delayed(const Duration(milliseconds: 300));
+
+        if (mounted) {
+          if (token != null && token.isNotEmpty) {
+            print('AuthCheckPage: Navigating to Dashboard');
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const DashboardPage()),
+            );
+          } else {
+            print('AuthCheckPage: Navigating to Login');
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginPage()),
+            );
+          }
+        }
+      }
+    } catch (e, stackTrace) {
+      print('AuthCheckPage: Error occurred: $e');
+      print('AuthCheckPage: Stack trace: $stackTrace');
+      if (mounted) {
+        setState(() {
+          _isChecking = false;
+          _error = e.toString();
+        });
+        // If there's an error, go to login page after a delay
+        await Future.delayed(const Duration(milliseconds: 1000));
+        if (mounted) {
+          print('AuthCheckPage: Navigating to Login due to error');
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const LoginPage()),
           );
         }
       }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isChecking = false;
-          _error = e.toString();
-        });
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginPage()),
-        );
-      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    print(
+      'AuthCheckPage: Building widget. _isChecking: $_isChecking, _error: $_error',
+    );
     return Scaffold(
       backgroundColor: const Color(0xFFF2F4F8),
       body: SafeArea(

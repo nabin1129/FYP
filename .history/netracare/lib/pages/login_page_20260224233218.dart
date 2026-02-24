@@ -176,13 +176,15 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    setState(() => isLoading = true);
+    setState(() {
+      isLoading = true;
+    });
 
     try {
       final email = emailController.text.trim();
       final password = passwordController.text;
 
-      // ── Admin login (local, no API) ──────────────────────────────
+      // Check for admin login
       if (email == 'admin' && password == 'admin333221') {
         AdminService().initialize();
         if (mounted) {
@@ -194,9 +196,8 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // ── Doctor login (try /api/doctors/login) ───────────────────
-      final isDoctor = await ApiService.doctorLogin(email, password);
-      if (isDoctor) {
+      // Check for doctor login (verified admin account)
+      if (email == 'doctor@gmail.com' && password == '123456') {
         if (mounted) {
           Navigator.pushReplacement(
             context,
@@ -206,8 +207,9 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // ── Regular user login ───────────────────────────────────────
+      // Regular user login through API
       await ApiService.login(email, password);
+
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -224,7 +226,11 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     } finally {
-      if (mounted) setState(() => isLoading = false);
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 }

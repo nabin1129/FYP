@@ -132,7 +132,11 @@ class _DashboardPageState extends State<DashboardPage> {
                 gradient: AppTheme.primaryGradient,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.person, color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.person,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
           ),
         ),
@@ -171,7 +175,11 @@ class _DashboardPageState extends State<DashboardPage> {
                 gradient: AppTheme.primaryGradient,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.person, color: Colors.white, size: 32),
+              child: const Icon(
+                Icons.person,
+                color: Colors.white,
+                size: 32,
+              ),
             ),
             const SizedBox(height: AppTheme.spaceMD),
             const Text(
@@ -185,10 +193,8 @@ class _DashboardPageState extends State<DashboardPage> {
             const SizedBox(height: AppTheme.spaceLG),
             const Divider(),
             ListTile(
-              leading: const Icon(
-                Icons.settings_outlined,
-                color: AppTheme.textSecondary,
-              ),
+              leading: const Icon(Icons.settings_outlined,
+                  color: AppTheme.textSecondary),
               title: const Text('Settings'),
               onTap: () {
                 Navigator.pop(context);
@@ -196,15 +202,14 @@ class _DashboardPageState extends State<DashboardPage> {
               },
             ),
             ListTile(
-              leading: const Icon(
-                Icons.help_outline,
-                color: AppTheme.textSecondary,
-              ),
+              leading: const Icon(Icons.help_outline,
+                  color: AppTheme.textSecondary),
               title: const Text('Help & Support'),
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
-              leading: const Icon(Icons.logout, color: AppTheme.error),
+              leading:
+                  const Icon(Icons.logout, color: AppTheme.error),
               title: const Text(
                 'Logout',
                 style: TextStyle(color: AppTheme.error),
@@ -233,8 +238,7 @@ class _DashboardPageState extends State<DashboardPage> {
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: const Text(
-          'Are you sure you want to logout from your account?',
-        ),
+            'Are you sure you want to logout from your account?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -245,7 +249,8 @@ class _DashboardPageState extends State<DashboardPage> {
               backgroundColor: AppTheme.error,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.radiusMedium),
               ),
             ),
             onPressed: () async {
@@ -253,10 +258,7 @@ class _DashboardPageState extends State<DashboardPage> {
               await ApiService.deleteToken();
               if (mounted) {
                 Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/login',
-                  (route) => false,
-                );
+                    context, '/login', (route) => false);
               }
             },
             child: const Text('Logout'),

@@ -72,10 +72,8 @@ class _AuthCheckPageState extends State<AuthCheckPage> {
 
   Future<void> _checkAuth() async {
     try {
-      final token = await ApiService.getToken().timeout(
-        const Duration(seconds: 1),
-        onTimeout: () => null,
-      );
+      final token = await ApiService.getToken()
+          .timeout(const Duration(seconds: 1), onTimeout: () => null);
 
       if (mounted) {
         setState(() => _isChecking = false);
