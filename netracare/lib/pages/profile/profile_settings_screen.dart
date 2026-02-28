@@ -336,7 +336,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   Widget _buildProfilePhoto() {
     final hasImage = _imageFile != null || _profileImageUrl != null;
-    final firstLetter = _nameController.text.isNotEmpty
+    // First letter available for avatar fallback
+    final _ = _nameController.text.isNotEmpty
         ? _nameController.text[0].toUpperCase()
         : 'U';
 

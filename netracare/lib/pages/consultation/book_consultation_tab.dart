@@ -240,12 +240,11 @@ class BookConsultationTab extends StatelessWidget {
               try {
                 // Book consultation via API
                 final consultationService = ConsultationService();
-                final consultation = await consultationService
-                    .bookConsultationAsync(
-                      doctorId: int.parse(doctor.id),
-                      type: ConsultationType.videoCall,
-                      reason: 'Video consultation request',
-                    );
+                await consultationService.bookConsultationAsync(
+                  doctorId: int.parse(doctor.id),
+                  type: ConsultationType.videoCall,
+                  reason: 'Video consultation request',
+                );
 
                 // Close loading dialog
                 Navigator.pop(context);

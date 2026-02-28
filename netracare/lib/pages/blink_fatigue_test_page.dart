@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
+
 import '../services/blink_fatigue_service.dart';
 import '../utils/permission_helper.dart';
 

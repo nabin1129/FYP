@@ -4,7 +4,6 @@ import 'package:netracare/services/api_service.dart';
 import '../models/distance_calibration_model.dart';
 import '../widgets/distance_monitor_widget.dart';
 import '../widgets/distance_feedback_overlay.dart';
-import 'distance_calibration_page.dart';
 
 class VisualAcuityTestPage extends StatefulWidget {
   const VisualAcuityTestPage({super.key});

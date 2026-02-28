@@ -23,6 +23,7 @@ class DoctorChatPage extends StatefulWidget {
 
 class _DoctorChatPageState extends State<DoctorChatPage> {
   final DoctorService _doctorService = DoctorService();
+  // ignore: unused_field
   final DoctorApiService _apiService = DoctorApiService();
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();

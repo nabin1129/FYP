@@ -28,6 +28,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
   List<Map<String, dynamic>> _eyeTrackingTests = [];
   List<Map<String, dynamic>> _blinkFatigueTests = [];
   List<Map<String, dynamic>> _pupilReflexTests = [];
+  // ignore: unused_field
   Map<String, dynamic>? _blinkFatigueStats;
 
   DateTime? _lastUpdated;

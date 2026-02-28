@@ -16,6 +16,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  // ignore: unused_field
   final _formKey = GlobalKey<FormState>();
   bool isPasswordVisible = false;
   bool isLoading = false;

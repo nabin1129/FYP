@@ -253,6 +253,7 @@ class _DistanceMonitorWidgetState extends State<DistanceMonitorWidget> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildErrorView() {
     return Container(
       color: Colors.black,

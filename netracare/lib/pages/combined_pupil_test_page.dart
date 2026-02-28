@@ -21,6 +21,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
   late AnimationController _flashAnimationController;
 
   int _phase = 0; // 0: ready, 1: testing, 2: processing, 3: results
+  // ignore: unused_field
   bool _isRecording = false;
   String? _videoPath;
   String? _testId;

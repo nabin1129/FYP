@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
-import 'dart:convert';
+
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
@@ -32,6 +31,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
 
   // Test timers
   Timer? _testTimer;
+  // ignore: unused_field
   Timer? _blinkTimer;
   Timer? _durationTimer;
 
@@ -39,7 +39,9 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
   double progress = 0;
   int blinkCount = 0;
   int testDuration = 0; // in seconds
+  // ignore: unused_field
   int _faceDetectionCount = 0;
+  // ignore: unused_field
   int _totalFramesProcessed = 0;
 
   // Blink detection engine
@@ -375,8 +377,8 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
 
     try {
       // Extract prediction results with null safety
-      final prediction =
-          predictionResult!['prediction'] as String? ?? 'notdrowsy';
+      // Prediction value available for future use
+      predictionResult!['prediction'] as String? ?? 'notdrowsy';
       final confidence =
           (predictionResult!['confidence'] as num?)?.toDouble() ?? 0.0;
       final probabilities =

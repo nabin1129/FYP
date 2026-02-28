@@ -3,7 +3,7 @@ import 'package:camera/camera.dart';
 import 'dart:async';
 import 'dart:math';
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
+
 import '../utils/permission_helper.dart';
 import '../services/pupil_reflex_service.dart';
 
