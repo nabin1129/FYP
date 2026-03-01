@@ -130,7 +130,7 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
           'Add ${widget.recordType.toString()}',
           style: const TextStyle(
             color: AppTheme.textPrimary,
-            fontSize: 18,
+            fontSize: AppTheme.fontXL,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -145,7 +145,7 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
                   )
                 : const Text(
                     'Save',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.fontBody),
                   ),
           ),
         ],
@@ -186,7 +186,7 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
                             widget.recordType.toString(),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: AppTheme.fontLG,
                               color: _recordColor,
                             ),
                           ),
@@ -194,7 +194,7 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
                           Text(
                             _getRecordTypeDescription(),
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: AppTheme.fontSM,
                               color: AppTheme.textSecondary,
                             ),
                           ),
@@ -335,7 +335,7 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
                         const Text(
                           'PDF, JPG, PNG (Max 10MB)',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: AppTheme.fontSM,
                             color: AppTheme.textLight,
                           ),
                         ),
@@ -427,7 +427,7 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
             : '$currentDesc\n$name - ';
       },
       backgroundColor: AppTheme.surfaceLight,
-      labelStyle: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+      labelStyle: const TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSecondary),
     );
   }
 }

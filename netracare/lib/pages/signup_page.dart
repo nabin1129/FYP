@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/pages/login_page.dart';
 import 'package:netracare/pages/dashboard_page.dart';
 import 'package:netracare/services/api_service.dart';
@@ -47,7 +48,7 @@ class _SignupPageState extends State<SignupPage> {
             'Password must be at least 8 characters and include '
             'uppercase, lowercase, number, and special character.',
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.error,
         ),
       );
       return;
@@ -77,7 +78,7 @@ class _SignupPageState extends State<SignupPage> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        SnackBar(content: Text(e.toString()), backgroundColor: AppTheme.error),
       );
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -99,33 +100,24 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Create Account',
-          style: TextStyle(color: Colors.black87),
-        ),
-        iconTheme: const IconThemeData(color: Colors.black87),
-      ),
+      backgroundColor: AppTheme.background,
+      appBar: AppTheme.standardAppBar(title: 'Create Account'),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppTheme.spaceMD),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'NetraCare',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                style: AppTheme.heading1.copyWith(
+                  fontSize: AppTheme.fontHeading,
+                ),
               ),
-              const SizedBox(height: 6),
-              const Text(
-                'Create your account',
-                style: TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 30),
+              const SizedBox(height: AppTheme.spaceSM),
+              const Text('Create your account', style: AppTheme.bodySecondary),
+              const SizedBox(height: AppTheme.spaceXL),
 
               _inputField(
                 controller: nameController,
@@ -177,14 +169,13 @@ class _SignupPageState extends State<SignupPage> {
                 keyboardType: TextInputType.number,
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: AppTheme.spaceMD),
 
               DropdownButtonFormField<String>(
                 value: selectedSex,
-                decoration: const InputDecoration(
-                  labelText: 'Sex (optional)',
-                  prefixIcon: Icon(Icons.person_outline),
-                  border: OutlineInputBorder(),
+                decoration: AppTheme.inputDecoration(
+                  label: 'Sex (optional)',
+                  prefixIcon: Icons.person_outline,
                 ),
                 items: const [
                   DropdownMenuItem(value: 'Male', child: Text('Male')),
@@ -196,29 +187,21 @@ class _SignupPageState extends State<SignupPage> {
                 },
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: AppTheme.spaceXL),
 
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
                   onPressed: isLoading ? null : _signup,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                  style: AppTheme.primaryButton,
                   child: isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Create Account',
-                          style: TextStyle(fontSize: 16),
-                        ),
+                      : Text('Create Account', style: AppTheme.button),
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: AppTheme.spaceMD),
 
               Center(
                 child: TextButton(
@@ -228,7 +211,10 @@ class _SignupPageState extends State<SignupPage> {
                       MaterialPageRoute(builder: (_) => const LoginPage()),
                     );
                   },
-                  child: const Text('Already have an account? Login'),
+                  child: Text(
+                    'Already have an account? Login',
+                    style: TextStyle(color: AppTheme.primary),
+                  ),
                 ),
               ),
             ],
@@ -255,11 +241,10 @@ class _SignupPageState extends State<SignupPage> {
       obscureText: obscureText,
       keyboardType: keyboardType,
       validator: validator,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
+      decoration: AppTheme.inputDecoration(
+        label: label,
+        prefixIcon: icon,
         suffixIcon: suffixIcon,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

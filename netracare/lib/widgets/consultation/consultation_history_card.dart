@@ -32,7 +32,7 @@ class ConsultationHistoryCard extends StatelessWidget {
                     Text(
                       consultation.doctorName,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: AppTheme.fontLG,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.textPrimary,
                       ),
@@ -41,7 +41,7 @@ class ConsultationHistoryCard extends StatelessWidget {
                     Text(
                       consultation.date,
                       style: const TextStyle(
-                        fontSize: 13,
+                        fontSize: AppTheme.fontSM,
                         color: AppTheme.textSecondary,
                       ),
                     ),
@@ -60,7 +60,7 @@ class ConsultationHistoryCard extends StatelessWidget {
                 child: Text(
                   consultation.status.toString(),
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppTheme.fontSM,
                     fontWeight: FontWeight.w600,
                     color: _getStatusColor(consultation.status),
                   ),
@@ -84,7 +84,7 @@ class ConsultationHistoryCard extends StatelessWidget {
                 child: Text(
                   consultation.type.toString(),
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: AppTheme.fontSM,
                     color: AppTheme.textSecondary,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -101,7 +101,7 @@ class ConsultationHistoryCard extends StatelessWidget {
                 child: Text(
                   consultation.duration,
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: AppTheme.fontSM,
                     color: AppTheme.textSecondary,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -120,7 +120,7 @@ class ConsultationHistoryCard extends StatelessWidget {
             child: Text(
               consultation.notes,
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: AppTheme.fontSM,
                 color: AppTheme.textSecondary,
               ),
             ),

@@ -2,6 +2,7 @@
 API Routes for Eye Tracking Tests (Dataset-based)
 """
 
+import math
 from flask import request
 from flask_restx import Namespace, Resource, fields
 from datetime import datetime
@@ -17,8 +18,17 @@ data_point_model = eye_tracking_ns.model('EyeTrackingDataPoint', {
     'timestamp': fields.Float(required=True, description='Timestamp in seconds'),
     'gaze_x': fields.Float(required=True, description='Gaze X coordinate'),
     'gaze_y': fields.Float(required=True, description='Gaze Y coordinate'),
-    'left_pupil_diameter': fields.Float(required=True, description='Left pupil diameter'),
-    'right_pupil_diameter': fields.Float(required=True, description='Right pupil diameter'),
+    'target_x': fields.Float(description='Target X coordinate'),
+    'target_y': fields.Float(description='Target Y coordinate'),
+    'left_pupil_diameter': fields.Float(description='Left pupil diameter'),
+    'right_pupil_diameter': fields.Float(description='Right pupil diameter'),
+    'left_ear': fields.Float(description='Left Eye Aspect Ratio'),
+    'right_ear': fields.Float(description='Right Eye Aspect Ratio'),
+    'is_blink': fields.Boolean(description='Whether a blink was detected'),
+    'head_euler_x': fields.Float(description='Head euler angle X'),
+    'head_euler_y': fields.Float(description='Head euler angle Y'),
+    'head_euler_z': fields.Float(description='Head euler angle Z'),
+    'phase': fields.String(description='Test phase name'),
     'fixation_duration': fields.Float(description='Fixation duration'),
     'saccade_velocity': fields.Float(description='Saccade velocity')
 })
@@ -151,24 +161,46 @@ class EyeTrackingUploadData(Resource):
             # Add data points
             for point_data in data['data_points']:
                 data_point = EyeTrackingDataPoint(
-                    timestamp=point_data['timestamp'],
-                    gaze_x=point_data['gaze_x'],
-                    gaze_y=point_data['gaze_y'],
-                    left_pupil_diameter=point_data['left_pupil_diameter'],
-                    right_pupil_diameter=point_data['right_pupil_diameter'],
+                    timestamp=point_data.get('timestamp', 0),
+                    gaze_x=point_data.get('gaze_x', 0),
+                    gaze_y=point_data.get('gaze_y', 0),
+                    left_pupil_diameter=point_data.get('left_pupil_diameter', 0),
+                    right_pupil_diameter=point_data.get('right_pupil_diameter', 0),
                     fixation_duration=point_data.get('fixation_duration'),
-                    saccade_velocity=point_data.get('saccade_velocity')
+                    saccade_velocity=point_data.get('saccade_velocity'),
+                    target_x=point_data.get('target_x'),
+                    target_y=point_data.get('target_y'),
+                    left_ear=point_data.get('left_ear'),
+                    right_ear=point_data.get('right_ear'),
+                    is_blink=point_data.get('is_blink', False),
+                    head_euler_x=point_data.get('head_euler_x'),
+                    head_euler_y=point_data.get('head_euler_y'),
+                    head_euler_z=point_data.get('head_euler_z'),
+                    phase=point_data.get('phase'),
                 )
                 dataset.add_data_point(data_point)
             
             # Calculate metrics
             try:
-                # Extract gaze points
-                actual_gaze = [(p.gaze_x, p.gaze_y) for p in dataset.get_data_points()]
-                tracked_gaze = actual_gaze  # In real scenario, compare with target
-                gaze_accuracy = EyeTrackingMetrics.calculate_gaze_accuracy(
-                    actual_gaze, tracked_gaze
-                )
+                all_points = dataset.get_data_points()
+
+                # Use target positions for gaze accuracy when available
+                points_with_target = [p for p in all_points if p.has_target and not p.is_blink]
+                if points_with_target:
+                    target_positions = [(p.target_x, p.target_y) for p in points_with_target]
+                    gaze_positions = [(p.gaze_x, p.gaze_y) for p in points_with_target]
+                    screen_diag = math.sqrt(
+                        dataset.screen_width ** 2 + dataset.screen_height ** 2
+                    )
+                    gaze_accuracy = EyeTrackingMetrics.calculate_gaze_accuracy(
+                        target_positions, gaze_positions, screen_diagonal=screen_diag
+                    )
+                else:
+                    # Fallback: old behaviour
+                    actual_gaze = [(p.gaze_x, p.gaze_y) for p in all_points]
+                    gaze_accuracy = EyeTrackingMetrics.calculate_gaze_accuracy(
+                        actual_gaze, actual_gaze
+                    )
                 
                 # Fixation stability
                 fixation_durations = [p.fixation_duration for p in dataset.get_data_points()
@@ -187,10 +219,16 @@ class EyeTrackingUploadData(Resource):
                 # Pupil metrics
                 pupil_metrics = EyeTrackingMetrics.calculate_pupil_metrics(dataset)
                 
+                # Blink & EAR metrics
+                blink_metrics = EyeTrackingMetrics.calculate_blink_metrics(
+                    all_points, dataset.test_duration
+                )
+                
                 # Overall performance
                 performance = EyeTrackingMetrics.calculate_overall_performance(
                     dataset, gaze_accuracy, fixation_stability, saccade_metrics
                 )
+                performance['blink_metrics'] = blink_metrics
                 
             except Exception as e:
                 eye_tracking_ns.abort(400, f'Failed to calculate metrics: {str(e)}')

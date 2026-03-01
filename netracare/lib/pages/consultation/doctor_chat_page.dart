@@ -194,7 +194,7 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
                     widget.doctor.name,
                     style: const TextStyle(
                       color: AppTheme.textPrimary,
-                      fontSize: 16,
+                      fontSize: AppTheme.fontLG,
                       fontWeight: FontWeight.bold,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -203,7 +203,7 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
                     widget.doctor.specialization,
                     style: const TextStyle(
                       color: AppTheme.textSecondary,
-                      fontSize: 12,
+                      fontSize: AppTheme.fontSM,
                     ),
                   ),
                 ],
@@ -286,7 +286,7 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
                                     const Text(
                                       'Start a conversation',
                                       style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: AppTheme.fontLG,
                                         fontWeight: FontWeight.w600,
                                         color: AppTheme.textPrimary,
                                       ),
@@ -295,7 +295,7 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
                                     Text(
                                       'Send a message to ${widget.doctor.name}',
                                       style: const TextStyle(
-                                        fontSize: 14,
+                                        fontSize: AppTheme.fontBody,
                                         color: AppTheme.textSecondary,
                                       ),
                                     ),
@@ -407,7 +407,7 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
             const Text(
               'Doctor Information',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: AppTheme.fontXL,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textPrimary,
               ),
@@ -459,14 +459,14 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
                 Text(
                   label,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: AppTheme.fontSM,
                     color: AppTheme.textLight,
                   ),
                 ),
                 Text(
                   value,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: AppTheme.fontBody,
                     fontWeight: FontWeight.w500,
                     color: AppTheme.textPrimary,
                   ),

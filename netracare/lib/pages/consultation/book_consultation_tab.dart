@@ -28,7 +28,7 @@ class BookConsultationTab extends StatelessWidget {
             SizedBox(height: AppTheme.spaceMD),
             Text(
               'No doctors available',
-              style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
+              style: TextStyle(fontSize: AppTheme.fontLG, color: AppTheme.textSecondary),
             ),
           ],
         ),
@@ -70,7 +70,7 @@ class BookConsultationTab extends StatelessWidget {
             const Expanded(
               child: Text(
                 'Request Video Consultation',
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(fontSize: AppTheme.fontXL),
               ),
             ),
           ],
@@ -97,7 +97,7 @@ class BookConsultationTab extends StatelessWidget {
                       child: Text(
                         'Video consultation requires doctor approval. The doctor will schedule and confirm your appointment.',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: AppTheme.fontSM,
                           color: AppTheme.info,
                           height: 1.4,
                         ),
@@ -109,7 +109,7 @@ class BookConsultationTab extends StatelessWidget {
               const SizedBox(height: AppTheme.spaceMD),
               const Text(
                 'Requesting consultation with:',
-                style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+                style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary),
               ),
               const SizedBox(height: AppTheme.spaceMD),
               Container(
@@ -153,7 +153,7 @@ class BookConsultationTab extends StatelessWidget {
                               Text(
                                 doctor.name,
                                 style: const TextStyle(
-                                  fontSize: 15,
+                                  fontSize: AppTheme.fontBody,
                                   fontWeight: FontWeight.bold,
                                   color: AppTheme.textPrimary,
                                 ),
@@ -162,7 +162,7 @@ class BookConsultationTab extends StatelessWidget {
                               Text(
                                 doctor.qualification,
                                 style: const TextStyle(
-                                  fontSize: 12,
+                                  fontSize: AppTheme.fontSM,
                                   color: AppTheme.textSecondary,
                                 ),
                               ),
@@ -210,7 +210,7 @@ class BookConsultationTab extends StatelessWidget {
                       child: Text(
                         'Doctor available: ${doctor.nextSlot}',
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: AppTheme.fontSM,
                           fontWeight: FontWeight.w500,
                           color: AppTheme.success,
                         ),
@@ -267,7 +267,7 @@ class BookConsultationTab extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           'Dr. ${doctor.name.split(' ').last} will review and schedule your consultation',
-                          style: const TextStyle(fontSize: 13),
+                          style: const TextStyle(fontSize: AppTheme.fontSM),
                         ),
                       ],
                     ),
@@ -306,7 +306,7 @@ class BookConsultationTab extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           'Your request has been saved and will be sent when online',
-                          style: const TextStyle(fontSize: 13),
+                          style: const TextStyle(fontSize: AppTheme.fontSM),
                         ),
                       ],
                     ),
@@ -351,7 +351,7 @@ class BookConsultationTab extends StatelessWidget {
           child: RichText(
             text: TextSpan(
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: AppTheme.fontSM,
                 color: AppTheme.textSecondary,
               ),
               children: [

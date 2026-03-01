@@ -5,6 +5,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:netracare/config/app_theme.dart';
 import 'package:camera/camera.dart';
 import '../models/distance_calibration_model.dart';
 import '../services/distance_detection_service.dart';
@@ -218,14 +219,14 @@ class _DistanceMonitorWidgetState extends State<DistanceMonitorWidget> {
               'Test Paused',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 24,
+                fontSize: AppTheme.fontHeading,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 10),
             Text(
               _currentResult?.feedbackMessage ?? 'Adjust your position',
-              style: const TextStyle(color: Colors.white, fontSize: 16),
+              style: const TextStyle(color: Colors.white, fontSize: AppTheme.fontLG),
               textAlign: TextAlign.center,
             ),
           ],
@@ -245,7 +246,7 @@ class _DistanceMonitorWidgetState extends State<DistanceMonitorWidget> {
             SizedBox(height: 20),
             Text(
               'Initializing camera...',
-              style: TextStyle(color: Colors.white, fontSize: 16),
+              style: TextStyle(color: Colors.white, fontSize: AppTheme.fontLG),
             ),
           ],
         ),
@@ -263,20 +264,20 @@ class _DistanceMonitorWidgetState extends State<DistanceMonitorWidget> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, size: 80, color: Colors.red),
+              const Icon(Icons.error_outline, size: 80, color: AppTheme.error),
               const SizedBox(height: 20),
               const Text(
                 'Camera Error',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 24,
+                  fontSize: AppTheme.fontHeading,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 10),
               Text(
                 _errorMessage ?? 'Unknown error',
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(color: Colors.white, fontSize: AppTheme.fontBody),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),
@@ -401,7 +402,7 @@ class _DistanceValidationGuardState extends State<DistanceValidationGuard> {
                 children: [
                   Text(
                     'Hold steady: ${_consecutiveValidFrames}/$_requiredValidFrames',
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                    style: const TextStyle(color: Colors.white, fontSize: AppTheme.fontLG),
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
@@ -410,7 +411,7 @@ class _DistanceValidationGuardState extends State<DistanceValidationGuard> {
                       value: _consecutiveValidFrames / _requiredValidFrames,
                       backgroundColor: Colors.white.withOpacity(0.3),
                       valueColor: const AlwaysStoppedAnimation<Color>(
-                        Colors.green,
+                        AppTheme.success,
                       ),
                     ),
                   ),

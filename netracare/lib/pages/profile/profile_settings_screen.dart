@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:netracare/config/app_theme.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../models/user_model.dart';
@@ -136,7 +137,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
+        backgroundColor: isError ? AppTheme.error : AppTheme.success,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -147,7 +148,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: AppTheme.surfaceLight,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
@@ -158,8 +159,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         title: const Text(
           'Personal Information',
           style: TextStyle(
-            color: Color(0xFF1F2937),
-            fontSize: 18,
+            color: AppTheme.textDark,
+            fontSize: AppTheme.fontXL,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -236,7 +237,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           const Text(
                             'Sex',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: AppTheme.fontBody,
                               fontWeight: FontWeight.w500,
                               color: Color(0xFF374151),
                             ),
@@ -269,7 +270,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
                                 borderSide: const BorderSide(
-                                  color: Color(0xFF3B82F6),
+                                  color: AppTheme.categoryBlue,
                                   width: 2,
                                 ),
                               ),
@@ -420,7 +421,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   SizedBox(width: 8),
                   Text(
                     'Save Changes',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: AppTheme.fontLG, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),

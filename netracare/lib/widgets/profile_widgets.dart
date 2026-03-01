@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:netracare/config/app_theme.dart';
 import '../models/user_model.dart';
 
 /// Gradient Profile Card Widget
@@ -18,14 +19,14 @@ class GradientProfileCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
+          colors: [AppTheme.categoryBlue, AppTheme.categoryPurple],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3B82F6).withOpacity(0.3),
+            color: AppTheme.categoryBlue.withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -64,7 +65,7 @@ class GradientProfileCard extends StatelessWidget {
             Text(
               user.name,
               style: const TextStyle(
-                fontSize: 22,
+                fontSize: AppTheme.fontTitle,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -77,7 +78,7 @@ class GradientProfileCard extends StatelessWidget {
             Text(
               user.email,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: AppTheme.fontBody,
                 color: Colors.white.withOpacity(0.9),
               ),
               textAlign: TextAlign.center,
@@ -92,7 +93,7 @@ class GradientProfileCard extends StatelessWidget {
                 onPressed: onEditProfile,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  foregroundColor: const Color(0xFF3B82F6),
+                  foregroundColor: AppTheme.categoryBlue,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -101,7 +102,7 @@ class GradientProfileCard extends StatelessWidget {
                 ),
                 child: const Text(
                   'Edit Profile',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  style: TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -182,15 +183,15 @@ class SettingsTile extends StatelessWidget {
                 child: Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 15,
+                    fontSize: AppTheme.fontBody,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF1F2937),
+                    color: AppTheme.textDark,
                   ),
                 ),
               ),
 
               // Chevron
-              Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 22),
+              Icon(Icons.chevron_right, color: AppTheme.textSecondary, size: 22),
             ],
           ),
         ),
@@ -214,7 +215,7 @@ class LogoutButton extends StatelessWidget {
         onPressed: onLogout,
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          side: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+          side: const BorderSide(color: AppTheme.error, width: 1.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -222,9 +223,9 @@ class LogoutButton extends StatelessWidget {
         child: const Text(
           'Log Out',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: AppTheme.fontLG,
             fontWeight: FontWeight.w600,
-            color: Color(0xFFEF4444),
+            color: AppTheme.error,
           ),
         ),
       ),

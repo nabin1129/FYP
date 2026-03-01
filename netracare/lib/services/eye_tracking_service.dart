@@ -83,7 +83,7 @@ class EyeTrackingService {
       }
 
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}$_endpoint/save'),
+        Uri.parse('${ApiConfig.baseUrl}$_endpoint/tests'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -147,14 +147,14 @@ class EyeTrackingService {
 
       final response = await http.get(
         Uri.parse(
-          '${ApiConfig.baseUrl}$_endpoint/history?limit=$limit&offset=$offset',
+          '${ApiConfig.baseUrl}$_endpoint/tests?limit=$limit&offset=$offset',
         ),
         headers: {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final results = (data['results'] as List)
+        final results = (data['tests'] as List)
             .map(
               (item) =>
                   EyeTrackingResult.fromJson(item as Map<String, dynamic>),
@@ -180,7 +180,7 @@ class EyeTrackingService {
       }
 
       final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}$_endpoint/latest'),
+        Uri.parse('${ApiConfig.baseUrl}$_endpoint/tests/latest'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -208,7 +208,7 @@ class EyeTrackingService {
       }
 
       final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}$_endpoint/statistics'),
+        Uri.parse('${ApiConfig.baseUrl}$_endpoint/tests/statistics'),
         headers: {'Authorization': 'Bearer $token'},
       );
 

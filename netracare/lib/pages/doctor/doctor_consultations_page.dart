@@ -149,12 +149,12 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
           Text(
             value,
             style: TextStyle(
-              fontSize: 22,
+              fontSize: AppTheme.fontTitle,
               fontWeight: FontWeight.bold,
               color: color,
             ),
           ),
-          Text(label, style: TextStyle(fontSize: 12, color: color)),
+          Text(label, style: TextStyle(fontSize: AppTheme.fontSM, color: color)),
         ],
       ),
     );
@@ -169,7 +169,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
         unselectedLabelColor: AppTheme.textSecondary,
         indicatorColor: AppTheme.primary,
         indicatorWeight: 2,
-        labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        labelStyle: const TextStyle(fontSize: AppTheme.fontSM, fontWeight: FontWeight.w600),
         tabs: [
           Tab(
             child: Row(
@@ -191,7 +191,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                       '${_pendingRequests.length}',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 10,
+                        fontSize: AppTheme.fontXS,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -250,7 +250,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
           const SizedBox(height: AppTheme.spaceMD),
           Text(
             message,
-            style: const TextStyle(fontSize: 16, color: AppTheme.textSecondary),
+            style: const TextStyle(fontSize: AppTheme.fontLG, color: AppTheme.textSecondary),
           ),
         ],
       ),
@@ -280,7 +280,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                     style: const TextStyle(
                       color: AppTheme.primary,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: AppTheme.fontLG,
                     ),
                   ),
                 ),
@@ -294,7 +294,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                         request.patientName,
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                          fontSize: AppTheme.fontLG,
                           color: AppTheme.textPrimary,
                         ),
                       ),
@@ -315,7 +315,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                                   ? 'Video Call'
                                   : 'Chat',
                               style: const TextStyle(
-                                fontSize: 12,
+                                fontSize: AppTheme.fontSM,
                                 color: AppTheme.textSecondary,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -332,7 +332,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                             child: Text(
                               request.requestedAgo,
                               style: const TextStyle(
-                                fontSize: 12,
+                                fontSize: AppTheme.fontSM,
                                 color: AppTheme.textLight,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -367,7 +367,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                 child: Text(
                   request.message!,
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: AppTheme.fontSM,
                     color: AppTheme.textSecondary,
                     fontStyle: FontStyle.italic,
                   ),
@@ -419,7 +419,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: AppTheme.fontXS,
           fontWeight: FontWeight.w600,
           color: color,
         ),
@@ -545,7 +545,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
             const SizedBox(height: AppTheme.spaceMD),
             const Text(
               'The patient will be notified and can start the consultation.',
-              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+              style: TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSecondary),
             ),
           ],
         ),

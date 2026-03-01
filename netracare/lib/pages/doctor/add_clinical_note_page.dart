@@ -88,7 +88,7 @@ class _AddClinicalNotePageState extends State<AddClinicalNotePage> {
           'Add Clinical Note',
           style: TextStyle(
             color: AppTheme.textPrimary,
-            fontSize: 18,
+            fontSize: AppTheme.fontXL,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -103,7 +103,7 @@ class _AddClinicalNotePageState extends State<AddClinicalNotePage> {
                   )
                 : const Text(
                     'Save',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.fontBody),
                   ),
           ),
         ],
@@ -265,7 +265,7 @@ class _AddClinicalNotePageState extends State<AddClinicalNotePage> {
             : '$currentContent\n$text';
       },
       backgroundColor: AppTheme.surfaceLight,
-      labelStyle: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+      labelStyle: const TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSecondary),
     );
   }
 }

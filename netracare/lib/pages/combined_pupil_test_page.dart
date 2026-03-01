@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:netracare/config/app_theme.dart';
 import 'package:camera/camera.dart';
 import 'dart:async';
 import 'dart:io';
@@ -144,7 +145,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
   void _showError(String msg) {
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
+    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: AppTheme.error));
   }
 
   @override
@@ -159,7 +160,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pupil & Nystagmus Test'),
-        backgroundColor: const Color(0xFF6366F1),
+        backgroundColor: AppTheme.accent,
       ),
       body: SafeArea(child: _buildContent()),
     );
@@ -184,7 +185,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
               width: double.infinity,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
+                border: Border.all(color: AppTheme.border),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
@@ -199,7 +200,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: AppTheme.border),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
@@ -213,14 +214,14 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.info_outline, color: Color(0xFF6366F1)),
+                    Icon(Icons.info_outline, color: AppTheme.accent),
                     SizedBox(width: 8),
                     Text(
                       'Test Instructions',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: AppTheme.fontXL,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1f2937),
+                        color: AppTheme.textDark,
                       ),
                     ),
                   ],
@@ -243,7 +244,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
                   ? _startTest
                   : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1),
+                backgroundColor: AppTheme.accent,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -251,7 +252,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
               ),
               child: const Text(
                 'Start Test',
-                style: TextStyle(fontSize: 18, color: Colors.white),
+                style: TextStyle(fontSize: AppTheme.fontXL, color: Colors.white),
               ),
             ),
           ),
@@ -265,10 +266,10 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          const Icon(Icons.check_circle, color: Color(0xFF6366F1), size: 20),
+          const Icon(Icons.check_circle, color: AppTheme.accent, size: 20),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(text, style: const TextStyle(color: Color(0xFF6b7280))),
+            child: Text(text, style: const TextStyle(color: AppTheme.textSubtle)),
           ),
         ],
       ),
@@ -301,7 +302,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.red,
+              color: AppTheme.error,
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Row(
@@ -325,7 +326,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.black54,
+              color: AppTheme.textSecondary,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Text(
@@ -333,7 +334,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 16,
+                fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -354,16 +355,16 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
         child: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(color: Color(0xFF6366F1)),
+            CircularProgressIndicator(color: AppTheme.accent),
             SizedBox(height: 20),
             Text(
               'Analyzing results...',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: AppTheme.fontLG, fontWeight: FontWeight.w500),
             ),
             SizedBox(height: 8),
             Text(
               'Processing video for nystagmus detection',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
+              style: TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSecondary),
             ),
           ],
         ),
@@ -384,8 +385,8 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isNystagmusNormal
-                    ? [Colors.green.shade400, Colors.green.shade600]
-                    : [Colors.orange.shade400, Colors.orange.shade600],
+                    ? [AppTheme.success, AppTheme.success]
+                    : [AppTheme.warning, AppTheme.warning],
               ),
               borderRadius: BorderRadius.circular(12),
             ),
@@ -402,7 +403,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
                       ? 'Test Complete'
                       : 'Abnormal Results Detected',
                   style: const TextStyle(
-                    fontSize: 20,
+                    fontSize: AppTheme.fontXXL,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -450,7 +451,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   _diagnosis!,
-                  style: const TextStyle(color: Color(0xFF6b7280), height: 1.5),
+                  style: const TextStyle(color: AppTheme.textSubtle, height: 1.5),
                 ),
               ),
             ]),
@@ -463,7 +464,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   _recommendations!,
-                  style: const TextStyle(color: Color(0xFF6b7280), height: 1.5),
+                  style: const TextStyle(color: AppTheme.textSubtle, height: 1.5),
                 ),
               ),
             ]),
@@ -475,7 +476,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
             child: ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1),
+                backgroundColor: AppTheme.accent,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -483,7 +484,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
               ),
               child: const Text(
                 'Done',
-                style: TextStyle(fontSize: 18, color: Colors.white),
+                style: TextStyle(fontSize: AppTheme.fontXL, color: Colors.white),
               ),
             ),
           ),
@@ -498,7 +499,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppTheme.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -512,14 +513,14 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
         children: [
           Row(
             children: [
-              Icon(icon, color: const Color(0xFF6366F1), size: 20),
+              Icon(icon, color: AppTheme.accent, size: 20),
               const SizedBox(width: 8),
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: AppTheme.fontXL,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1f2937),
+                  color: AppTheme.textDark,
                 ),
               ),
             ],
@@ -537,12 +538,12 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Color(0xFF6b7280))),
+          Text(label, style: const TextStyle(color: AppTheme.textSubtle)),
           Text(
             value,
             style: const TextStyle(
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1f2937),
+              color: AppTheme.textDark,
             ),
           ),
         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/pages/login_page.dart';
 import 'package:netracare/pages/profile/profile_settings_screen.dart';
 import 'package:netracare/services/api_service.dart';
@@ -82,7 +83,7 @@ class _ProfilePageState extends State<ProfilePage> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.warning_amber, color: Colors.orange[700]),
+            Icon(Icons.warning_amber, color: AppTheme.warning),
             const SizedBox(width: 8),
             const Text('Session Expired'),
           ],
@@ -115,7 +116,7 @@ class _ProfilePageState extends State<ProfilePage> {
     // LOADING
     if (isLoading) {
       return const Scaffold(
-        backgroundColor: Color(0xFFF5F7FA),
+        backgroundColor: AppTheme.background,
         body: Center(child: CircularProgressIndicator()),
       );
     }
@@ -123,19 +124,19 @@ class _ProfilePageState extends State<ProfilePage> {
     // ERROR (Show generic error for non-auth errors)
     if (errorMessage != null) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF5F7FA),
+        backgroundColor: AppTheme.background,
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const Icon(Icons.error_outline, size: 64, color: AppTheme.error),
                 const SizedBox(height: 16),
                 Text(
                   errorMessage!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.red),
+                  style: const TextStyle(color: AppTheme.error),
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
@@ -157,7 +158,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     // SUCCESS
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -176,15 +177,15 @@ class _ProfilePageState extends State<ProfilePage> {
                   const Text(
                     "Profile",
                     style: TextStyle(
-                      fontSize: 28,
+                      fontSize: AppTheme.fontHeading,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2937),
+                      color: AppTheme.textDark,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     "Manage your account settings",
-                    style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
+                    style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary),
                   ),
                 ],
               ),
@@ -226,9 +227,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   Text(
                     "Account Settings",
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: AppTheme.fontXL,
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade700,
+                      color: AppTheme.textSubtle,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -236,7 +237,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     children: [
                       SettingsTile(
                         icon: Icons.person_outline,
-                        iconColor: const Color(0xFF3B82F6),
+                        iconColor: AppTheme.info,
                         title: "Personal Information",
                         onTap: () async {
                           final result = await Navigator.push(
@@ -260,14 +261,14 @@ class _ProfilePageState extends State<ProfilePage> {
                       const Divider(height: 1, indent: 56),
                       SettingsTile(
                         icon: Icons.lock_outline,
-                        iconColor: const Color(0xFF8B5CF6),
+                        iconColor: AppTheme.categoryPurple,
                         title: "Privacy & Security",
                         onTap: () {},
                       ),
                       const Divider(height: 1, indent: 56),
                       SettingsTile(
                         icon: Icons.notifications_outlined,
-                        iconColor: const Color(0xFFF59E0B),
+                        iconColor: AppTheme.warning,
                         title: "Notifications",
                         onTap: () {},
                       ),
@@ -288,9 +289,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   Text(
                     "Health Data",
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: AppTheme.fontXL,
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade700,
+                      color: AppTheme.textSubtle,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -298,7 +299,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     children: [
                       SettingsTile(
                         icon: Icons.history,
-                        iconColor: const Color(0xFF10B981),
+                        iconColor: AppTheme.success,
                         title: "Test History",
                         onTap: () {
                           Navigator.push(
@@ -312,7 +313,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       const Divider(height: 1, indent: 56),
                       SettingsTile(
                         icon: Icons.medical_services_outlined,
-                        iconColor: const Color(0xFFEF4444),
+                        iconColor: AppTheme.error,
                         title: "Medical Records",
                         onTap: () {
                           Navigator.push(

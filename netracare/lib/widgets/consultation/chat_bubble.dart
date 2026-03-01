@@ -33,7 +33,7 @@ class ChatBubble extends StatelessWidget {
             Text(
               message.message,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: AppTheme.fontBody,
                 color: isUser ? Colors.white : AppTheme.textPrimary,
               ),
             ),
@@ -41,7 +41,7 @@ class ChatBubble extends StatelessWidget {
             Text(
               message.time,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: AppTheme.fontXS,
                 color: isUser
                     ? Colors.white.withOpacity(0.7)
                     : AppTheme.textLight,

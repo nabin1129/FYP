@@ -32,7 +32,7 @@ class ConsultationHistoryTab extends StatelessWidget {
             const Text(
               'No consultation history',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.textPrimary,
               ),
@@ -40,7 +40,7 @@ class ConsultationHistoryTab extends StatelessWidget {
             const SizedBox(height: AppTheme.spaceXS),
             const Text(
               'Your past consultations will appear here',
-              style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+              style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary),
             ),
           ],
         ),
@@ -66,7 +66,7 @@ class ConsultationHistoryTab extends StatelessWidget {
           const Text(
             'Upcoming (Booked)',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.bold,
               color: AppTheme.textPrimary,
             ),
@@ -80,7 +80,7 @@ class ConsultationHistoryTab extends StatelessWidget {
           const Text(
             'Pending Requests',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.bold,
               color: AppTheme.textPrimary,
             ),
@@ -94,7 +94,7 @@ class ConsultationHistoryTab extends StatelessWidget {
           const Text(
             'Completed',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.bold,
               color: AppTheme.textPrimary,
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:netracare/config/app_theme.dart';
 import 'package:camera/camera.dart';
 import 'dart:async';
 import 'dart:io';
@@ -156,7 +157,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
         }
       },
       onError: (error) {
-        debugPrint('⚠️ Blink detection error: $error');
+        debugPrint('ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Blink detection error: $error');
       },
     );
 
@@ -202,7 +203,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
         !_cameraController!.value.isInitialized ||
         _isCapturing) {
       if (_isCapturing) {
-        debugPrint('⚠️ Capture already in progress, skipping');
+        debugPrint('ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Capture already in progress, skipping');
       } else {
         _showError('Camera not ready');
       }
@@ -332,7 +333,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: AppTheme.error,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -345,14 +346,14 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.warning_amber, color: Colors.orange[700]),
+            Icon(Icons.warning_amber, color: AppTheme.warning),
             const SizedBox(width: 8),
             const Text('Session Expired'),
           ],
         ),
         content: const Text(
           'Your session has expired. Please login again to continue.',
-          style: TextStyle(fontSize: 15),
+          style: TextStyle(fontSize: AppTheme.fontBody),
         ),
         actions: [
           TextButton(
@@ -418,7 +419,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result['message'] ?? 'Results saved successfully!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.success,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -433,7 +434,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to save: $errorMsg'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
             duration: const Duration(seconds: 4),
           ),
         );
@@ -480,16 +481,16 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
         titleTextStyle: const TextStyle(
-          color: Colors.black87,
-          fontSize: 20,
+          color: AppTheme.textPrimary,
+          fontSize: AppTheme.fontXXL,
           fontWeight: FontWeight.w600,
         ),
-        iconTheme: const IconThemeData(color: Colors.black87),
+        iconTheme: const IconThemeData(color: AppTheme.textPrimary),
         title: const Text("Blink & Fatigue Detection"),
         centerTitle: true,
       ),
@@ -506,12 +507,12 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
+              Icon(Icons.error_outline, size: 64, color: AppTheme.error),
               const SizedBox(height: 16),
               Text(
                 errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: AppTheme.fontLG),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
@@ -537,7 +538,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
         if (isProcessing)
           Positioned.fill(
             child: Container(
-              color: Colors.black54,
+              color: AppTheme.textSecondary,
               child: const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -548,7 +549,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                       'Analyzing with CNN model...',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 16,
+                        fontSize: AppTheme.fontLG,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -562,7 +563,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
         if (testPhase == 1 && !isProcessing)
           Positioned.fill(
             child: Container(
-              color: Colors.black54,
+              color: AppTheme.textSecondary,
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(32),
@@ -573,7 +574,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                         'Testing in Progress...',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 24,
+                          fontSize: AppTheme.fontHeading,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -587,7 +588,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                             value: progress / 100,
                             backgroundColor: Colors.white24,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.blue,
+                              AppTheme.primary,
                             ),
                           ),
                         ),
@@ -597,7 +598,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                         '${progress.toInt()}% Complete',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 18,
+                          fontSize: AppTheme.fontXL,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -625,7 +626,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                                   '$blinkCount',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 28,
+                                    fontSize: AppTheme.fontHeading,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -633,7 +634,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                                   'Blinks',
                                   style: TextStyle(
                                     color: Colors.white70,
-                                    fontSize: 14,
+                                    fontSize: AppTheme.fontBody,
                                   ),
                                 ),
                               ],
@@ -651,7 +652,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                                   '${testDuration}s',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 28,
+                                    fontSize: AppTheme.fontHeading,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -659,7 +660,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                                   'Duration',
                                   style: TextStyle(
                                     color: Colors.white70,
-                                    fontSize: 14,
+                                    fontSize: AppTheme.fontBody,
                                   ),
                                 ),
                               ],
@@ -697,7 +698,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                     "Position your face in the frame",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: AppTheme.fontXL,
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
@@ -706,7 +707,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                   const Text(
                     "The test will run for 40 seconds to accurately measure blink rate and fatigue levels",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.white70),
+                    style: TextStyle(fontSize: AppTheme.fontBody, color: Colors.white70),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
@@ -714,7 +715,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                     icon: const Icon(Icons.play_arrow),
                     label: const Text("Start Test (40s)"),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange[600],
+                      backgroundColor: AppTheme.warning,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 32,
                         vertical: 16,
@@ -752,7 +753,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
         {'drowsy': 0.0, 'notdrowsy': 1.0};
 
     final isDrowsy = prediction == 'drowsy';
-    final statusColor = isDrowsy ? Colors.red : Colors.green;
+    final statusColor = isDrowsy ? AppTheme.error : AppTheme.success;
     final statusIcon = isDrowsy ? Icons.warning_amber : Icons.check_circle;
 
     return SingleChildScrollView(
@@ -784,7 +785,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                 Text(
                   isDrowsy ? 'Drowsiness Detected' : 'Alert State',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: AppTheme.fontHeading,
                     fontWeight: FontWeight.bold,
                     color: statusColor,
                   ),
@@ -793,7 +794,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                 Text(
                   fatigueLevel,
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: AppTheme.fontXL,
                     color: statusColor.withOpacity(0.8),
                     fontWeight: FontWeight.w500,
                   ),
@@ -810,20 +811,20 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.red[50],
+                color: AppTheme.error.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.red[300]!, width: 2),
+                border: Border.all(color: AppTheme.error.withOpacity(0.5), width: 2),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.warning, color: Colors.red[700], size: 28),
+                  Icon(Icons.warning, color: AppTheme.error, size: 28),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'High fatigue detected! Consider taking a break.',
                       style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.red[900],
+                        fontSize: AppTheme.fontBody,
+                        color: AppTheme.error,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -839,7 +840,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
             title: 'Confidence Score',
             value: '${(confidence * 100).toStringAsFixed(1)}%',
             icon: Icons.psychology,
-            color: Colors.blue,
+            color: AppTheme.primary,
           ),
 
           const SizedBox(height: 16),
@@ -857,7 +858,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                   title: 'Blink Rate',
                   value: '${getBlinkRate()}/min',
                   icon: Icons.visibility,
-                  color: Colors.purple,
+                  color: AppTheme.accent,
                 ),
               ),
               const SizedBox(width: 12),
@@ -866,7 +867,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                   title: 'Total Blinks',
                   value: (_blinkEngine?.blinkCount ?? blinkCount).toString(),
                   icon: Icons.remove_red_eye,
-                  color: Colors.orange,
+                  color: AppTheme.warning,
                 ),
               ),
             ],
@@ -879,7 +880,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
             title: 'Test Duration',
             value: '${testDuration}s',
             icon: Icons.timer,
-            color: Colors.teal,
+            color: AppTheme.info,
           ),
 
           const SizedBox(height: 24),
@@ -896,7 +897,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                     : (isSaved ? 'Results Saved' : 'Save Results'),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isSaved ? Colors.green[600] : Colors.blue[600],
+                backgroundColor: isSaved ? AppTheme.success : AppTheme.primary,
                 disabledBackgroundColor: Colors.grey[400],
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -948,18 +949,18 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.green[50],
+                color: AppTheme.success.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green[200]!),
+                border: Border.all(color: AppTheme.success.withOpacity(0.3)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle, color: Colors.green[700]),
+                  Icon(Icons.check_circle, color: AppTheme.success),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Results saved to your profile. View history in Results page.',
-                      style: TextStyle(fontSize: 13, color: Colors.green[900]),
+                      style: TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.success),
                     ),
                   ),
                 ],
@@ -1010,8 +1011,8 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
+                    fontSize: AppTheme.fontBody,
+                    color: AppTheme.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -1021,9 +1022,9 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: AppTheme.fontHeading,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: AppTheme.textPrimary,
                   ),
                 ),
               ],
@@ -1058,9 +1059,9 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
           const Text(
             'Detection Probabilities',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: AppTheme.textPrimary,
             ),
           ),
           const SizedBox(height: 20),
@@ -1069,7 +1070,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
           _buildProbabilityBar(
             label: 'Drowsy',
             probability: drowsyProb,
-            color: Colors.red,
+            color: AppTheme.error,
           ),
 
           const SizedBox(height: 16),
@@ -1078,7 +1079,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
           _buildProbabilityBar(
             label: 'Alert',
             probability: notDrowsyProb,
-            color: Colors.green,
+            color: AppTheme.success,
           ),
 
           const SizedBox(height: 24),
@@ -1087,20 +1088,20 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.green[50],
+              color: AppTheme.success.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.green[300]!, width: 1.5),
+              border: Border.all(color: AppTheme.success.withOpacity(0.5), width: 1.5),
             ),
             child: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.green[700], size: 20),
+                Icon(Icons.check_circle, color: AppTheme.success, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Results saved successfully!',
                     style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.green[900],
+                      fontSize: AppTheme.fontBody,
+                      color: AppTheme.success,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -1125,7 +1126,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                   icon: const Icon(Icons.refresh, size: 20),
                   label: const Text('Test Again'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[600],
+                    backgroundColor: AppTheme.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -1143,7 +1144,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                   icon: const Icon(Icons.home, size: 20),
                   label: const Text('Return Home'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green[600],
+                    backgroundColor: AppTheme.success,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -1173,15 +1174,15 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
             Text(
               label,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: AppTheme.fontBody,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: AppTheme.textPrimary,
               ),
             ),
             Text(
               '${(probability * 100).toStringAsFixed(1)}%',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: AppTheme.fontBody,
                 fontWeight: FontWeight.w600,
                 color: color,
               ),
@@ -1194,7 +1195,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
           child: LinearProgressIndicator(
             value: probability,
             minHeight: 12,
-            backgroundColor: Colors.grey[200],
+            backgroundColor: AppTheme.border,
             valueColor: AlwaysStoppedAnimation(color),
           ),
         ),

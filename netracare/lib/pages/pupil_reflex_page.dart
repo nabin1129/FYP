@@ -44,7 +44,7 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
+      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: Stack(
           children: [
@@ -110,16 +110,16 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
         const Text(
           "Pupil & Eye Movement Tests",
           style: TextStyle(
-            fontSize: 22,
+            fontSize: AppTheme.fontTitle,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1f2937),
+            color: AppTheme.textDark,
           ),
         ),
         const SizedBox(height: 12),
         const Text(
           "Comprehensive test to evaluate pupil reflexes and eye movements in one session.",
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, color: Color(0xFF6b7280), height: 1.5),
+          style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary, height: 1.5),
         ),
         const SizedBox(height: 24),
 
@@ -148,7 +148,7 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFF6F7FB),
+          color: AppTheme.background,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.grey.shade300),
         ),
@@ -175,9 +175,9 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: AppTheme.fontLG,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1f2937),
+                            color: AppTheme.textDark,
                           ),
                         ),
                       ),
@@ -196,7 +196,7 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
                             'NEW',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 10,
+                              fontSize: AppTheme.fontXS,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -208,8 +208,8 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
                   Text(
                     description,
                     style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF6b7280),
+                      fontSize: AppTheme.fontSM,
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 ],
@@ -218,7 +218,7 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
             const Icon(
               Icons.arrow_forward_ios,
               size: 16,
-              color: Color(0xFF6b7280),
+              color: AppTheme.textSecondary,
             ),
           ],
         ),
@@ -243,16 +243,16 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
         const Text(
           "Camera Setup",
           style: TextStyle(
-            fontSize: 22,
+            fontSize: AppTheme.fontTitle,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1f2937),
+            color: AppTheme.textDark,
           ),
         ),
         const SizedBox(height: 12),
         const Text(
           "We'll need access to your camera to observe your pupil reactions during the test.",
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, color: Color(0xFF6b7280), height: 1.5),
+          style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary, height: 1.5),
         ),
         const SizedBox(height: 20),
         Container(
@@ -271,7 +271,7 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
                 child: Text(
                   "Your camera will only be used during this test. No recordings are saved or shared.",
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppTheme.fontBody,
                     color: Colors.amber[900],
                     height: 1.4,
                   ),
@@ -295,7 +295,7 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
             child: const Text(
               "Continue",
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),
@@ -327,9 +327,9 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
         const Text(
           "Before You Begin",
           style: TextStyle(
-            fontSize: 22,
+            fontSize: AppTheme.fontTitle,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1f2937),
+            color: AppTheme.textDark,
           ),
         ),
         const SizedBox(height: 20),
@@ -355,7 +355,7 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
                 child: Text(
                   "This test will use brief flashes of light. Do not take this test if you have photosensitive epilepsy.",
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppTheme.fontBody,
                     color: Colors.red[900],
                     height: 1.4,
                   ),
@@ -379,7 +379,7 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
             child: const Text(
               "Start Test",
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),
@@ -400,8 +400,8 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
           child: Text(
             text,
             style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF4b5563),
+              fontSize: AppTheme.fontBody,
+              color: AppTheme.textSubtle,
               height: 1.4,
             ),
           ),

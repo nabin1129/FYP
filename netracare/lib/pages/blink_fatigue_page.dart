@@ -94,7 +94,7 @@ class _BlinkFatiguePageState extends State<BlinkFatiguePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
+      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: Stack(
           children: [
@@ -163,16 +163,16 @@ class _BlinkFatiguePageState extends State<BlinkFatiguePage> {
         const Text(
           "Blink & Fatigue Test",
           style: TextStyle(
-            fontSize: 22,
+            fontSize: AppTheme.fontTitle,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1f2937),
+            color: AppTheme.textDark,
           ),
         ),
         const SizedBox(height: 12),
         const Text(
           "This test measures your blink rate and detects signs of eye fatigue, which are important indicators of digital eye strain and overall eye health.",
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, color: Color(0xFF6b7280), height: 1.5),
+          style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary, height: 1.5),
         ),
         const SizedBox(height: 24),
         Container(
@@ -188,7 +188,7 @@ class _BlinkFatiguePageState extends State<BlinkFatiguePage> {
               const Text(
                 "Before you begin:",
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: AppTheme.fontBody,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.testIconColor,
                 ),
@@ -219,7 +219,7 @@ class _BlinkFatiguePageState extends State<BlinkFatiguePage> {
             child: const Text(
               "Continue",
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),
@@ -251,16 +251,16 @@ class _BlinkFatiguePageState extends State<BlinkFatiguePage> {
         const Text(
           "Camera Setup",
           style: TextStyle(
-            fontSize: 22,
+            fontSize: AppTheme.fontTitle,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1f2937),
+            color: AppTheme.textDark,
           ),
         ),
         const SizedBox(height: 12),
         const Text(
           "We'll need access to your camera to monitor your blink patterns and detect eye fatigue indicators.",
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, color: Color(0xFF6b7280), height: 1.5),
+          style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary, height: 1.5),
         ),
         const SizedBox(height: 20),
         Container(
@@ -279,7 +279,7 @@ class _BlinkFatiguePageState extends State<BlinkFatiguePage> {
                 child: Text(
                   "Your camera will only be used during this test. No recordings are saved or shared. The AI analyses your blink patterns in real-time.",
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppTheme.fontBody,
                     color: Colors.yellow[900],
                     height: 1.4,
                   ),
@@ -303,7 +303,7 @@ class _BlinkFatiguePageState extends State<BlinkFatiguePage> {
             child: const Text(
               "Enable Camera & Start Test",
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),
@@ -324,7 +324,7 @@ class _BlinkFatiguePageState extends State<BlinkFatiguePage> {
           child: Text(
             text,
             style: const TextStyle(
-              fontSize: 13,
+              fontSize: AppTheme.fontBody,
               color: AppTheme.textPrimary,
               height: 1.4,
             ),

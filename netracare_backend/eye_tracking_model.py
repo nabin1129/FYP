@@ -8,7 +8,14 @@ class EyeTrackingDataPoint:
     """Represents a single eye tracking data point"""
     def __init__(self, timestamp: float, gaze_x: float, gaze_y: float, 
                  left_pupil_diameter: float, right_pupil_diameter: float,
-                 fixation_duration: float = None, saccade_velocity: float = None):
+                 fixation_duration: float = None, saccade_velocity: float = None,
+                 target_x: float = None, target_y: float = None,
+                 left_ear: float = None, right_ear: float = None,
+                 is_blink: bool = False,
+                 head_euler_x: float = None, head_euler_y: float = None,
+                 head_euler_z: float = None,
+                 left_eye_open_prob: float = None, right_eye_open_prob: float = None,
+                 phase: str = None):
         self.timestamp = timestamp
         self.gaze_x = gaze_x
         self.gaze_y = gaze_y
@@ -16,17 +23,55 @@ class EyeTrackingDataPoint:
         self.right_pupil_diameter = right_pupil_diameter
         self.fixation_duration = fixation_duration
         self.saccade_velocity = saccade_velocity
+        # New real camera fields
+        self.target_x = target_x
+        self.target_y = target_y
+        self.left_ear = left_ear
+        self.right_ear = right_ear
+        self.is_blink = is_blink
+        self.head_euler_x = head_euler_x
+        self.head_euler_y = head_euler_y
+        self.head_euler_z = head_euler_z
+        self.left_eye_open_prob = left_eye_open_prob
+        self.right_eye_open_prob = right_eye_open_prob
+        self.phase = phase
     
+    @property
+    def average_ear(self) -> float:
+        """Average Eye Aspect Ratio"""
+        if self.left_ear is not None and self.right_ear is not None:
+            return (self.left_ear + self.right_ear) / 2.0
+        return 0.0
+
+    @property
+    def has_target(self) -> bool:
+        return self.target_x is not None and self.target_y is not None
+
     def to_dict(self) -> Dict:
-        return {
+        result = {
             'timestamp': self.timestamp,
             'gaze_x': self.gaze_x,
             'gaze_y': self.gaze_y,
             'left_pupil_diameter': self.left_pupil_diameter,
             'right_pupil_diameter': self.right_pupil_diameter,
             'fixation_duration': self.fixation_duration,
-            'saccade_velocity': self.saccade_velocity
+            'saccade_velocity': self.saccade_velocity,
         }
+        if self.target_x is not None:
+            result['target_x'] = self.target_x
+            result['target_y'] = self.target_y
+        if self.left_ear is not None:
+            result['left_ear'] = self.left_ear
+            result['right_ear'] = self.right_ear
+        if self.is_blink:
+            result['is_blink'] = self.is_blink
+        if self.head_euler_x is not None:
+            result['head_euler_x'] = self.head_euler_x
+            result['head_euler_y'] = self.head_euler_y
+            result['head_euler_z'] = self.head_euler_z
+        if self.phase is not None:
+            result['phase'] = self.phase
+        return result
 
 
 class EyeTrackingDataset:
@@ -89,8 +134,10 @@ class EyeTrackingMetrics:
     
     @staticmethod
     def calculate_gaze_accuracy(actual_points: List[Tuple[float, float]], 
-                               tracked_points: List[Tuple[float, float]]) -> float:
-        """Calculate gaze accuracy as percentage match between actual and tracked gaze points"""
+                               tracked_points: List[Tuple[float, float]],
+                               screen_diagonal: float = None) -> float:
+        """Calculate gaze accuracy as percentage match between actual and tracked gaze points.
+        If screen_diagonal is provided, normalize error relative to screen size."""
         if len(actual_points) != len(tracked_points):
             raise ValueError("Actual and tracked points must have same length")
         
@@ -103,9 +150,32 @@ class EyeTrackingMetrics:
             euclidean_distances.append(distance)
         
         mean_distance = sum(euclidean_distances) / len(euclidean_distances)
-        # Convert to accuracy percentage (closer to 0 = higher accuracy)
-        accuracy = max(0, 100 - (mean_distance / 10))  # Normalize by dividing by 10
+        
+        # Normalize by screen diagonal if available, otherwise by 10
+        divisor = screen_diagonal * 0.1 if screen_diagonal else 10
+        accuracy = max(0, 100 - (mean_distance / divisor))
         return round(min(100, accuracy), 2)
+
+    @staticmethod
+    def calculate_blink_metrics(data_points: List['EyeTrackingDataPoint'],
+                                test_duration: float) -> Dict:
+        """Calculate blink frequency and EAR statistics from data points."""
+        blink_count = sum(1 for p in data_points if p.is_blink)
+        ear_values = [p.average_ear for p in data_points
+                      if p.left_ear is not None and p.right_ear is not None and not p.is_blink]
+        
+        blink_rate = (blink_count / test_duration * 60) if test_duration > 0 else 0
+        
+        result = {
+            'blink_count': blink_count,
+            'blink_rate_per_min': round(blink_rate, 2),
+        }
+        if ear_values:
+            result['ear_mean'] = round(float(np.mean(ear_values)), 4)
+            result['ear_std'] = round(float(np.std(ear_values)), 4)
+            result['ear_min'] = round(float(min(ear_values)), 4)
+            result['ear_max'] = round(float(max(ear_values)), 4)
+        return result
     
     @staticmethod
     def calculate_fixation_stability(fixation_durations: List[float]) -> Dict:

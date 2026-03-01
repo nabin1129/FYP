@@ -102,7 +102,7 @@ class _ChatTabState extends State<ChatTab> {
             const Text(
               'No messages yet',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.textPrimary,
               ),
@@ -110,7 +110,7 @@ class _ChatTabState extends State<ChatTab> {
             const SizedBox(height: AppTheme.spaceXS),
             const Text(
               'Start a conversation with your doctor',
-              style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+              style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary),
             ),
           ],
         ),

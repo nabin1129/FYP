@@ -222,7 +222,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
           const Text(
             'No patients found',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: AppTheme.fontXL,
               fontWeight: FontWeight.w500,
               color: AppTheme.textSecondary,
             ),
@@ -285,7 +285,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                     style: const TextStyle(
                       color: AppTheme.primary,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: AppTheme.fontLG,
                     ),
                   ),
                 ),
@@ -299,7 +299,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                         patient.name,
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                          fontSize: AppTheme.fontLG,
                           color: AppTheme.textPrimary,
                         ),
                       ),
@@ -307,7 +307,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                       Text(
                         'Last test: ${patient.lastTestAgo}',
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: AppTheme.fontSM,
                           color: AppTheme.textSecondary,
                         ),
                       ),
@@ -323,7 +323,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                         Text(
                           '${patient.healthScore}',
                           style: const TextStyle(
-                            fontSize: 20,
+                            fontSize: AppTheme.fontXXL,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.textPrimary,
                           ),
@@ -382,7 +382,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
       child: Text(
         status.label,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: AppTheme.fontXS,
           fontWeight: FontWeight.w600,
           color: badgeColor,
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'eye_tracking_test_page.dart';
 import '../config/app_theme.dart';
+import '../utils/permission_helper.dart';
 
 class EyeTrackingPage extends StatefulWidget {
   const EyeTrackingPage({super.key});
@@ -34,7 +35,18 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
     }
   }
 
-  void startTest() {
+  void startTest() async {
+    final granted = await PermissionHelper.requestCameraPermission(context);
+    if (!mounted) return;
+    if (!granted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Camera permission is required for this test.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const EyeTrackingTestPage()),
@@ -44,7 +56,7 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
+      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: Stack(
           children: [
@@ -109,13 +121,13 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
         const SizedBox(height: 16),
         const Text(
           "Eye Tracking Test",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: AppTheme.fontTitle, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         const Text(
           "This test tracks your eye movements and gaze patterns to assess eye tracking quality and visual performance.",
           textAlign: TextAlign.center,
-          style: TextStyle(color: Color(0xFF6b7280), height: 1.5),
+          style: TextStyle(color: AppTheme.textSecondary, height: 1.5),
         ),
         const SizedBox(height: 24),
 
@@ -157,7 +169,7 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
             child: const Text(
               "Continue Setup",
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
@@ -188,7 +200,7 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
         const SizedBox(height: 16),
         const Text(
           "Pre-Test Setup",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: AppTheme.fontTitle, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 24),
 
@@ -221,7 +233,7 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
               Expanded(
                 child: Text(
                   "Camera permission required. Allow access when prompted.",
-                  style: TextStyle(fontSize: 12, color: Color(0xFF92400E)),
+                  style: TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.warningDark),
                 ),
               ),
             ],
@@ -244,7 +256,7 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
             child: const Text(
               "Proceed to Calibration",
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
@@ -271,13 +283,13 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
         const SizedBox(height: 16),
         const Text(
           "Calibration",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: AppTheme.fontTitle, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         const Text(
           "Follow the dots on the screen to calibrate the eye tracker.",
           textAlign: TextAlign.center,
-          style: TextStyle(color: Color(0xFF6b7280), height: 1.5),
+          style: TextStyle(color: AppTheme.textSecondary, height: 1.5),
         ),
         const SizedBox(height: 24),
 
@@ -317,7 +329,7 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
             ),
             child: const Text(
               "Start Eye Tracking Test",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: AppTheme.fontLG, fontWeight: FontWeight.w600),
             ),
           ),
         ),
@@ -336,7 +348,7 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Color(0xFFE5E7EB)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Row(
         children: [
@@ -350,14 +362,14 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
                   title,
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
-                    fontSize: 13,
+                    fontSize: AppTheme.fontBody,
                   ),
                 ),
                 Text(
                   description,
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF6b7280),
+                    fontSize: AppTheme.fontSM,
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ],
@@ -384,7 +396,7 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(fontSize: 14, color: Color(0xFF374151)),
+            style: const TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSubtle),
           ),
         ),
       ],
@@ -415,7 +427,7 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
         Expanded(
           child: Text(
             description,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF374151)),
+            style: const TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSubtle),
           ),
         ),
       ],
