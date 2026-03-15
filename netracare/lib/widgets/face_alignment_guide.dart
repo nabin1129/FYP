@@ -106,11 +106,7 @@ class _FaceGuidePainter extends CustomPainter {
     const cornerLength = 20.0;
     final corners = [
       // Top-left
-      [
-        Offset(0, cornerLength),
-        const Offset(0, 0),
-        Offset(cornerLength, 0),
-      ],
+      [Offset(0, cornerLength), const Offset(0, 0), Offset(cornerLength, 0)],
       // Top-right
       [
         Offset(size.width - cornerLength, 0),
@@ -170,10 +166,7 @@ class FaceSilhouetteGuide extends StatefulWidget {
   /// Current distance validation result
   final DistanceValidationResult? validationResult;
 
-  const FaceSilhouetteGuide({
-    super.key,
-    required this.validationResult,
-  });
+  const FaceSilhouetteGuide({super.key, required this.validationResult});
 
   @override
   State<FaceSilhouetteGuide> createState() => _FaceSilhouetteGuideState();
@@ -210,7 +203,9 @@ class _FaceSilhouetteGuideState extends State<FaceSilhouetteGuide>
 
     return Center(
       child: AnimatedBuilder(
-        animation: shouldAnimate ? _scaleAnimation : const AlwaysStoppedAnimation(1.0),
+        animation: shouldAnimate
+            ? _scaleAnimation
+            : const AlwaysStoppedAnimation(1.0),
         builder: (context, child) {
           return Transform.scale(
             scale: shouldAnimate ? _scaleAnimation.value : 1.0,

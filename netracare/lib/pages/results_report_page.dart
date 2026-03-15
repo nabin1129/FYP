@@ -28,6 +28,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
   List<Map<String, dynamic>> _eyeTrackingTests = [];
   List<Map<String, dynamic>> _blinkFatigueTests = [];
   List<Map<String, dynamic>> _pupilReflexTests = [];
+  // ignore: unused_field
   Map<String, dynamic>? _blinkFatigueStats;
 
   DateTime? _lastUpdated;
@@ -119,7 +120,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Report successfully sent to your doctor!'),
-          backgroundColor: Colors.green,
+          backgroundColor: AppTheme.success,
           duration: Duration(seconds: 3),
         ),
       );
@@ -173,7 +174,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               pw.Text(
                 'Eye Health Report',
                 style: pw.TextStyle(
-                  fontSize: 24,
+                  fontSize: AppTheme.fontHeading,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
@@ -186,19 +187,19 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               pw.Text(
                 'Test Results:',
                 style: pw.TextStyle(
-                  fontSize: 18,
+                  fontSize: AppTheme.fontXL,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
               pw.SizedBox(height: 10),
-              pw.Text('• Visual Acuity: ${getLatestVisualAcuity()}'),
-              pw.Text('• Eye Tracking: ${getLatestEyeTracking()}'),
-              pw.Text('• Colour Vision: ${getLatestColourVision()}'),
-              pw.Text('• Fatigue Level: ${getLatestFatigue()}'),
+              pw.Text('Ã¢â‚¬Â¢ Visual Acuity: ${getLatestVisualAcuity()}'),
+              pw.Text('Ã¢â‚¬Â¢ Eye Tracking: ${getLatestEyeTracking()}'),
+              pw.Text('Ã¢â‚¬Â¢ Colour Vision: ${getLatestColourVision()}'),
+              pw.Text('Ã¢â‚¬Â¢ Fatigue Level: ${getLatestFatigue()}'),
               pw.SizedBox(height: 20),
               pw.Text(
                 'Note: This report is based on self-assessment tests. Please consult with a qualified eye care professional for comprehensive evaluation.',
-                style: const pw.TextStyle(fontSize: 10),
+                style: const pw.TextStyle(fontSize: AppTheme.fontXS),
               ),
             ],
           );
@@ -217,7 +218,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('PDF generated successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.success,
             duration: const Duration(seconds: 3),
             action: SnackBarAction(
               label: 'Share',
@@ -236,7 +237,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error generating PDF: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -247,18 +248,18 @@ class _ResultsReportPageState extends State<ResultsReportPage>
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF5F7FA),
+        backgroundColor: AppTheme.background,
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 1,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
             onPressed: () => Navigator.pop(context),
           ),
           title: const Text(
             'Your Eye Health Report',
             style: TextStyle(
-              color: Colors.black87,
+              color: AppTheme.textPrimary,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -269,18 +270,18 @@ class _ResultsReportPageState extends State<ResultsReportPage>
 
     if (_errorMessage != null) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF5F7FA),
+        backgroundColor: AppTheme.background,
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 1,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
             onPressed: () => Navigator.pop(context),
           ),
           title: const Text(
             'Your Eye Health Report',
             style: TextStyle(
-              color: Colors.black87,
+              color: AppTheme.textPrimary,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -289,14 +290,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const Icon(Icons.error_outline, size: 64, color: AppTheme.error),
               const SizedBox(height: 16),
               Text(
                 'Error loading results',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: AppTheme.fontXL,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: AppTheme.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -305,14 +306,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 child: Text(
                   _errorMessage!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.black54),
+                  style: const TextStyle(color: AppTheme.textSecondary),
                 ),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _loadTestResults,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: AppTheme.info,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 32,
                     vertical: 12,
@@ -334,21 +335,21 @@ class _ResultsReportPageState extends State<ResultsReportPage>
         : 'Never';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Your Eye Health Report',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black87),
+            icon: const Icon(Icons.refresh, color: AppTheme.textPrimary),
             onPressed: _loadTestResults,
           ),
         ],
@@ -363,7 +364,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Text(
                 'Last updated: $lastUpdatedText',
-                style: const TextStyle(color: Colors.grey, fontSize: 14),
+                style: const TextStyle(color: AppTheme.textSecondary, fontSize: AppTheme.fontBody),
               ),
             ),
 
@@ -430,14 +431,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF3B82F6), Color(0xFF9333EA)],
+          colors: [AppTheme.categoryBlue, AppTheme.categoryPurple],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.3),
+            color: AppTheme.primary.withOpacity(0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -456,14 +457,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                       'Overall Health Score',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 22,
+                        fontSize: AppTheme.fontTitle,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     SizedBox(height: 4),
                     Text(
                       'Comprehensive assessment',
-                      style: TextStyle(color: Color(0xFFBFDBFE), fontSize: 14),
+                      style: TextStyle(color: AppTheme.overlayBlueLight, fontSize: AppTheme.fontBody),
                     ),
                   ],
                 ),
@@ -491,7 +492,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                         '$overallScore',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 28,
+                          fontSize: AppTheme.fontHeading,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -516,8 +517,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                       const Text(
                         'Tests Completed',
                         style: TextStyle(
-                          color: Color(0xFFBFDBFE),
-                          fontSize: 12,
+                          color: AppTheme.overlayBlueLight,
+                          fontSize: AppTheme.fontSM,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -525,7 +526,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                         '$totalTests',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 20,
+                          fontSize: AppTheme.fontXXL,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -546,8 +547,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                       Text(
                         'Improvement',
                         style: TextStyle(
-                          color: Color(0xFFBFDBFE),
-                          fontSize: 12,
+                          color: AppTheme.overlayBlueLight,
+                          fontSize: AppTheme.fontSM,
                         ),
                       ),
                       SizedBox(height: 4),
@@ -555,7 +556,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                         '+5%',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 20,
+                          fontSize: AppTheme.fontXXL,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -590,7 +591,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
             controller: _tabController,
             isScrollable: true,
             labelColor: AppTheme.primary,
-            unselectedLabelColor: Colors.grey,
+            unselectedLabelColor: AppTheme.textSecondary,
             indicatorColor: AppTheme.primary,
             indicatorWeight: 2,
             tabs: const [
@@ -681,15 +682,15 @@ class _ResultsReportPageState extends State<ResultsReportPage>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFF3B82F6).withOpacity(0.1),
-                  const Color(0xFF9333EA).withOpacity(0.1),
+                  AppTheme.categoryBlue.withOpacity(0.1),
+                  AppTheme.categoryPurple.withOpacity(0.1),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: const Color(0xFF3B82F6).withOpacity(0.3),
+                color: AppTheme.categoryBlue.withOpacity(0.3),
                 width: 2,
               ),
             ),
@@ -702,7 +703,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: AppTheme.textPrimary.withOpacity(0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -717,15 +718,15 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                           fontWeight: FontWeight.bold,
                           foreground: Paint()
                             ..shader = const LinearGradient(
-                              colors: [Color(0xFF3B82F6), Color(0xFF9333EA)],
+                              colors: [AppTheme.categoryBlue, AppTheme.categoryPurple],
                             ).createShader(const Rect.fromLTWH(0, 0, 200, 70)),
                         ),
                       ),
                       const Text(
                         'Overall',
                         style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.black54,
+                          fontSize: AppTheme.fontSM,
+                          color: AppTheme.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -740,9 +741,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                       const Text(
                         'Eye Health Score',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: AppTheme.fontXL,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -751,8 +752,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                             ? '$totalTests test${totalTests != 1 ? 's' : ''} completed'
                             : 'No tests completed yet',
                         style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.black54,
+                          fontSize: AppTheme.fontSM,
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                       if (_lastUpdated != null) ...[
@@ -762,14 +763,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                             const Icon(
                               Icons.update,
                               size: 14,
-                              color: Colors.black45,
+                              color: AppTheme.textLight,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               'Updated ${_formatDate(_lastUpdated.toString())}',
                               style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.black45,
+                                fontSize: AppTheme.fontXS,
+                                color: AppTheme.textLight,
                               ),
                             ),
                           ],
@@ -787,9 +788,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           const Text(
             'Performance Overview',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: AppTheme.fontXL,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: AppTheme.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -802,7 +803,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: AppTheme.textPrimary.withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -832,14 +833,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                     );
                   },
                   titleTextStyle: const TextStyle(
-                    fontSize: 11,
+                    fontSize: AppTheme.fontXS,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: AppTheme.textPrimary,
                   ),
                   dataSets: [
                     RadarDataSet(
-                      fillColor: const Color(0xFF3B82F6).withOpacity(0.2),
-                      borderColor: const Color(0xFF3B82F6),
+                      fillColor: AppTheme.categoryBlue.withOpacity(0.2),
+                      borderColor: AppTheme.categoryBlue,
                       borderWidth: 3,
                       entryRadius: 4,
                       dataEntries: [
@@ -887,16 +888,16 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                   ],
                   tickCount: 5,
                   ticksTextStyle: const TextStyle(
-                    fontSize: 10,
-                    color: Colors.black45,
+                    fontSize: AppTheme.fontXS,
+                    color: AppTheme.textLight,
                     fontWeight: FontWeight.w500,
                   ),
                   tickBorderData: BorderSide(
-                    color: Colors.grey.shade300,
+                    color: AppTheme.border,
                     width: 1,
                   ),
                   gridBorderData: BorderSide(
-                    color: Colors.grey.shade300,
+                    color: AppTheme.border,
                     width: 1.5,
                   ),
                 ),
@@ -911,9 +912,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
             const Text(
               'Quick Insights',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: AppTheme.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -934,10 +935,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                   ? 'Your eye health is on track. Consider regular testing to maintain it.'
                   : 'Some metrics need improvement. Consult with an eye care professional.',
               overallScore >= 80
-                  ? const Color(0xFF10B981)
+                  ? AppTheme.success
                   : overallScore >= 60
-                  ? const Color(0xFF3B82F6)
-                  : const Color(0xFFF97316),
+                  ? AppTheme.categoryBlue
+                  : AppTheme.categoryOrange,
             ),
             const SizedBox(height: 16),
           ],
@@ -945,9 +946,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           const Text(
             'Latest Test Results',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: AppTheme.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
@@ -962,8 +963,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 ? '${_visualAcuityTests.first['snellen_value'] ?? 'N/A'}'
                 : 'Not tested',
             Icons.remove_red_eye,
-            const Color(0xFF3B82F6),
-            const Color(0xFFEFF6FF),
+            AppTheme.categoryBlue,
+            AppTheme.categoryBlueBg,
           ),
           const SizedBox(height: 10),
           _buildTestCard(
@@ -976,8 +977,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 ? '${(_eyeTrackingTests.first['gaze_accuracy'] ?? 0).toStringAsFixed(1)}% accuracy'
                 : 'Not tested',
             Icons.my_location,
-            const Color(0xFF10B981),
-            const Color(0xFFECFDF5),
+            AppTheme.success,
+            AppTheme.categoryGreenBg,
           ),
           const SizedBox(height: 10),
           _buildTestCard(
@@ -989,8 +990,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 ? (_colourVisionTests.first['severity'] ?? 'Normal')
                 : 'Not tested',
             Icons.palette,
-            const Color(0xFF9333EA),
-            const Color(0xFFFAF5FF),
+            AppTheme.categoryPurple,
+            AppTheme.categoryPurpleBg,
           ),
           const SizedBox(height: 10),
           _buildTestCard(
@@ -1009,8 +1010,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                   })()
                 : 'Not tested',
             Icons.visibility_off,
-            const Color(0xFFF97316),
-            const Color(0xFFFFF7ED),
+            AppTheme.categoryOrange,
+            AppTheme.categoryOrangeBg,
           ),
           const SizedBox(height: 10),
           _buildTestCard(
@@ -1022,8 +1023,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 ? '${_pupilReflexTests.first['constriction_amplitude'] ?? 'Normal'} amplitude'
                 : 'Not tested',
             Icons.flash_on,
-            const Color(0xFF6366F1),
-            const Color(0xFFEEF2FF),
+            AppTheme.categoryIndigo,
+            AppTheme.categoryIndigoBg,
           ),
 
           const SizedBox(height: 16),
@@ -1063,7 +1064,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: AppTheme.fontBody,
                     fontWeight: FontWeight.bold,
                     color: color,
                   ),
@@ -1072,8 +1073,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 Text(
                   description,
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.black.withOpacity(0.7),
+                    fontSize: AppTheme.fontSM,
+                    color: AppTheme.textPrimary.withOpacity(0.7),
                     height: 1.4,
                   ),
                 ),
@@ -1131,13 +1132,13 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: color,
-                    fontSize: 14,
+                    fontSize: AppTheme.fontBody,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 11, color: Colors.black54),
+                  style: TextStyle(fontSize: AppTheme.fontXS, color: AppTheme.textSecondary),
                 ),
               ],
             ),
@@ -1145,7 +1146,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Text(
             value,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: AppTheme.fontXXL,
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -1164,9 +1165,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           const Text(
             'All Test Results',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: AppTheme.fontXL,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: AppTheme.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -1176,7 +1177,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
             'Visual Acuity Tests',
             _visualAcuityTests.length,
             Icons.remove_red_eye,
-            const Color(0xFF3B82F6),
+            AppTheme.categoryBlue,
             _visualAcuityTests
                 .map((test) => _buildVisualAcuityTestCard(test))
                 .toList(),
@@ -1188,7 +1189,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
             'Eye Tracking Tests',
             _eyeTrackingTests.length,
             Icons.my_location,
-            const Color(0xFF10B981),
+            AppTheme.success,
             _eyeTrackingTests
                 .map((test) => _buildEyeTrackingTestCard(test))
                 .toList(),
@@ -1200,7 +1201,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
             'Colour Vision Tests',
             _colourVisionTests.length,
             Icons.palette,
-            const Color(0xFF9333EA),
+            AppTheme.categoryPurple,
             _colourVisionTests
                 .map((test) => _buildColourVisionTestCard(test))
                 .toList(),
@@ -1212,7 +1213,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
             'Blink & Fatigue Tests',
             _blinkFatigueTests.length,
             Icons.visibility_off,
-            const Color(0xFFF97316),
+            AppTheme.categoryOrange,
             _blinkFatigueTests
                 .map((test) => _buildBlinkFatigueTestCard(test))
                 .toList(),
@@ -1224,7 +1225,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
             'Pupil Reflex Tests',
             _pupilReflexTests.length,
             Icons.flash_on,
-            const Color(0xFF6366F1),
+            AppTheme.categoryIndigo,
             _pupilReflexTests.isEmpty
                 ? [_buildPupilReflexPlaceholder()]
                 : _pupilReflexTests
@@ -1241,31 +1242,31 @@ class _ResultsReportPageState extends State<ResultsReportPage>
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
+        color: AppTheme.surfaceLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         children: [
           Icon(
             Icons.flash_on,
             size: 48,
-            color: const Color(0xFF6366F1).withOpacity(0.3),
+            color: AppTheme.categoryIndigo.withOpacity(0.3),
           ),
           const SizedBox(height: 12),
           const Text(
             'No Tests Yet',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: AppTheme.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Complete a pupil reflex test to see your results here',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            style: TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSubtle),
           ),
         ],
       ),
@@ -1283,11 +1284,11 @@ class _ResultsReportPageState extends State<ResultsReportPage>
 
     Color getReactionColor() {
       if (reactionTime < 0.3) {
-        return Colors.green[600]!;
+        return AppTheme.success;
       } else if (reactionTime < 0.4) {
         return Colors.blue[600]!;
       } else {
-        return Colors.orange[600]!;
+        return AppTheme.categoryOrange;
       }
     }
 
@@ -1305,9 +1306,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
+        color: AppTheme.surfaceLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1319,8 +1320,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 child: Text(
                   date,
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
+                    fontSize: AppTheme.fontSM,
+                    color: AppTheme.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -1336,7 +1337,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 child: Text(
                   getReactionStatus(),
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppTheme.fontSM,
                     fontWeight: FontWeight.bold,
                     color: getReactionColor(),
                   ),
@@ -1361,7 +1362,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: (0.5 - reactionTime).clamp(0.0, 0.5) / 0.5,
-            backgroundColor: Colors.grey[200],
+            backgroundColor: AppTheme.border,
             valueColor: AlwaysStoppedAnimation<Color>(getReactionColor()),
             minHeight: 8,
             borderRadius: BorderRadius.circular(4),
@@ -1387,11 +1388,11 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           leading: Icon(icon, color: color),
           title: Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: AppTheme.fontLG),
           ),
           subtitle: Text(
             '$count test${count != 1 ? 's' : ''} available',
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            style: TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSubtle),
           ),
           children: [
             if (testCards.isEmpty)
@@ -1399,7 +1400,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 padding: const EdgeInsets.all(16),
                 child: Text(
                   'No tests recorded yet',
-                  style: TextStyle(color: Colors.grey[600]),
+                  style: TextStyle(color: AppTheme.textSubtle),
                 ),
               )
             else
@@ -1423,9 +1424,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
+        color: AppTheme.surfaceLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1437,8 +1438,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 child: Text(
                   date,
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
+                    fontSize: AppTheme.fontSM,
+                    color: AppTheme.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -1448,15 +1449,15 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6).withOpacity(0.1),
+                  color: AppTheme.categoryBlue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   '$score%',
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: AppTheme.fontSM,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF3B82F6),
+                    color: AppTheme.categoryBlue,
                   ),
                 ),
               ),
@@ -1474,8 +1475,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: score / 100,
-            backgroundColor: Colors.grey[200],
-            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
+            backgroundColor: AppTheme.border,
+            valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.categoryBlue),
             minHeight: 8,
             borderRadius: BorderRadius.circular(4),
           ),
@@ -1500,9 +1501,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
+        color: AppTheme.surfaceLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1514,8 +1515,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 child: Text(
                   date,
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
+                    fontSize: AppTheme.fontSM,
+                    color: AppTheme.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -1525,15 +1526,15 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withOpacity(0.1),
+                  color: AppTheme.success.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   classification,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: AppTheme.fontSM,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF10B981),
+                    color: AppTheme.success,
                   ),
                 ),
               ),
@@ -1576,8 +1577,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: accuracy / 100,
-            backgroundColor: Colors.grey[200],
-            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
+            backgroundColor: AppTheme.border,
+            valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.success),
             minHeight: 8,
             borderRadius: BorderRadius.circular(4),
           ),
@@ -1599,9 +1600,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
+        color: AppTheme.surfaceLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1613,8 +1614,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 child: Text(
                   date,
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
+                    fontSize: AppTheme.fontSM,
+                    color: AppTheme.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -1624,15 +1625,15 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF9333EA).withOpacity(0.1),
+                  color: AppTheme.categoryPurple.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   severity,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: AppTheme.fontSM,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF9333EA),
+                    color: AppTheme.categoryPurple,
                   ),
                 ),
               ),
@@ -1653,8 +1654,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: totalPlates > 0 ? correctCount / totalPlates : 0,
-            backgroundColor: Colors.grey[200],
-            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF9333EA)),
+            backgroundColor: AppTheme.border,
+            valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.categoryPurple),
             minHeight: 8,
             borderRadius: BorderRadius.circular(4),
           ),
@@ -1665,9 +1666,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
             const Text(
               'Plate Details:',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: AppTheme.fontSM,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: AppTheme.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -1691,13 +1692,13 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                       Icon(
                         isCorrect ? Icons.check_circle : Icons.cancel,
                         size: 16,
-                        color: isCorrect ? Colors.green : Colors.red,
+                        color: isCorrect ? AppTheme.success : AppTheme.error,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           'Plate ${index + 1}: ${isCorrect ? 'Correct' : 'Incorrect'} (Your: $userAnswer${!isCorrect ? ', Correct: $correctAnswer' : ''})',
-                          style: const TextStyle(fontSize: 11),
+                          style: const TextStyle(fontSize: AppTheme.fontXS),
                         ),
                       ),
                     ],
@@ -1811,13 +1812,13 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     Color getClassificationColor(String classification) {
       switch (classification.toLowerCase()) {
         case 'alert':
-          return const Color(0xFF10B981);
+          return AppTheme.success;
         case 'drowsy':
-          return const Color(0xFFF97316);
+          return AppTheme.categoryOrange;
         case 'fatigue':
-          return Colors.red;
+          return AppTheme.error;
         default:
-          return Colors.grey;
+          return AppTheme.textSecondary;
       }
     }
 
@@ -1825,9 +1826,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
+        color: AppTheme.surfaceLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1839,8 +1840,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 child: Text(
                   date,
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
+                    fontSize: AppTheme.fontSM,
+                    color: AppTheme.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -1858,7 +1859,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 child: Text(
                   classification,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppTheme.fontSM,
                     fontWeight: FontWeight.bold,
                     color: getClassificationColor(classification),
                   ),
@@ -1907,7 +1908,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: (alertness ?? 0) / 100,
-            backgroundColor: Colors.grey[200],
+            backgroundColor: AppTheme.border,
             valueColor: AlwaysStoppedAnimation<Color>(
               getClassificationColor(classification),
             ),
@@ -1923,14 +1924,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+        Text(label, style: const TextStyle(fontSize: AppTheme.fontXS, color: AppTheme.textSecondary)),
         const SizedBox(height: 2),
         Text(
           value,
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: AppTheme.fontBody,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: AppTheme.textPrimary,
           ),
         ),
       ],
@@ -2011,29 +2012,29 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEEF2FF),
+                  color: AppTheme.categoryIndigoBg,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.history,
                   size: 48,
-                  color: Color(0xFF4F46E5),
+                  color: AppTheme.primary,
                 ),
               ),
               const SizedBox(height: 16),
               const Text(
                 'No Test History',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: AppTheme.fontXL,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: AppTheme.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
               const Text(
                 'Complete some tests to see your history here',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+                style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary),
               ),
             ],
           ),
@@ -2048,8 +2049,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           'Test History',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            fontSize: 16,
-            color: Colors.black87,
+            fontSize: AppTheme.fontLG,
+            color: AppTheme.textPrimary,
           ),
         ),
         const SizedBox(height: 12),
@@ -2080,12 +2081,12 @@ class _ResultsReportPageState extends State<ResultsReportPage>
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
+        color: AppTheme.surfaceLight,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          const Icon(Icons.calendar_today, color: Color(0xFF3B82F6), size: 18),
+          const Icon(Icons.calendar_today, color: AppTheme.categoryBlue, size: 18),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -2095,14 +2096,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                   title,
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: Colors.black87,
+                    fontSize: AppTheme.fontBody,
+                    color: AppTheme.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   date,
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  style: const TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSecondary),
                 ),
               ],
             ),
@@ -2110,9 +2111,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Text(
             'Score: $score',
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: AppTheme.fontBody,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF10B981),
+              color: AppTheme.success,
             ),
           ),
         ],
@@ -2131,13 +2132,13 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFFFAF5FF), Color(0xFFEFF6FF)],
+                  colors: [AppTheme.categoryPurpleBg, AppTheme.categoryBlueBg],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: const Color(0xFF9333EA).withOpacity(0.3),
+                  color: AppTheme.categoryPurple.withOpacity(0.3),
                 ),
               ),
               child: Column(
@@ -2145,12 +2146,12 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF9333EA).withOpacity(0.1),
+                      color: AppTheme.categoryPurple.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
                       Icons.psychology,
-                      color: Color(0xFF9333EA),
+                      color: AppTheme.categoryPurple,
                       size: 64,
                     ),
                   ),
@@ -2158,18 +2159,18 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                   const Text(
                     'AI Report',
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: AppTheme.fontHeading,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
                   const Text(
                     'Coming Soon',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: AppTheme.fontXL,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF9333EA),
+                      color: AppTheme.categoryPurple,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -2183,8 +2184,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                       'The AI-powered comprehensive report feature is currently under development. We are working on finalizing the template to provide you with detailed insights and personalized recommendations.\n\nCheck back soon for updates!',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.black87,
+                        fontSize: AppTheme.fontBody,
+                        color: AppTheme.textPrimary,
                         height: 1.6,
                       ),
                     ),
@@ -2210,7 +2211,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               label: const Text('Download PDF'),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                side: const BorderSide(color: Colors.grey, width: 2),
+                side: const BorderSide(color: AppTheme.textSecondary, width: 2),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -2227,7 +2228,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               label: const Text('Share with Doctor'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: const Color(0xFF3B82F6),
+                backgroundColor: AppTheme.categoryBlue,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

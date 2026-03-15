@@ -68,7 +68,7 @@ class DoctorCard extends StatelessWidget {
                     Text(
                       doctor.name,
                       style: const TextStyle(
-                        fontSize: 17,
+                        fontSize: AppTheme.fontXL,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.textPrimary,
                       ),
@@ -77,7 +77,7 @@ class DoctorCard extends StatelessWidget {
                     Text(
                       doctor.qualification,
                       style: const TextStyle(
-                        fontSize: 13,
+                        fontSize: AppTheme.fontSM,
                         color: AppTheme.textSecondary,
                         fontWeight: FontWeight.w500,
                       ),
@@ -86,7 +86,7 @@ class DoctorCard extends StatelessWidget {
                     Text(
                       doctor.specialization,
                       style: const TextStyle(
-                        fontSize: 13,
+                        fontSize: AppTheme.fontSM,
                         color: AppTheme.textSecondary,
                       ),
                     ),
@@ -103,7 +103,7 @@ class DoctorCard extends StatelessWidget {
                         Text(
                           doctor.rating.toString(),
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: AppTheme.fontSM,
                             fontWeight: FontWeight.w600,
                             color: AppTheme.textPrimary,
                           ),
@@ -119,7 +119,7 @@ class DoctorCard extends StatelessWidget {
                           child: Text(
                             doctor.experience,
                             style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: AppTheme.fontSM,
                               color: AppTheme.textSecondary,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -155,7 +155,7 @@ class DoctorCard extends StatelessWidget {
                       child: Text(
                         doctor.workingPlace,
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: AppTheme.fontSM,
                           fontWeight: FontWeight.w500,
                           color: AppTheme.textPrimary,
                         ),
@@ -172,7 +172,7 @@ class DoctorCard extends StatelessWidget {
                         child: Text(
                           doctor.address!,
                           style: const TextStyle(
-                            fontSize: 12,
+                            fontSize: AppTheme.fontSM,
                             color: AppTheme.textSecondary,
                           ),
                         ),
@@ -192,7 +192,7 @@ class DoctorCard extends StatelessWidget {
                     Text(
                       'NHPC: ${doctor.nhpcNumber}',
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: AppTheme.fontSM,
                         fontWeight: FontWeight.w600,
                         color: AppTheme.textPrimary,
                       ),
@@ -220,7 +220,7 @@ class DoctorCard extends StatelessWidget {
                       child: Text(
                         doctor.contactPhone,
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: AppTheme.fontSM,
                           color: AppTheme.textSecondary,
                         ),
                       ),
@@ -260,7 +260,7 @@ class DoctorCard extends StatelessWidget {
                     Text(
                       doctor.availability,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: AppTheme.fontSM,
                         fontWeight: FontWeight.w600,
                         color: doctor.availability.contains('Today')
                             ? AppTheme.success
@@ -277,7 +277,7 @@ class DoctorCard extends StatelessWidget {
                 child: Text(
                   'Next slot: ${doctor.nextSlot}',
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: AppTheme.fontSM,
                     color: AppTheme.textSecondary,
                   ),
                   overflow: TextOverflow.ellipsis,

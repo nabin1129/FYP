@@ -4,7 +4,7 @@ import '../../config/app_theme.dart';
 import '../../models/admin/admin_doctor_model.dart';
 import '../../services/admin_service.dart';
 
-/// Admin Doctors Page — Page 3: Full CRUD for doctors
+/// Admin Doctors Page Ã¢â‚¬â€ Page 3: Full CRUD for doctors
 /// Admin manually provides doctor ID and password
 class AdminDoctorsPage extends StatefulWidget {
   const AdminDoctorsPage({super.key});
@@ -38,7 +38,7 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
       appBar: _buildAppBar(),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openForm(context),
-        backgroundColor: const Color(0xFF10B981),
+        backgroundColor: AppTheme.success,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(
           'Add Doctor',
@@ -84,7 +84,7 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
         'Doctor Management',
         style: TextStyle(
           color: AppTheme.textPrimary,
-          fontSize: 17,
+          fontSize: AppTheme.fontXL,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -102,20 +102,20 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
       padding: const EdgeInsets.all(AppTheme.spaceMD),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFFECFDF5), Color(0xFFEFF6FF)],
+          colors: [AppTheme.categoryGreenBg, AppTheme.categoryBlueBg],
         ),
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        border: Border.all(color: const Color(0xFFD1FAE5)),
+        border: Border.all(color: AppTheme.successTint),
       ),
       child: Row(
         children: [
-          _miniStat('Doctors', '${docs.length}', const Color(0xFF10B981)),
+          _miniStat('Doctors', '${docs.length}', AppTheme.success),
           _divider(),
-          _miniStat('Patients', '$totalPatients', const Color(0xFF3B82F6)),
+          _miniStat('Patients', '$totalPatients', AppTheme.categoryBlue),
           _divider(),
           _miniStat('Tests/Mo', '$totalTests', AppTheme.primary),
           _divider(),
-          _miniStat('Avg ★', avg, const Color(0xFFF59E0B)),
+          _miniStat('Avg Ã¢Ëœâ€¦', avg, AppTheme.warning),
         ],
       ),
     );
@@ -128,14 +128,17 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
           Text(
             value,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: AppTheme.fontXL,
               fontWeight: FontWeight.bold,
               color: color,
             ),
           ),
           Text(
             label,
-            style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+            style: const TextStyle(
+              fontSize: AppTheme.fontXS,
+              color: AppTheme.textSecondary,
+            ),
           ),
         ],
       ),
@@ -143,7 +146,7 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
   }
 
   Widget _divider() {
-    return Container(height: 32, width: 1, color: const Color(0xFFD1FAE5));
+    return Container(height: 32, width: 1, color: AppTheme.successTint);
   }
 
   Widget _buildSearchBar() {
@@ -167,10 +170,13 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
               child: TextField(
                 controller: _searchCtrl,
                 onChanged: (_) => _refresh(),
-                style: const TextStyle(fontSize: 13),
+                style: const TextStyle(fontSize: AppTheme.fontSM),
                 decoration: const InputDecoration(
                   hintText: 'Search by name, email or ID...',
-                  hintStyle: TextStyle(fontSize: 12, color: AppTheme.textLight),
+                  hintStyle: TextStyle(
+                    fontSize: AppTheme.fontSM,
+                    color: AppTheme.textLight,
+                  ),
                   prefixIcon: Icon(
                     Icons.search,
                     size: 18,
@@ -195,7 +201,7 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
               child: DropdownButton<String>(
                 value: _filter,
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: AppTheme.fontSM,
                   color: AppTheme.textPrimary,
                 ),
                 items: const [
@@ -229,7 +235,7 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
               vertical: 10,
             ),
             decoration: BoxDecoration(
-              color: const Color(0xFFECFDF5),
+              color: AppTheme.categoryGreenBg,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(AppTheme.radiusMedium),
               ),
@@ -241,7 +247,7 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
                   height: 42,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFD1FAE5), Color(0xFFDBEAFE)],
+                      colors: [AppTheme.successTint, AppTheme.infoTint],
                     ),
                     borderRadius: BorderRadius.circular(21),
                   ),
@@ -249,9 +255,9 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
                     child: Text(
                       doc.initials,
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: AppTheme.fontBody,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF059669),
+                        color: AppTheme.successDark,
                       ),
                     ),
                   ),
@@ -264,7 +270,7 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
                       Text(
                         doc.name,
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: AppTheme.fontBody,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.textPrimary,
                         ),
@@ -272,8 +278,8 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
                       Text(
                         doc.specialization,
                         style: const TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFF059669),
+                          fontSize: AppTheme.fontXS,
+                          color: AppTheme.successDark,
                         ),
                       ),
                     ],
@@ -291,8 +297,8 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
                     ),
                     decoration: BoxDecoration(
                       color: doc.isActive
-                          ? const Color(0xFFECFDF5)
-                          : const Color(0xFFF3F4F6),
+                          ? AppTheme.categoryGreenBg
+                          : AppTheme.surfaceMuted,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: doc.isActive
@@ -303,7 +309,7 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
                     child: Text(
                       doc.status,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: AppTheme.fontXS,
                         fontWeight: FontWeight.w600,
                         color: doc.isActive
                             ? AppTheme.success
@@ -376,29 +382,29 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFFBEB),
+                    color: AppTheme.warningBg,
                     borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-                    border: Border.all(color: const Color(0xFFFDE68A)),
+                    border: Border.all(color: AppTheme.warningBorder),
                   ),
                   child: Row(
                     children: [
                       const Icon(
                         Icons.key_outlined,
                         size: 14,
-                        color: Color(0xFFF59E0B),
+                        color: AppTheme.warning,
                       ),
                       const SizedBox(width: 6),
                       const Text(
                         'Password: ',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: AppTheme.fontXS,
                           color: AppTheme.textSecondary,
                         ),
                       ),
                       Text(
                         doc.password,
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: AppTheme.fontSM,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.textPrimary,
                           fontFamily: 'monospace',
@@ -433,7 +439,7 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
                     Text(
                       'Joined: ${doc.joinDate}',
                       style: const TextStyle(
-                        fontSize: 10,
+                        fontSize: AppTheme.fontXS,
                         color: AppTheme.textLight,
                       ),
                     ),
@@ -441,14 +447,14 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
                     _actionBtn(
                       icon: Icons.visibility_outlined,
                       label: 'View',
-                      color: const Color(0xFF3B82F6),
+                      color: AppTheme.categoryBlue,
                       onTap: () => _showDoctorDetail(doc),
                     ),
                     const SizedBox(width: 4),
                     _actionBtn(
                       icon: Icons.edit_outlined,
                       label: 'Edit',
-                      color: const Color(0xFF10B981),
+                      color: AppTheme.success,
                       onTap: () => _openForm(context, doctor: doc),
                     ),
                     const SizedBox(width: 4),
@@ -482,14 +488,14 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
                 Text(
                   label,
                   style: const TextStyle(
-                    fontSize: 10,
+                    fontSize: AppTheme.fontXS,
                     color: AppTheme.textLight,
                   ),
                 ),
                 Text(
                   value,
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: AppTheme.fontXS,
                     color: AppTheme.textPrimary,
                     fontWeight: FontWeight.w500,
                   ),
@@ -512,7 +518,7 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
     return TextButton.icon(
       onPressed: onTap,
       icon: Icon(icon, size: 14),
-      label: Text(label, style: const TextStyle(fontSize: 11)),
+      label: Text(label, style: TextStyle(fontSize: AppTheme.fontXS)),
       style: TextButton.styleFrom(
         foregroundColor: color,
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
@@ -543,7 +549,7 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
             icon: const Icon(Icons.add),
             label: const Text('Add First Doctor'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF10B981),
+              backgroundColor: AppTheme.success,
               foregroundColor: Colors.white,
             ),
           ),
@@ -563,7 +569,7 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
         onSaved: (saved) {
           _refresh();
           if (doctor == null) {
-            // New doctor added — navigate back to dashboard
+            // New doctor added Ã¢â‚¬â€ navigate back to dashboard
             Navigator.pop(context, 'added');
           }
         },
@@ -634,7 +640,7 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
 }
 
 // ============================================================
-// DOCTOR FORM SHEET — Add / Edit
+// DOCTOR FORM SHEET Ã¢â‚¬â€ Add / Edit
 // ============================================================
 class _DoctorFormSheet extends StatefulWidget {
   final AdminDoctor? doctor;
@@ -850,12 +856,12 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFECFDF5),
+                    color: AppTheme.categoryGreenBg,
                     borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                   ),
                   child: Icon(
                     _isEdit ? Icons.edit_outlined : Icons.person_add_outlined,
-                    color: const Color(0xFF10B981),
+                    color: AppTheme.success,
                     size: 20,
                   ),
                 ),
@@ -864,7 +870,7 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
                   child: Text(
                     _isEdit ? 'Edit Doctor' : 'Add New Doctor',
                     style: const TextStyle(
-                      fontSize: 17,
+                      fontSize: AppTheme.fontXL,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.textPrimary,
                     ),
@@ -897,7 +903,7 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
                         vertical: 14,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF0FDF4),
+                        color: AppTheme.successBgLight,
                         borderRadius: BorderRadius.circular(
                           AppTheme.radiusSmall,
                         ),
@@ -912,7 +918,7 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
                           const Icon(
                             Icons.badge_outlined,
                             size: 18,
-                            color: Color(0xFF10B981),
+                            color: AppTheme.success,
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -924,7 +930,7 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
                                       ? 'Doctor ID'
                                       : 'Doctor ID  (Auto-assigned)',
                                   style: const TextStyle(
-                                    fontSize: 11,
+                                    fontSize: AppTheme.fontXS,
                                     color: AppTheme.textSecondary,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -934,9 +940,9 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
                                       ? 'Assigned on save'
                                       : _idCtrl.text,
                                   style: const TextStyle(
-                                    fontSize: 14,
+                                    fontSize: AppTheme.fontBody,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF10B981),
+                                    color: AppTheme.success,
                                   ),
                                 ),
                               ],
@@ -1028,7 +1034,7 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
                         borderRadius: BorderRadius.circular(
                           AppTheme.radiusSmall,
                         ),
-                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                        border: Border.all(color: AppTheme.border),
                       ),
                       child: Row(
                         children: [
@@ -1044,7 +1050,7 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
                                 value: _specialization,
                                 isExpanded: true,
                                 style: const TextStyle(
-                                  fontSize: 14,
+                                  fontSize: AppTheme.fontBody,
                                   color: AppTheme.textPrimary,
                                 ),
                                 hint: const Text('Specialization'),
@@ -1127,7 +1133,7 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
                       height: 48,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF10B981),
+                          backgroundColor: AppTheme.success,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(
                               AppTheme.radiusMedium,
@@ -1148,7 +1154,7 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
                                 _isEdit ? 'Save Changes' : 'Add Doctor',
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 15,
+                                  fontSize: AppTheme.fontBody,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -1171,7 +1177,7 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
       child: Text(
         label,
         style: const TextStyle(
-          fontSize: 12,
+          fontSize: AppTheme.fontSM,
           fontWeight: FontWeight.w700,
           color: AppTheme.textSecondary,
           letterSpacing: 0.5,
@@ -1199,21 +1205,21 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       validator: validator,
-      style: const TextStyle(fontSize: 14),
+      style: const TextStyle(fontSize: AppTheme.fontBody),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
         prefixIcon: Icon(icon, size: 18, color: AppTheme.textSecondary),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: readOnly ? const Color(0xFFF9FAFB) : AppTheme.background,
+        fillColor: readOnly ? AppTheme.surfaceLight : AppTheme.background,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+          borderSide: const BorderSide(color: AppTheme.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+          borderSide: const BorderSide(color: AppTheme.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
@@ -1258,12 +1264,10 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: value ? const Color(0xFFECFDF5) : const Color(0xFFF3F4F6),
+          color: value ? AppTheme.categoryGreenBg : AppTheme.surfaceMuted,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: value
-                ? AppTheme.success.withOpacity(0.5)
-                : const Color(0xFFE5E7EB),
+            color: value ? AppTheme.success.withOpacity(0.5) : AppTheme.border,
           ),
         ),
         child: Row(
@@ -1278,7 +1282,7 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: AppTheme.fontSM,
                 fontWeight: FontWeight.w600,
                 color: value ? AppTheme.success : AppTheme.textSecondary,
               ),
@@ -1336,7 +1340,7 @@ class _DoctorDetailSheet extends StatelessWidget {
                         height: 60,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFFD1FAE5), Color(0xFFDBEAFE)],
+                            colors: [AppTheme.successTint, AppTheme.infoTint],
                           ),
                           borderRadius: BorderRadius.circular(30),
                         ),
@@ -1344,9 +1348,9 @@ class _DoctorDetailSheet extends StatelessWidget {
                           child: Text(
                             doctor.initials,
                             style: const TextStyle(
-                              fontSize: 20,
+                              fontSize: AppTheme.fontXXL,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF059669),
+                              color: AppTheme.successDark,
                             ),
                           ),
                         ),
@@ -1359,7 +1363,7 @@ class _DoctorDetailSheet extends StatelessWidget {
                             Text(
                               doctor.name,
                               style: const TextStyle(
-                                fontSize: 17,
+                                fontSize: AppTheme.fontXL,
                                 fontWeight: FontWeight.bold,
                                 color: AppTheme.textPrimary,
                               ),
@@ -1367,14 +1371,14 @@ class _DoctorDetailSheet extends StatelessWidget {
                             Text(
                               doctor.specialization,
                               style: const TextStyle(
-                                fontSize: 13,
-                                color: Color(0xFF059669),
+                                fontSize: AppTheme.fontSM,
+                                color: AppTheme.successDark,
                               ),
                             ),
                             Text(
                               doctor.workingPlace,
                               style: const TextStyle(
-                                fontSize: 12,
+                                fontSize: AppTheme.fontSM,
                                 color: AppTheme.textSecondary,
                               ),
                             ),
@@ -1383,12 +1387,12 @@ class _DoctorDetailSheet extends StatelessWidget {
                                 const Icon(
                                   Icons.star,
                                   size: 13,
-                                  color: Color(0xFFFBBF24),
+                                  color: AppTheme.warningLight,
                                 ),
                                 Text(
                                   ' ${doctor.rating}',
                                   style: const TextStyle(
-                                    fontSize: 12,
+                                    fontSize: AppTheme.fontSM,
                                     color: AppTheme.textSecondary,
                                   ),
                                 ),
@@ -1400,14 +1404,14 @@ class _DoctorDetailSheet extends StatelessWidget {
                                   ),
                                   decoration: BoxDecoration(
                                     color: doctor.isActive
-                                        ? const Color(0xFFECFDF5)
-                                        : const Color(0xFFF3F4F6),
+                                        ? AppTheme.categoryGreenBg
+                                        : AppTheme.surfaceMuted,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     doctor.status,
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: AppTheme.fontXS,
                                       fontWeight: FontWeight.w600,
                                       color: doctor.isActive
                                           ? AppTheme.success
@@ -1500,14 +1504,14 @@ class _DoctorDetailSheet extends StatelessWidget {
                       Text(
                         item[1] as String,
                         style: const TextStyle(
-                          fontSize: 10,
+                          fontSize: AppTheme.fontXS,
                           color: AppTheme.textLight,
                         ),
                       ),
                       Text(
                         item[2] as String,
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: AppTheme.fontSM,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.textPrimary,
                         ),
@@ -1556,17 +1560,20 @@ class _CredentialsDialog extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFFBEB),
+              color: AppTheme.warningBg,
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
               Icons.key_outlined,
-              color: Color(0xFFF59E0B),
+              color: AppTheme.warning,
               size: 18,
             ),
           ),
           const SizedBox(width: 8),
-          const Text('Login Credentials', style: TextStyle(fontSize: 16)),
+          Text(
+            'Login Credentials',
+            style: TextStyle(fontSize: AppTheme.fontLG),
+          ),
         ],
       ),
       content: Column(
@@ -1580,7 +1587,7 @@ class _CredentialsDialog extends StatelessWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFFD1FAE5), Color(0xFFDBEAFE)],
+                    colors: [AppTheme.successTint, AppTheme.infoTint],
                   ),
                   borderRadius: BorderRadius.circular(22),
                 ),
@@ -1589,8 +1596,8 @@ class _CredentialsDialog extends StatelessWidget {
                     doctor.initials,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Color(0xFF059669),
+                      fontSize: AppTheme.fontBody,
+                      color: AppTheme.successDark,
                     ),
                   ),
                 ),
@@ -1604,14 +1611,14 @@ class _CredentialsDialog extends StatelessWidget {
                       doctor.name,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: AppTheme.fontBody,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       doctor.specialization,
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: AppTheme.fontSM,
                         color: AppTheme.textSecondary,
                       ),
                     ),
@@ -1626,22 +1633,25 @@ class _CredentialsDialog extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFFBEB),
+              color: AppTheme.warningBg,
               borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-              border: Border.all(color: const Color(0xFFFDE68A)),
+              border: Border.all(color: AppTheme.warningBorder),
             ),
             child: const Row(
               children: [
                 Icon(
                   Icons.warning_amber_outlined,
                   size: 14,
-                  color: Color(0xFFF59E0B),
+                  color: AppTheme.warning,
                 ),
                 SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     'Share these credentials securely with the doctor.',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF92400E)),
+                    style: TextStyle(
+                      fontSize: AppTheme.fontXS,
+                      color: AppTheme.warningDark,
+                    ),
                   ),
                 ),
               ],
@@ -1700,14 +1710,14 @@ class _CredentialsDialog extends StatelessWidget {
                 Text(
                   label,
                   style: const TextStyle(
-                    fontSize: 10,
+                    fontSize: AppTheme.fontXS,
                     color: AppTheme.textSecondary,
                   ),
                 ),
                 Text(
                   value,
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: AppTheme.fontSM,
                     fontWeight: FontWeight.w600,
                     fontFamily: 'monospace',
                     color: AppTheme.textPrimary,

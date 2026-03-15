@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/pages/login_page.dart';
 import 'package:netracare/pages/signup_page.dart';
 import 'package:netracare/pages/dashboard_page.dart';
@@ -28,7 +29,8 @@ class NetraCareApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppTheme.primary),
+        scaffoldBackgroundColor: AppTheme.background,
       ),
       home: const AuthCheckPage(),
 
@@ -109,18 +111,21 @@ class _AuthCheckPageState extends State<AuthCheckPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F4F8),
+      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: Center(
           child: _isChecking
-              ? const Column(
+              ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 20),
+                    const CircularProgressIndicator(color: AppTheme.primary),
+                    const SizedBox(height: 20),
                     Text(
                       'Loading...',
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                      style: TextStyle(
+                        fontSize: AppTheme.fontLG,
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
                   ],
                 )
@@ -133,12 +138,12 @@ class _AuthCheckPageState extends State<AuthCheckPage> {
                       const Icon(
                         Icons.error_outline,
                         size: 48,
-                        color: Colors.red,
+                        color: AppTheme.error,
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'Error: $_error',
-                        style: const TextStyle(color: Colors.red),
+                        style: const TextStyle(color: AppTheme.error),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),

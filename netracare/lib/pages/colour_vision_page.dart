@@ -40,7 +40,7 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
+      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: Stack(
           children: [
@@ -102,16 +102,16 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
         const Text(
           "Colour Vision Test",
           style: TextStyle(
-            fontSize: 22,
+            fontSize: AppTheme.fontTitle,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1f2937),
+            color: AppTheme.textDark,
           ),
         ),
         const SizedBox(height: 12),
         const Text(
           "This test uses Ishihara plates to detect colour vision deficiencies, particularly red-green colour blindness.",
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, color: Color(0xFF6b7280), height: 1.5),
+          style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary, height: 1.5),
         ),
         const SizedBox(height: 24),
         Container(
@@ -126,7 +126,7 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
               const Text(
                 "Before you begin:",
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: AppTheme.fontBody,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.testIconColor,
                 ),
@@ -165,7 +165,7 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
             child: const Text(
               "Continue",
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),
@@ -197,16 +197,16 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
         const Text(
           "Test Instructions",
           style: TextStyle(
-            fontSize: 22,
+            fontSize: AppTheme.fontTitle,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1f2937),
+            color: AppTheme.textDark,
           ),
         ),
         const SizedBox(height: 12),
         const Text(
           "You will see a series of Ishihara colour plates. For each plate, select the number you see as quickly as possible.",
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, color: Color(0xFF6b7280), height: 1.5),
+          style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary, height: 1.5),
         ),
         const SizedBox(height: 20),
         Container(
@@ -229,7 +229,7 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
                 child: Text(
                   "Make sure your screen is properly calibrated for accurate results.",
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppTheme.fontBody,
                     color: AppTheme.textPrimary,
                     height: 1.4,
                   ),
@@ -253,7 +253,7 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
             child: const Text(
               "Start Test",
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),
@@ -274,7 +274,7 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
           child: Text(
             text,
             style: const TextStyle(
-              fontSize: 13,
+              fontSize: AppTheme.fontBody,
               color: AppTheme.textPrimary,
               height: 1.4,
             ),
@@ -294,7 +294,7 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
           child: Text(
             text,
             style: const TextStyle(
-              fontSize: 13,
+              fontSize: AppTheme.fontBody,
               color: AppTheme.textPrimary,
               height: 1.4,
             ),

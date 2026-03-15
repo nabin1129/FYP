@@ -9,7 +9,7 @@ from config import SECRET_KEY
 
 def token_required(fn):
     @wraps(fn)
-    def wrapper(self, *args, **kwargs):  # ✅ KEEP self
+    def wrapper(self, *args, **kwargs):  # KEEP self
         auth = request.headers.get("Authorization", "")
 
         if not auth.startswith("Bearer "):
@@ -36,10 +36,10 @@ def token_required(fn):
             if not user:
                 return {"error": "User not found"}, 401
 
-            # ✅ PASS self FIRST, then user
+            #  PASS self FIRST, then user
             return fn(self, user, *args, **kwargs)
 
-        except jwt.ExpiredSignatureError as e:
+        except jwt.ExpiredSignatureEror as e:
             print(f"Token expired: {e}")
             return {"error": "Token expired"}, 401
         except jwt.InvalidTokenError as e:

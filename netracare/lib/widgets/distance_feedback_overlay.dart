@@ -4,6 +4,7 @@
 /// Date: January 26, 2026
 
 import 'package:flutter/material.dart';
+import 'package:netracare/config/app_theme.dart';
 import '../models/distance_calibration_model.dart';
 
 /// Animated overlay showing distance validation status
@@ -104,7 +105,7 @@ class _DistanceFeedbackOverlayState extends State<DistanceFeedbackOverlay>
                   result.feedbackMessage,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 18,
+                    fontSize: AppTheme.fontXL,
                     fontWeight: FontWeight.bold,
                   ),
                   textAlign: TextAlign.center,
@@ -117,7 +118,7 @@ class _DistanceFeedbackOverlayState extends State<DistanceFeedbackOverlay>
                     '${result.currentDistance.toStringAsFixed(1)} cm',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 14,
+                      fontSize: AppTheme.fontBody,
                     ),
                   ),
                   if (result.status == DistanceStatus.acceptable ||
@@ -126,7 +127,7 @@ class _DistanceFeedbackOverlayState extends State<DistanceFeedbackOverlay>
                       'Target: ${result.referenceDistance.toStringAsFixed(0)} cm',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.8),
-                        fontSize: 12,
+                        fontSize: AppTheme.fontSM,
                       ),
                     ),
                 ],
@@ -194,7 +195,7 @@ class DistanceIndicatorRing extends StatelessWidget {
         height: size,
         child: const CircularProgressIndicator(
           strokeWidth: 8,
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.textSecondary),
         ),
       );
     }
@@ -213,7 +214,7 @@ class DistanceIndicatorRing extends StatelessWidget {
             value: 1.0,
             strokeWidth: 12,
             valueColor: AlwaysStoppedAnimation<Color>(
-              Colors.grey.withOpacity(0.2),
+              AppTheme.textSecondary.withOpacity(0.2),
             ),
           ),
 
@@ -237,7 +238,7 @@ class DistanceIndicatorRing extends StatelessWidget {
               Text(
                 '${result.currentDistance.toStringAsFixed(0)} cm',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: AppTheme.fontXXL,
                   fontWeight: FontWeight.bold,
                   color: color,
                 ),
@@ -251,7 +252,7 @@ class DistanceIndicatorRing extends StatelessWidget {
 
   double _calculateProgress(DistanceValidationResult result) {
     // Calculate progress based on how close to reference distance
-    final maxDeviation = result.toleranceCm * 2; // ±tolerance
+    final maxDeviation = result.toleranceCm * 2; // Â±tolerance
     final deviation = (result.delta.abs() / maxDeviation).clamp(0.0, 1.0);
     return 1.0 - deviation;
   }
@@ -274,7 +275,7 @@ class DistanceStatusBar extends StatelessWidget {
     if (result == null) {
       return Container(
         height: 4,
-        color: Colors.grey.withOpacity(0.3),
+        color: AppTheme.textSecondary.withOpacity(0.3),
       );
     }
 

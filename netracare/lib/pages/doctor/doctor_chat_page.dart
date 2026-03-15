@@ -23,6 +23,7 @@ class DoctorChatPage extends StatefulWidget {
 
 class _DoctorChatPageState extends State<DoctorChatPage> {
   final DoctorService _doctorService = DoctorService();
+  // ignore: unused_field
   final DoctorApiService _apiService = DoctorApiService();
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -178,7 +179,7 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
               style: const TextStyle(
                 color: AppTheme.primary,
                 fontWeight: FontWeight.bold,
-                fontSize: 12,
+                fontSize: AppTheme.fontSM,
               ),
             ),
           ),
@@ -191,14 +192,17 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
                   widget.patientName,
                   style: const TextStyle(
                     color: AppTheme.textPrimary,
-                    fontSize: 16,
+                    fontSize: AppTheme.fontLG,
                     fontWeight: FontWeight.w600,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
                 const Text(
                   'Online',
-                  style: TextStyle(color: AppTheme.success, fontSize: 12),
+                  style: TextStyle(
+                    color: AppTheme.success,
+                    fontSize: AppTheme.fontSM,
+                  ),
                 ),
               ],
             ),
@@ -236,7 +240,10 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
           const Expanded(
             child: Text(
               'Chat messages are stored for medical records',
-              style: TextStyle(fontSize: 12, color: AppTheme.primary),
+              style: TextStyle(
+                fontSize: AppTheme.fontSM,
+                color: AppTheme.primary,
+              ),
             ),
           ),
           TextButton(
@@ -248,7 +255,10 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            child: const Text('View Profile', style: TextStyle(fontSize: 12)),
+            child: Text(
+              'View Profile',
+              style: TextStyle(fontSize: AppTheme.fontSM),
+            ),
           ),
         ],
       ),
@@ -269,7 +279,10 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
             const SizedBox(height: AppTheme.spaceMD),
             const Text(
               'No messages yet',
-              style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
+              style: TextStyle(
+                fontSize: AppTheme.fontLG,
+                color: AppTheme.textSecondary,
+              ),
             ),
             const SizedBox(height: AppTheme.spaceSM),
             const Text(
@@ -348,14 +361,14 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
                     message.message,
                     style: TextStyle(
                       color: isDoctor ? Colors.white : AppTheme.textPrimary,
-                      fontSize: 14,
+                      fontSize: AppTheme.fontBody,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     message.time,
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: AppTheme.fontXS,
                       color: isDoctor
                           ? Colors.white.withOpacity(0.7)
                           : AppTheme.textLight,
@@ -510,7 +523,10 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
           children: [
             const Text(
               'Send Attachment',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTheme.fontLG,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: AppTheme.spaceMD),
             Row(
@@ -562,7 +578,7 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
             Text(
               label,
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: AppTheme.fontSM,
                 color: AppTheme.textSecondary,
               ),
             ),

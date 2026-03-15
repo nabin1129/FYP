@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:netracare/config/app_theme.dart';
 
 /// Reusable form field widget for profile settings
 class ProfileFormField extends StatelessWidget {
@@ -35,7 +36,7 @@ class ProfileFormField extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: AppTheme.fontBody,
             fontWeight: FontWeight.w500,
             color: Color(0xFF374151),
           ),
@@ -66,10 +67,10 @@ class ProfileFormField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+              borderSide: const BorderSide(color: AppTheme.categoryBlue, width: 2),
             ),
             filled: readOnly,
-            fillColor: readOnly ? const Color(0xFFF3F4F6) : null,
+            fillColor: readOnly ? AppTheme.surfaceMuted : null,
           ),
         ),
       ],

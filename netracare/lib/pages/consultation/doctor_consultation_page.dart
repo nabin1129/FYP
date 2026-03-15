@@ -105,7 +105,7 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage>
           'Doctor Consultation',
           style: TextStyle(
             color: AppTheme.textPrimary,
-            fontSize: 20,
+            fontSize: AppTheme.fontXXL,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -151,7 +151,7 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage>
                   child: const Text(
                     'Connect with eye care specialists for personalized advice',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: AppTheme.fontBody,
                       color: AppTheme.textSecondary,
                     ),
                   ),
@@ -166,7 +166,7 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage>
                     indicatorColor: AppTheme.primary,
                     indicatorWeight: 2,
                     labelStyle: const TextStyle(
-                      fontSize: 14,
+                      fontSize: AppTheme.fontBody,
                       fontWeight: FontWeight.w600,
                     ),
                     tabs: const [

@@ -1,71 +1,96 @@
-# Python Virtual Environment
+# ── OS & Editor Artifacts ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── IDE Configs ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+
+# ── VS Code Local History (extension artifact — never commit) ────────────────
+.history/
+
+# ── Flutter SDK (use a system-installed SDK, not one inside the repo) ─────────
+flutter/
+
+# ── Python ───────────────────────────────────────────────────────────────────
 .venv/
 venv/
 env/
 ENV/
-
-# IDEs and editors
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-*.iml
-
-# OS specific
-Thumbs.db
-Desktop.ini
-.DS_Store
-
-# Python
+env.bak/
+venv.bak/
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-
-# Logs
-*.log
-
-# Distribution / packaging
 *.egg-info/
 dist/
 build/
+.Python
+MANIFEST
 
-# Database
+# ── Databases ────────────────────────────────────────────────────────────────
 *.sqlite3
 *.db
+*.sqlite
 instance/
 
-# Environment variables
+# ── Environment & Secrets ────────────────────────────────────────────────────
 .env
 .env.local
+.env.*.local
 *.env
+secrets/
+credentials/
+*.pem
+*.key
+*.cert
 
-# Project specific
-Images/temp/
-Images/cache/
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+*.log.*
+logs/
 
-# Documentation builds
-*.aux
-*.out
-*.toc
-
-# Backup files
-*.bak
-*.backup
-*~
-
-# ML Models
+# ── ML / AI Model Binaries ───────────────────────────────────────────────────
 *.h5
 *.hdf5
 *.pkl
+*.joblib
 *.model
 *.weights
+*.task
+checkpoints/
+training_data/
 
-# Flutter build (if needed at root level)
+# ── User Uploads ─────────────────────────────────────────────────────────────
+**/uploads/
+
+# ── Flutter / Dart Build Artifacts ───────────────────────────────────────────
 **/build/
 **/.dart_tool/
+**/.pub-cache/
+**/.pub/
+**/pubspec.lock
 
+# ── Academic Documents (keep local only) ─────────────────────────────────────
+*.pdf
+*.docx
+*.doc
 
-.md
+# ── Project-specific cache ───────────────────────────────────────────────────
+Images/temp/
+Images/cache/
+
+# ── Backup Files ─────────────────────────────────────────────────────────────
+*.bak
+*.backup
+
+# ── Documentation Build Artifacts ────────────────────────────────────────────
+*.aux
+*.out
+*.toc

@@ -115,7 +115,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                       _notificationCount > 9 ? '9+' : '$_notificationCount',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 10,
+                        fontSize: AppTheme.fontXS,
                         fontWeight: FontWeight.bold,
                       ),
                       textAlign: TextAlign.center,
@@ -166,13 +166,13 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
             title,
             style: const TextStyle(
               color: AppTheme.textPrimary,
-              fontSize: 18,
+              fontSize: AppTheme.fontXL,
               fontWeight: FontWeight.bold,
             ),
           ),
           const Text(
             'Dr. Rajesh Kumar Shrestha',
-            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: AppTheme.fontSM),
           ),
         ],
       ),
@@ -274,7 +274,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                 style: const TextStyle(
                   color: AppTheme.primary,
                   fontWeight: FontWeight.w600,
-                  fontSize: 13,
+                  fontSize: AppTheme.fontSM,
                 ),
               ),
             ],
@@ -318,7 +318,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                 const Text(
                   'Notifications',
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: AppTheme.fontXXL,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textPrimary,
                   ),
@@ -403,7 +403,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                 Text(
                   message,
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: AppTheme.fontSM,
                     color: AppTheme.textSecondary,
                   ),
                 ),
@@ -411,7 +411,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                 Text(
                   time,
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: AppTheme.fontXS,
                     color: AppTheme.textLight,
                   ),
                 ),
@@ -439,7 +439,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
           children: [
             const Text(
               'Sort Patients By',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: AppTheme.fontXL, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppTheme.spaceMD),
             ListTile(
@@ -498,7 +498,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
             const Text(
               'Dr. Rajesh Kumar Shrestha',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: AppTheme.fontXL,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textPrimary,
               ),

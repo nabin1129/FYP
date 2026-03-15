@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:netracare/config/app_theme.dart';
 import 'package:camera/camera.dart';
 import 'dart:async';
 import 'dart:io';
@@ -149,7 +150,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to start test: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
         setState(() {
@@ -164,7 +165,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
         !_cameraController!.value.isInitialized ||
         _isRecordingInProgress) {
       if (_isRecordingInProgress) {
-        debugPrint('⚠️ Recording already in progress');
+        debugPrint('ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Recording already in progress');
       }
       return;
     }
@@ -196,7 +197,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to start recording: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -229,7 +230,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to stop recording: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -283,7 +284,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to analyze video: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
             duration: const Duration(seconds: 5),
           ),
         );
@@ -307,7 +308,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Nystagmus Detection'),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: AppTheme.accent,
       ),
       body: SafeArea(child: _buildPhaseContent()),
     );
@@ -342,7 +343,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: AppTheme.border),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
@@ -356,14 +357,14 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.checklist, color: Color(0xFF6366F1)),
+                    Icon(Icons.checklist, color: AppTheme.accent),
                     SizedBox(width: 8),
                     Text(
                       'Test Instructions',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: AppTheme.fontXL,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1f2937),
+                        color: AppTheme.textDark,
                       ),
                     ),
                   ],
@@ -392,22 +393,22 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFFEF3C7),
+              color: AppTheme.warning.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFFDE047)),
+              border: Border.all(color: AppTheme.warning),
             ),
             child: const Row(
               children: [
                 Icon(
                   Icons.tips_and_updates,
-                  color: Color(0xFFEAB308),
+                  color: AppTheme.warning,
                   size: 24,
                 ),
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'The test analyzes your eye movements to detect subtle patterns that may indicate nystagmus.',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF78350F)),
+                    style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.warningDark),
                   ),
                 ),
               ],
@@ -423,7 +424,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
                   ? _startTest
                   : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1),
+                backgroundColor: AppTheme.accent,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -433,7 +434,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               child: const Text(
                 'Start Test',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: AppTheme.fontXL,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
@@ -455,16 +456,16 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: const Color(0xFF6366F1).withOpacity(0.1),
+              color: AppTheme.accent.withOpacity(0.1),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Center(
               child: Text(
                 number,
                 style: const TextStyle(
-                  color: Color(0xFF6366F1),
+                  color: AppTheme.accent,
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: AppTheme.fontBody,
                 ),
               ),
             ),
@@ -476,8 +477,8 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               child: Text(
                 text,
                 style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF6b7280),
+                  fontSize: AppTheme.fontBody,
+                  color: AppTheme.textSubtle,
                   height: 1.5,
                 ),
               ),
@@ -524,7 +525,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.red,
+                color: AppTheme.error,
                 borderRadius: BorderRadius.circular(25),
               ),
               child: Row(
@@ -541,7 +542,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: AppTheme.fontLG,
                     ),
                   ),
                 ],
@@ -567,7 +568,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
                   'Look Straight at the Camera',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 18,
+                    fontSize: AppTheme.fontXL,
                     fontWeight: FontWeight.bold,
                   ),
                   textAlign: TextAlign.center,
@@ -584,7 +585,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
                     onPressed: _stopRecording,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
-                      foregroundColor: Colors.red,
+                      foregroundColor: AppTheme.error,
                     ),
                     child: const Text('Stop Recording'),
                   ),
@@ -617,23 +618,23 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)),
+                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accent),
                 strokeWidth: 3,
               ),
               SizedBox(height: 24),
               Text(
                 'Analyzing Video...',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: AppTheme.fontXXL,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1f2937),
+                  color: AppTheme.textDark,
                 ),
               ),
               SizedBox(height: 12),
               Text(
                 'Analyzing your eye movements for signs of nystagmus',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Color(0xFF6b7280), fontSize: 14),
+                style: TextStyle(color: AppTheme.textSubtle, fontSize: AppTheme.fontBody),
               ),
             ],
           ),
@@ -657,8 +658,8 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isNormal
-                    ? [const Color(0xFF10B981), const Color(0xFF059669)]
-                    : [const Color(0xFFF59E0B), const Color(0xFFD97706)],
+                    ? [AppTheme.success, AppTheme.success]
+                    : [AppTheme.warning, AppTheme.warning],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -667,8 +668,8 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
                 BoxShadow(
                   color:
                       (isNormal
-                              ? const Color(0xFF10B981)
-                              : const Color(0xFFF59E0B))
+                              ? AppTheme.success
+                              : AppTheme.warning)
                           .withOpacity(0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
@@ -686,7 +687,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
                 Text(
                   isNormal ? 'No Nystagmus Detected' : 'Nystagmus Detected',
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: AppTheme.fontHeading,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -697,7 +698,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
                   isNormal
                       ? 'Your eye movements appear normal'
                       : 'Involuntary eye movements detected',
-                  style: const TextStyle(fontSize: 14, color: Colors.white70),
+                  style: const TextStyle(fontSize: AppTheme.fontBody, color: Colors.white70),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -711,7 +712,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: AppTheme.border),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
@@ -749,7 +750,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: AppTheme.border),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
@@ -765,16 +766,16 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
                   children: [
                     Icon(
                       Icons.medical_information,
-                      color: Color(0xFF6366F1),
+                      color: AppTheme.accent,
                       size: 20,
                     ),
                     SizedBox(width: 8),
                     Text(
                       'Diagnosis',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: AppTheme.fontXL,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1f2937),
+                        color: AppTheme.textDark,
                       ),
                     ),
                   ],
@@ -783,8 +784,8 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
                 Text(
                   diagnosis ?? 'No diagnosis available',
                   style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF6b7280),
+                    fontSize: AppTheme.fontBody,
+                    color: AppTheme.textSubtle,
                     height: 1.5,
                   ),
                 ),
@@ -798,7 +799,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: AppTheme.border),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
@@ -812,14 +813,14 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.recommend, color: Color(0xFF6366F1), size: 20),
+                    Icon(Icons.recommend, color: AppTheme.accent, size: 20),
                     SizedBox(width: 8),
                     Text(
                       'Recommendations',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: AppTheme.fontXL,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1f2937),
+                        color: AppTheme.textDark,
                       ),
                     ),
                   ],
@@ -828,8 +829,8 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
                 Text(
                   recommendations ?? 'No recommendations available',
                   style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF6b7280),
+                    fontSize: AppTheme.fontBody,
+                    color: AppTheme.textSubtle,
                     height: 1.5,
                   ),
                 ),
@@ -843,7 +844,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
             child: ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1),
+                backgroundColor: AppTheme.accent,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -853,7 +854,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               child: const Text(
                 'Done',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: AppTheme.fontXL,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
@@ -872,17 +873,17 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 14,
-            color: Color(0xFF6b7280),
+            fontSize: AppTheme.fontBody,
+            color: AppTheme.textSubtle,
             fontWeight: FontWeight.w500,
           ),
         ),
         Text(
           value,
           style: const TextStyle(
-            fontSize: 16,
+            fontSize: AppTheme.fontLG,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1f2937),
+            color: AppTheme.textDark,
           ),
         ),
       ],
@@ -912,29 +913,29 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade50,
+                  color: AppTheme.error.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.error_outline,
                   size: 48,
-                  color: Colors.red,
+                  color: AppTheme.error,
                 ),
               ),
               const SizedBox(height: 24),
               const Text(
                 'Test Failed',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: AppTheme.fontHeading,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1f2937),
+                  color: AppTheme.textDark,
                 ),
               ),
               const SizedBox(height: 12),
               const Text(
                 'An error occurred during the test. Please try again.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Color(0xFF6b7280), fontSize: 14),
+                style: TextStyle(color: AppTheme.textSubtle, fontSize: AppTheme.fontBody),
               ),
               const SizedBox(height: 32),
               SizedBox(
@@ -946,7 +947,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
                     });
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6366F1),
+                    backgroundColor: AppTheme.accent,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -955,7 +956,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
                   child: const Text(
                     'Try Again',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: AppTheme.fontLG,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
@@ -967,7 +968,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
                 onPressed: () => Navigator.pop(context),
                 child: const Text(
                   'Cancel',
-                  style: TextStyle(color: Color(0xFF6b7280)),
+                  style: TextStyle(color: AppTheme.textSubtle),
                 ),
               ),
             ],

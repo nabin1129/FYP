@@ -4,7 +4,7 @@ import '../../services/admin_service.dart';
 import 'admin_users_page.dart';
 import 'admin_doctors_page.dart';
 
-/// Admin Dashboard — Page 1: Overview with stats & quick navigation
+/// Admin Dashboard Ã¢â‚¬â€ Page 1: Overview with stats & quick navigation
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
 
@@ -83,13 +83,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             titles[_selectedIndex],
             style: const TextStyle(
               color: AppTheme.textPrimary,
-              fontSize: 18,
+              fontSize: AppTheme.fontXL,
               fontWeight: FontWeight.bold,
             ),
           ),
           const Text(
             'Administrator',
-            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: AppTheme.fontSM),
           ),
         ],
       ),
@@ -114,7 +114,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: AppTheme.fontLG,
                   ),
                 ),
               ),
@@ -140,10 +140,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Welcome, Admin 👋',
+                  'Welcome, Admin Ã°Å¸â€˜â€¹',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: AppTheme.fontXXL,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -152,7 +152,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   'Manage users, doctors & platform health',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.85),
-                    fontSize: 13,
+                    fontSize: AppTheme.fontSM,
                   ),
                 ),
               ],
@@ -183,24 +183,24 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         value: '${_service.totalUsers}',
         sub: '${_service.activeUsers} active',
         icon: Icons.people_alt_outlined,
-        color: const Color(0xFF3B82F6),
-        bgColor: const Color(0xFFEFF6FF),
+        color: AppTheme.categoryBlue,
+        bgColor: AppTheme.categoryBlueBg,
       ),
       _StatData(
         label: 'Total Doctors',
         value: '${_service.totalDoctors}',
         sub: '${_service.activeDoctors} active',
         icon: Icons.local_hospital_outlined,
-        color: const Color(0xFF10B981),
-        bgColor: const Color(0xFFECFDF5),
+        color: AppTheme.success,
+        bgColor: AppTheme.categoryGreenBg,
       ),
       _StatData(
         label: 'Tests / Month',
         value: '${_service.totalTestsThisMonth}',
         sub: '+15% growth',
         icon: Icons.assignment_outlined,
-        color: const Color(0xFFF59E0B),
-        bgColor: const Color(0xFFFFFBEB),
+        color: AppTheme.warning,
+        bgColor: AppTheme.warningBg,
       ),
       _StatData(
         label: 'Avg Health',
@@ -208,7 +208,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         sub: '+2% improve',
         icon: Icons.favorite_outline,
         color: AppTheme.primary,
-        bgColor: const Color(0xFFEEF2FF),
+        bgColor: AppTheme.categoryIndigoBg,
       ),
     ];
 
@@ -252,7 +252,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               Text(
                 s.value,
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: AppTheme.fontTitle,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimary,
                 ),
@@ -265,12 +265,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               Text(
                 s.label,
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: AppTheme.fontSM,
                   color: AppTheme.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              Text(s.sub, style: TextStyle(fontSize: 11, color: s.color)),
+              Text(s.sub, style: TextStyle(fontSize: AppTheme.fontXS, color: s.color)),
             ],
           ),
         ],
@@ -285,7 +285,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         const Text(
           'Quick Access',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: AppTheme.fontLG,
             fontWeight: FontWeight.bold,
             color: AppTheme.textPrimary,
           ),
@@ -298,8 +298,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 title: 'Manage Users',
                 subtitle: '${_service.totalUsers} patients registered',
                 icon: Icons.people_alt_outlined,
-                color: const Color(0xFF3B82F6),
-                bgColor: const Color(0xFFEFF6FF),
+                color: AppTheme.categoryBlue,
+                bgColor: AppTheme.categoryBlueBg,
                 onTap: () => _goToUsers(),
               ),
             ),
@@ -309,8 +309,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 title: 'Manage Doctors',
                 subtitle: '${_service.totalDoctors} doctors on-board',
                 icon: Icons.local_hospital_outlined,
-                color: const Color(0xFF10B981),
-                bgColor: const Color(0xFFECFDF5),
+                color: AppTheme.success,
+                bgColor: AppTheme.categoryGreenBg,
                 onTap: () => _goToDoctors(),
               ),
             ),
@@ -352,20 +352,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             Text(
               title,
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: AppTheme.fontSM,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textPrimary,
               ),
             ),
             const SizedBox(height: 2),
-            Text(subtitle, style: TextStyle(fontSize: 11, color: color)),
+            Text(subtitle, style: TextStyle(fontSize: AppTheme.fontXS, color: color)),
             const SizedBox(height: AppTheme.spaceSM),
             Row(
               children: [
                 Text(
                   'View All',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppTheme.fontSM,
                     color: color,
                     fontWeight: FontWeight.w600,
                   ),
@@ -387,7 +387,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         const Text(
           'Recent Activity',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: AppTheme.fontLG,
             fontWeight: FontWeight.bold,
             color: AppTheme.textPrimary,
           ),
@@ -423,7 +423,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               const Text(
                 'Doctors',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: AppTheme.fontSM,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimary,
                 ),
@@ -432,7 +432,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 onTap: _goToDoctors,
                 child: const Text(
                   'See all',
-                  style: TextStyle(fontSize: 11, color: AppTheme.primary),
+                  style: TextStyle(fontSize: AppTheme.fontXS, color: AppTheme.primary),
                 ),
               ),
             ],
@@ -448,7 +448,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     height: 32,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFFD1FAE5), Color(0xFFDBEAFE)],
+                        colors: [AppTheme.successTint, AppTheme.infoTint],
                       ),
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -456,9 +456,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       child: Text(
                         d.initials,
                         style: const TextStyle(
-                          fontSize: 11,
+                          fontSize: AppTheme.fontXS,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF059669),
+                          color: AppTheme.successDark,
                         ),
                       ),
                     ),
@@ -471,7 +471,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         Text(
                           d.name.replaceFirst('Dr. ', ''),
                           style: const TextStyle(
-                            fontSize: 11,
+                            fontSize: AppTheme.fontXS,
                             fontWeight: FontWeight.w600,
                             color: AppTheme.textPrimary,
                           ),
@@ -480,7 +480,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         Text(
                           d.specialization,
                           style: const TextStyle(
-                            fontSize: 10,
+                            fontSize: AppTheme.fontXS,
                             color: AppTheme.textSecondary,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -493,12 +493,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       const Icon(
                         Icons.star,
                         size: 10,
-                        color: Color(0xFFFBBF24),
+                        color: AppTheme.warningLight,
                       ),
                       Text(
                         d.rating.toString(),
                         style: const TextStyle(
-                          fontSize: 10,
+                          fontSize: AppTheme.fontXS,
                           color: AppTheme.textSecondary,
                         ),
                       ),
@@ -531,7 +531,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               const Text(
                 'Users',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: AppTheme.fontSM,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimary,
                 ),
@@ -540,7 +540,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 onTap: _goToUsers,
                 child: const Text(
                   'See all',
-                  style: TextStyle(fontSize: 11, color: AppTheme.primary),
+                  style: TextStyle(fontSize: AppTheme.fontXS, color: AppTheme.primary),
                 ),
               ),
             ],
@@ -556,7 +556,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     height: 32,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFFDBEAFE), Color(0xFFEDE9FE)],
+                        colors: [AppTheme.infoTint, AppTheme.indigoTint],
                       ),
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -564,9 +564,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       child: Text(
                         u.initials,
                         style: const TextStyle(
-                          fontSize: 11,
+                          fontSize: AppTheme.fontXS,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF4F46E5),
+                          color: AppTheme.primary,
                         ),
                       ),
                     ),
@@ -579,7 +579,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         Text(
                           u.name,
                           style: const TextStyle(
-                            fontSize: 11,
+                            fontSize: AppTheme.fontXS,
                             fontWeight: FontWeight.w600,
                             color: AppTheme.textPrimary,
                           ),
@@ -588,7 +588,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         Text(
                           u.location,
                           style: const TextStyle(
-                            fontSize: 10,
+                            fontSize: AppTheme.fontXS,
                             color: AppTheme.textSecondary,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -611,13 +611,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     Color bgColor;
     if (score >= 80) {
       color = AppTheme.success;
-      bgColor = const Color(0xFFECFDF5);
+      bgColor = AppTheme.categoryGreenBg;
     } else if (score >= 60) {
       color = AppTheme.warning;
-      bgColor = const Color(0xFFFFFBEB);
+      bgColor = AppTheme.warningBg;
     } else {
       color = AppTheme.error;
-      bgColor = const Color(0xFFFEF2F2);
+      bgColor = AppTheme.errorBg;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -628,7 +628,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       child: Text(
         score.toString(),
         style: TextStyle(
-          fontSize: 10,
+          fontSize: AppTheme.fontXS,
           fontWeight: FontWeight.bold,
           color: color,
         ),
@@ -642,13 +642,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         label: 'Verified Doctors',
         value:
             '${_service.doctors.where((d) => d.isVerified).length}/${_service.totalDoctors}',
-        color: const Color(0xFF10B981),
+        color: AppTheme.success,
       ),
       _StatusItem(
         label: 'Available Doctors',
         value:
             '${_service.doctors.where((d) => d.isAvailable).length}/${_service.totalDoctors}',
-        color: const Color(0xFF3B82F6),
+        color: AppTheme.categoryBlue,
       ),
       _StatusItem(
         label: 'Active Users',
@@ -658,7 +658,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       _StatusItem(
         label: 'Avg Rating',
         value: '${_service.avgRating.toStringAsFixed(1)}/5',
-        color: const Color(0xFFF59E0B),
+        color: AppTheme.warning,
       ),
     ];
 
@@ -675,7 +675,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           const Text(
             'System Status',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: AppTheme.fontBody,
               fontWeight: FontWeight.bold,
               color: AppTheme.textPrimary,
             ),
@@ -721,7 +721,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           Text(
                             item.value,
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: AppTheme.fontSM,
                               fontWeight: FontWeight.bold,
                               color: item.color,
                             ),
@@ -729,7 +729,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           Text(
                             item.label,
                             style: const TextStyle(
-                              fontSize: 10,
+                              fontSize: AppTheme.fontXS,
                               color: AppTheme.textSecondary,
                             ),
                           ),
@@ -775,7 +775,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 Text('Doctor added successfully'),
               ],
             ),
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: AppTheme.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
@@ -867,7 +867,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 style: const TextStyle(
                   color: AppTheme.primary,
                   fontWeight: FontWeight.w600,
-                  fontSize: 13,
+                  fontSize: AppTheme.fontSM,
                 ),
               ),
             ],
@@ -912,7 +912,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 28,
+                    fontSize: AppTheme.fontHeading,
                   ),
                 ),
               ),
@@ -921,7 +921,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             const Text(
               'Administrator',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: AppTheme.fontXL,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textPrimary,
               ),

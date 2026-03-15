@@ -114,7 +114,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                   'Welcome Back, Doctor!',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: AppTheme.fontXXL,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -123,7 +123,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                   'Manage your patients and view analytics',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.9),
-                    fontSize: 14,
+                    fontSize: AppTheme.fontBody,
                   ),
                 ),
               ],
@@ -203,7 +203,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         const Text(
           'Analytics Overview',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: AppTheme.fontXL,
             fontWeight: FontWeight.bold,
             color: AppTheme.textPrimary,
           ),
@@ -253,7 +253,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
               title,
               style: const TextStyle(
                 color: AppTheme.textPrimary,
-                fontSize: 18,
+                fontSize: AppTheme.fontXL,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -280,7 +280,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         if (isFullScreen) ...[
           const Text(
             'Monthly average health scores of your patients',
-            style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+            style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: AppTheme.spaceLG),
         ],
@@ -398,7 +398,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
           const Text(
             'Monthly Breakdown',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: AppTheme.fontBody,
               fontWeight: FontWeight.w600,
               color: AppTheme.textPrimary,
             ),
@@ -414,7 +414,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                     item.month,
                     style: const TextStyle(
                       color: AppTheme.textSecondary,
-                      fontSize: 13,
+                      fontSize: AppTheme.fontSM,
                     ),
                   ),
                   Text(
@@ -422,7 +422,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                     style: const TextStyle(
                       color: AppTheme.primary,
                       fontWeight: FontWeight.w600,
-                      fontSize: 13,
+                      fontSize: AppTheme.fontSM,
                     ),
                   ),
                 ],
@@ -447,7 +447,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         if (isFullScreen) ...[
           const Text(
             'Distribution of patients by health status',
-            style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+            style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: AppTheme.spaceLG),
         ],
@@ -570,13 +570,13 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary),
+            style: const TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textPrimary),
           ),
         ),
         Text(
           '$count patients',
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: AppTheme.fontBody,
             fontWeight: FontWeight.w600,
             color: AppTheme.textPrimary,
           ),
@@ -584,7 +584,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         const SizedBox(width: AppTheme.spaceSM),
         Text(
           '($percentage%)',
-          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+          style: const TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSecondary),
         ),
       ],
     );
@@ -607,7 +607,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
               const Text(
                 'Health Score Trend',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: AppTheme.fontBody,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.textPrimary,
                 ),
@@ -639,7 +639,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
               const Text(
                 'Patient Distribution',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: AppTheme.fontBody,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.textPrimary,
                 ),
@@ -665,7 +665,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+          style: const TextStyle(fontSize: AppTheme.fontXS, color: AppTheme.textSecondary),
         ),
       ],
     );
@@ -685,7 +685,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
           const Text(
             'Test Statistics',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.bold,
               color: AppTheme.textPrimary,
             ),
@@ -730,7 +730,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                 Text(
                   '${stat.count} tests completed',
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: AppTheme.fontSM,
                     color: AppTheme.textSecondary,
                   ),
                 ),
@@ -749,7 +749,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
             child: Text(
               'Avg: ${stat.avgScore.round()}',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: AppTheme.fontSM,
                 fontWeight: FontWeight.w600,
                 color: _getScoreColor(stat.avgScore),
               ),
@@ -776,7 +776,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
             const Text(
               'Recent Patients',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: AppTheme.fontXL,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textPrimary,
               ),
@@ -845,7 +845,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                 Text(
                   'Last test: ${patient.lastTestAgo}',
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: AppTheme.fontSM,
                     color: AppTheme.textSecondary,
                   ),
                 ),
@@ -857,7 +857,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
               Text(
                 '${patient.healthScore}',
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: AppTheme.fontXL,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimary,
                 ),
@@ -891,7 +891,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
             child: Text(
               patient.status.label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: AppTheme.fontXS,
                 fontWeight: FontWeight.w600,
                 color: _getStatusColor(patient.status),
               ),
@@ -960,7 +960,7 @@ class _StatCard extends StatelessWidget {
               Text(
                 value,
                 style: const TextStyle(
-                  fontSize: 24,
+                  fontSize: AppTheme.fontHeading,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimary,
                 ),
@@ -970,13 +970,13 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: AppTheme.spaceSM),
           Text(
             label,
-            style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+            style: const TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 4),
           Text(
             subtitle,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: AppTheme.fontXS,
               color: subtitleColor,
               fontWeight: FontWeight.w500,
             ),

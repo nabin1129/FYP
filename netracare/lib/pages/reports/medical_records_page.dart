@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/services/api_service.dart';
 import 'package:intl/intl.dart';
 
@@ -58,26 +59,26 @@ class _MedicalRecordsPageState extends State<MedicalRecordsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1F2937)),
+          icon: const Icon(Icons.arrow_back, color: AppTheme.textDark),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Medical Records',
           style: TextStyle(
-            color: Color(0xFF1F2937),
+            color: AppTheme.textDark,
             fontWeight: FontWeight.w600,
           ),
         ),
         bottom: TabBar(
           controller: _tabController,
-          labelColor: const Color(0xFF3B82F6),
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: const Color(0xFF3B82F6),
+          labelColor: AppTheme.categoryBlue,
+          unselectedLabelColor: AppTheme.textSecondary,
+          indicatorColor: AppTheme.categoryBlue,
           tabs: const [
             Tab(text: 'Scan Reports'),
             Tab(text: 'Prescriptions'),
@@ -154,20 +155,20 @@ class _RecordsList extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 80, color: Colors.grey.shade300),
+            Icon(icon, size: 80, color: AppTheme.border),
             const SizedBox(height: 16),
             Text(
               title,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: AppTheme.fontXL,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade600,
+                color: AppTheme.textSecondary,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               subtitle,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+              style: TextStyle(fontSize: AppTheme.fontBody, color: Colors.grey.shade500),
               textAlign: TextAlign.center,
             ),
           ],
@@ -198,11 +199,11 @@ class _MedicalRecordCard extends StatelessWidget {
     switch (type) {
       case 'scan':
         icon = Icons.medical_services;
-        iconColor = const Color(0xFFEF4444);
+        iconColor = AppTheme.error;
         break;
       case 'prescription':
         icon = Icons.receipt_long;
-        iconColor = const Color(0xFF8B5CF6);
+        iconColor = AppTheme.categoryPurple;
         break;
       case 'lab':
         icon = Icons.biotech;
@@ -210,7 +211,7 @@ class _MedicalRecordCard extends StatelessWidget {
         break;
       default:
         icon = Icons.folder;
-        iconColor = Colors.grey;
+        iconColor = AppTheme.textSecondary;
     }
 
     return Card(
@@ -218,7 +219,7 @@ class _MedicalRecordCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: AppTheme.border),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -246,17 +247,17 @@ class _MedicalRecordCard extends StatelessWidget {
                     Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: AppTheme.fontLG,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1F2937),
+                        color: AppTheme.textDark,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Dr. $doctor • $date',
+                      'Dr. $doctor â€¢ $date',
                       style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade600,
+                        fontSize: AppTheme.fontSM,
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                   ],
@@ -265,7 +266,7 @@ class _MedicalRecordCard extends StatelessWidget {
               Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: Colors.grey.shade400,
+                color: AppTheme.textSecondary,
               ),
             ],
           ),

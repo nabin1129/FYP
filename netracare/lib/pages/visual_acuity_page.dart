@@ -44,7 +44,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
+      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: Stack(
           children: [
@@ -109,13 +109,13 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
         const SizedBox(height: 16),
         const Text(
           "Visual Acuity Test",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: AppTheme.fontTitle, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         const Text(
           "This test measures how clearly you can see letters at different sizes, similar to a clinical eye chart.",
           textAlign: TextAlign.center,
-          style: TextStyle(color: Color(0xFF6b7280), height: 1.5),
+          style: TextStyle(color: AppTheme.textSecondary, height: 1.5),
         ),
         const SizedBox(height: 24),
 
@@ -157,7 +157,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
             child: const Text(
               "Continue Setup",
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
@@ -188,7 +188,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
         const SizedBox(height: 16),
         const Text(
           "Pre-Test Setup",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: AppTheme.fontTitle, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 24),
 
@@ -219,7 +219,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
               Expanded(
                 child: Text(
                   "You'll be shown 10 letters. Identify each one for accurate results.",
-                  style: TextStyle(fontSize: 12, color: Color(0xFF92400E)),
+                  style: TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.warningDark),
                 ),
               ),
             ],
@@ -242,7 +242,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
             child: const Text(
               "Proceed to Test",
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
@@ -273,13 +273,13 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
         const SizedBox(height: 16),
         const Text(
           "Ready to Begin",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: AppTheme.fontTitle, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         const Text(
           "Follow the instructions carefully and identify each letter as it appears.",
           textAlign: TextAlign.center,
-          style: TextStyle(color: Color(0xFF6b7280), height: 1.5),
+          style: TextStyle(color: AppTheme.textSecondary, height: 1.5),
         ),
         const SizedBox(height: 24),
 
@@ -318,7 +318,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
             ),
             child: const Text(
               "Start Visual Acuity Test",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: AppTheme.fontLG, fontWeight: FontWeight.w600),
             ),
           ),
         ),
@@ -337,7 +337,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Color(0xFFE5E7EB)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Row(
         children: [
@@ -351,14 +351,14 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
                   title,
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
-                    fontSize: 13,
+                    fontSize: AppTheme.fontBody,
                   ),
                 ),
                 Text(
                   description,
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF6b7280),
+                    fontSize: AppTheme.fontSM,
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ],
@@ -385,7 +385,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(fontSize: 14, color: Color(0xFF374151)),
+            style: const TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSubtle),
           ),
         ),
       ],
@@ -416,7 +416,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
         Expanded(
           child: Text(
             description,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF374151)),
+            style: const TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSubtle),
           ),
         ),
       ],

@@ -114,7 +114,7 @@ class _DashboardPageState extends State<DashboardPage> {
             'Netra Care',
             style: TextStyle(
               color: AppTheme.textPrimary,
-              fontSize: 16,
+              fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -177,7 +177,7 @@ class _DashboardPageState extends State<DashboardPage> {
             const Text(
               'My Account',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: AppTheme.fontXL,
                 fontWeight: FontWeight.w700,
                 color: AppTheme.textPrimary,
               ),
@@ -344,7 +344,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 style: const TextStyle(
                   color: AppTheme.primary,
                   fontWeight: FontWeight.w600,
-                  fontSize: 13,
+                  fontSize: AppTheme.fontSM,
                 ),
               ),
             ],
@@ -370,7 +370,7 @@ class _DashboardPageState extends State<DashboardPage> {
             const SizedBox(height: 25),
             const Text(
               "Available Tests",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: AppTheme.fontXXL, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
 
@@ -493,7 +493,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         const Text(
                           "Upcoming Consultation",
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: AppTheme.fontBody,
                             color: AppTheme.textSecondary,
                           ),
                         ),
@@ -501,7 +501,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         Text(
                           nextConsultation!.date,
                           style: const TextStyle(
-                            fontSize: 17,
+                            fontSize: AppTheme.fontXL,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.textPrimary,
                           ),
@@ -510,7 +510,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         Text(
                           nextConsultation!.doctorName,
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: AppTheme.fontSM,
                             color: AppTheme.primary,
                             fontWeight: FontWeight.w500,
                           ),
@@ -520,7 +520,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   : const Text(
                       "No Upcoming Consultation\nBook a consultation with a doctor",
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: AppTheme.fontBody,
                         fontWeight: FontWeight.w500,
                         color: AppTheme.textSecondary,
                       ),
@@ -565,7 +565,7 @@ class _DashboardPageState extends State<DashboardPage> {
               style: TextStyle(
                 color: AppTheme.success,
                 fontWeight: FontWeight.bold,
-                fontSize: 22,
+                fontSize: AppTheme.fontTitle,
               ),
             ),
           ),
@@ -574,7 +574,7 @@ class _DashboardPageState extends State<DashboardPage> {
             child: Text(
               "Good Eye Health\n2 tests pending",
               style: TextStyle(
-                fontSize: 15,
+                fontSize: AppTheme.fontBody,
                 fontWeight: FontWeight.w500,
                 color: AppTheme.textPrimary,
               ),
@@ -603,7 +603,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 "Doctor Consultation",
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: AppTheme.fontXXL,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -693,7 +693,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: AppTheme.fontLG,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textPrimary,
                   ),
@@ -702,7 +702,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Text(
                   description,
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: AppTheme.fontSM,
                     color: AppTheme.textSecondary,
                   ),
                 ),

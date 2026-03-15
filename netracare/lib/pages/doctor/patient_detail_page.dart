@@ -132,7 +132,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 28,
+                            fontSize: AppTheme.fontHeading,
                           ),
                         ),
                       ),
@@ -145,16 +145,16 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                               _patient!.name,
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 22,
+                                fontSize: AppTheme.fontTitle,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '${_patient!.age ?? 'N/A'} years • ${_patient!.sex ?? 'N/A'}',
+                              '${_patient!.age ?? 'N/A'} years â€¢ ${_patient!.sex ?? 'N/A'}',
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.9),
-                                fontSize: 14,
+                                fontSize: AppTheme.fontBody,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -162,7 +162,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                               _patient!.email,
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.8),
-                                fontSize: 13,
+                                fontSize: AppTheme.fontSM,
                               ),
                             ),
                           ],
@@ -221,7 +221,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                   value,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: AppTheme.fontLG,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -236,7 +236,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
               label,
               style: TextStyle(
                 color: Colors.white.withOpacity(0.8),
-                fontSize: 11,
+                fontSize: AppTheme.fontXS,
               ),
             ),
           ],
@@ -254,7 +254,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
         unselectedLabelColor: AppTheme.textSecondary,
         indicatorColor: AppTheme.primary,
         indicatorWeight: 2,
-        labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        labelStyle: const TextStyle(fontSize: AppTheme.fontSM, fontWeight: FontWeight.w600),
         tabs: const [
           Tab(text: 'Test Results'),
           Tab(text: 'Medical Records'),
@@ -283,7 +283,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
           const Text(
             'Test Results',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.bold,
               color: AppTheme.textPrimary,
             ),
@@ -353,7 +353,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                 '${summary.testsCompleted}/${summary.totalTests} completed',
                 style: const TextStyle(
                   color: AppTheme.textSecondary,
-                  fontSize: 13,
+                  fontSize: AppTheme.fontSM,
                 ),
               ),
             ],
@@ -419,7 +419,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                 Text(
                   result,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppTheme.fontSM,
                     color: isCompleted
                         ? AppTheme.textSecondary
                         : AppTheme.textLight,
@@ -581,15 +581,15 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: AppTheme.fontSM,
                     color: AppTheme.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${record.formattedDate} • ${record.doctorName ?? 'Unknown'}',
+                  '${record.formattedDate} â€¢ ${record.doctorName ?? 'Unknown'}',
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: AppTheme.fontXS,
                     color: AppTheme.textLight,
                   ),
                 ),
@@ -689,7 +689,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                 child: Text(
                   note.category.toString(),
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: AppTheme.fontXS,
                     fontWeight: FontWeight.w600,
                     color: AppTheme.primary,
                   ),
@@ -698,7 +698,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
               const Spacer(),
               Text(
                 note.formattedDate,
-                style: const TextStyle(fontSize: 12, color: AppTheme.textLight),
+                style: const TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textLight),
               ),
             ],
           ),
@@ -707,20 +707,20 @@ class _PatientDetailPageState extends State<PatientDetailPage>
             note.title,
             style: const TextStyle(
               fontWeight: FontWeight.w600,
-              fontSize: 15,
+              fontSize: AppTheme.fontBody,
               color: AppTheme.textPrimary,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             note.content,
-            style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+            style: const TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: AppTheme.spaceSM),
           Text(
             'By ${note.doctorName}',
             style: const TextStyle(
-              fontSize: 11,
+              fontSize: AppTheme.fontXS,
               color: AppTheme.textLight,
               fontStyle: FontStyle.italic,
             ),
@@ -739,7 +739,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
           const SizedBox(height: AppTheme.spaceMD),
           Text(
             message,
-            style: const TextStyle(fontSize: 16, color: AppTheme.textSecondary),
+            style: const TextStyle(fontSize: AppTheme.fontLG, color: AppTheme.textSecondary),
           ),
         ],
       ),

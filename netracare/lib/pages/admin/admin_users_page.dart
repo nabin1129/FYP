@@ -3,7 +3,7 @@ import '../../config/app_theme.dart';
 import '../../models/admin/admin_user_model.dart';
 import '../../services/admin_service.dart';
 
-/// Admin Users Page — Page 2: Monitor and manage users/patients
+/// Admin Users Page Ã¢â‚¬â€ Page 2: Monitor and manage users/patients
 class AdminUsersPage extends StatefulWidget {
   const AdminUsersPage({super.key});
 
@@ -71,7 +71,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
         'User Management',
         style: TextStyle(
           color: AppTheme.textPrimary,
-          fontSize: 17,
+          fontSize: AppTheme.fontXL,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -89,14 +89,14 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
       padding: const EdgeInsets.all(AppTheme.spaceMD),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFFEFF6FF), Color(0xFFF5F3FF)],
+          colors: [AppTheme.categoryBlueBg, AppTheme.indigoTint],
         ),
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        border: Border.all(color: const Color(0xFFDBEAFE)),
+        border: Border.all(color: AppTheme.infoTint),
       ),
       child: Row(
         children: [
-          _miniStat('Total', '${users.length}', const Color(0xFF3B82F6)),
+          _miniStat('Total', '${users.length}', AppTheme.categoryBlue),
           _divider(),
           _miniStat('Active', '$active', AppTheme.success),
           _divider(),
@@ -115,14 +115,14 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
           Text(
             value,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: AppTheme.fontXL,
               fontWeight: FontWeight.bold,
               color: color,
             ),
           ),
           Text(
             label,
-            style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+            style: const TextStyle(fontSize: AppTheme.fontXS, color: AppTheme.textSecondary),
           ),
         ],
       ),
@@ -130,7 +130,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
   }
 
   Widget _divider() {
-    return Container(height: 32, width: 1, color: const Color(0xFFDBEAFE));
+    return Container(height: 32, width: 1, color: AppTheme.infoTint);
   }
 
   Widget _buildSearchBar() {
@@ -154,10 +154,10 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
               child: TextField(
                 controller: _searchCtrl,
                 onChanged: (_) => _refresh(),
-                style: const TextStyle(fontSize: 13),
+                style: const TextStyle(fontSize: AppTheme.fontSM),
                 decoration: const InputDecoration(
                   hintText: 'Search by name, email or location...',
-                  hintStyle: TextStyle(fontSize: 12, color: AppTheme.textLight),
+                  hintStyle: TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textLight),
                   prefixIcon: Icon(
                     Icons.search,
                     size: 18,
@@ -182,7 +182,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
               child: DropdownButton<String>(
                 value: _filter,
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: AppTheme.fontSM,
                   color: AppTheme.textPrimary,
                 ),
                 items: const [
@@ -216,7 +216,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
               vertical: 10,
             ),
             decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
+              color: AppTheme.categoryBlueBg,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(AppTheme.radiusMedium),
               ),
@@ -228,7 +228,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                   height: 40,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFDBEAFE), Color(0xFFEDE9FE)],
+                      colors: [AppTheme.infoTint, AppTheme.indigoTint],
                     ),
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -236,9 +236,9 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     child: Text(
                       user.initials,
                       style: const TextStyle(
-                        fontSize: 13,
+                        fontSize: AppTheme.fontSM,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF4F46E5),
+                        color: AppTheme.primary,
                       ),
                     ),
                   ),
@@ -251,7 +251,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                       Text(
                         user.name,
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: AppTheme.fontBody,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.textPrimary,
                         ),
@@ -259,7 +259,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                       Text(
                         user.email,
                         style: const TextStyle(
-                          fontSize: 11,
+                          fontSize: AppTheme.fontXS,
                           color: AppTheme.textSecondary,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -279,8 +279,8 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     ),
                     decoration: BoxDecoration(
                       color: user.isActive
-                          ? const Color(0xFFECFDF5)
-                          : const Color(0xFFF3F4F6),
+                          ? AppTheme.categoryGreenBg
+                          : AppTheme.surfaceMuted,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: user.isActive
@@ -291,7 +291,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     child: Text(
                       user.status,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: AppTheme.fontXS,
                         fontWeight: FontWeight.w600,
                         color: user.isActive
                             ? AppTheme.success
@@ -320,7 +320,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     _infoCell(
                       Icons.person_outline,
                       'Age / Gender',
-                      '${user.age}y • ${user.gender}',
+                      '${user.age}y Ã¢â‚¬Â¢ ${user.gender}',
                     ),
                   ],
                 ),
@@ -364,7 +364,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                       const Text(
                         'Health Score',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: AppTheme.fontXS,
                           color: AppTheme.textSecondary,
                         ),
                       ),
@@ -374,7 +374,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
                             value: user.healthScore / 100,
-                            backgroundColor: const Color(0xFFE5E7EB),
+                            backgroundColor: AppTheme.border,
                             valueColor: AlwaysStoppedAnimation<Color>(
                               user.healthScore >= 80
                                   ? AppTheme.success
@@ -390,7 +390,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                       Text(
                         '${user.healthScore}',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: AppTheme.fontSM,
                           fontWeight: FontWeight.bold,
                           color: user.healthScore >= 80
                               ? AppTheme.success
@@ -410,7 +410,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     Text(
                       'ID: ${user.id}',
                       style: const TextStyle(
-                        fontSize: 10,
+                        fontSize: AppTheme.fontXS,
                         color: AppTheme.textLight,
                         fontFamily: 'monospace',
                       ),
@@ -421,10 +421,10 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                       icon: const Icon(Icons.visibility_outlined, size: 14),
                       label: const Text(
                         'Details',
-                        style: TextStyle(fontSize: 12),
+                        style: TextStyle(fontSize: AppTheme.fontSM),
                       ),
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFF3B82F6),
+                        foregroundColor: AppTheme.categoryBlue,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
                           vertical: 4,
@@ -439,7 +439,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                       icon: const Icon(Icons.delete_outline, size: 14),
                       label: const Text(
                         'Remove',
-                        style: TextStyle(fontSize: 12),
+                        style: TextStyle(fontSize: AppTheme.fontSM),
                       ),
                       style: TextButton.styleFrom(
                         foregroundColor: AppTheme.error,
@@ -475,14 +475,14 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 Text(
                   label,
                   style: const TextStyle(
-                    fontSize: 10,
+                    fontSize: AppTheme.fontXS,
                     color: AppTheme.textLight,
                   ),
                 ),
                 Text(
                   value,
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: AppTheme.fontXS,
                     color: AppTheme.textPrimary,
                     fontWeight: FontWeight.w500,
                   ),
@@ -604,7 +604,7 @@ class _UserDetailSheet extends StatelessWidget {
                         height: 56,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFFDBEAFE), Color(0xFFEDE9FE)],
+                            colors: [AppTheme.infoTint, AppTheme.indigoTint],
                           ),
                           borderRadius: BorderRadius.circular(28),
                         ),
@@ -612,9 +612,9 @@ class _UserDetailSheet extends StatelessWidget {
                           child: Text(
                             user.initials,
                             style: const TextStyle(
-                              fontSize: 18,
+                              fontSize: AppTheme.fontXL,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF4F46E5),
+                              color: AppTheme.primary,
                             ),
                           ),
                         ),
@@ -627,7 +627,7 @@ class _UserDetailSheet extends StatelessWidget {
                             Text(
                               user.name,
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: AppTheme.fontXL,
                                 fontWeight: FontWeight.bold,
                                 color: AppTheme.textPrimary,
                               ),
@@ -635,7 +635,7 @@ class _UserDetailSheet extends StatelessWidget {
                             Text(
                               user.email,
                               style: const TextStyle(
-                                fontSize: 13,
+                                fontSize: AppTheme.fontSM,
                                 color: AppTheme.textSecondary,
                               ),
                             ),
@@ -647,14 +647,14 @@ class _UserDetailSheet extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: user.isActive
-                                    ? const Color(0xFFECFDF5)
-                                    : const Color(0xFFF3F4F6),
+                                    ? AppTheme.categoryGreenBg
+                                    : AppTheme.surfaceMuted,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
                                 user.status,
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: AppTheme.fontXS,
                                   fontWeight: FontWeight.w600,
                                   color: user.isActive
                                       ? AppTheme.success
@@ -673,7 +673,7 @@ class _UserDetailSheet extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(AppTheme.spaceMD),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
+                      color: AppTheme.categoryBlueBg,
                       borderRadius: BorderRadius.circular(
                         AppTheme.radiusMedium,
                       ),
@@ -691,7 +691,7 @@ class _UserDetailSheet extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              '${user.healthScore}/100 — ${user.healthLabel}',
+                              '${user.healthScore}/100 Ã¢â‚¬â€ ${user.healthLabel}',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: user.healthScore >= 80
@@ -781,14 +781,14 @@ class _UserDetailSheet extends StatelessWidget {
                       Text(
                         item[1] as String,
                         style: const TextStyle(
-                          fontSize: 10,
+                          fontSize: AppTheme.fontXS,
                           color: AppTheme.textLight,
                         ),
                       ),
                       Text(
                         item[2] as String,
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: AppTheme.fontSM,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.textPrimary,
                         ),
