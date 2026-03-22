@@ -650,10 +650,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
               const SizedBox(height: 8),
               const Text(
                 'Keep 30-40 cm distance and ensure good lighting.\nThe test will track your eye movements as you follow the dot.',
-                style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: AppTheme.fontSM,
-                ),
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: AppTheme.fontSM),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -664,10 +661,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
                   icon: const Icon(Icons.play_arrow),
                   label: const Text(
                     'Start Test',
-                    style: TextStyle(
-                      fontSize: AppTheme.fontLG,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: AppTheme.fontLG, fontWeight: FontWeight.w600),
                   ),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -802,10 +796,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
               const SizedBox(height: 8),
               const Text(
                 'Follow the dot with your eyes',
-                style: TextStyle(
-                  color: Colors.white60,
-                  fontSize: AppTheme.fontSM,
-                ),
+                style: TextStyle(color: Colors.white60, fontSize: AppTheme.fontSM),
               ),
             ],
           ),
@@ -834,10 +825,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
                   Expanded(
                     child: Text(
                       'Face not detected. Position your face in the camera.',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: AppTheme.fontSM,
-                      ),
+                      style: TextStyle(color: Colors.white, fontSize: AppTheme.fontSM),
                     ),
                   ),
                 ],
@@ -1355,10 +1343,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
             ),
             content: const Text(
               'Your progress will not be saved.',
-              style: TextStyle(
-                color: AppTheme.textSecondary,
-                fontSize: AppTheme.fontLG,
-              ),
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: AppTheme.fontLG),
             ),
             actions: [
               TextButton(
