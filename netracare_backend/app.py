@@ -4,6 +4,7 @@ from flask import Flask, send_from_directory
 from flask_restx import Api
 from flask_cors import CORS
 from db_model import db
+from database_migration import DatabaseMigration
 from config import SECRET_KEY
 from auth import auth_ns
 from user import user_ns
@@ -24,6 +25,7 @@ from routes.ai_report_routes import ai_report_ns
 from routes.doctor_routes import doctor_ns
 from routes.consultation_routes import consultation_ns
 from routes.notification_routes import notification_ns
+from routes.admin_routes import admin_ns
 
 # Import models to ensure tables are created
 from models.doctor import Doctor, DoctorPatient
@@ -73,9 +75,20 @@ api.add_namespace(ai_report_ns, path='/api/ai-report')
 api.add_namespace(doctor_ns, path='/api/doctors')
 api.add_namespace(consultation_ns, path='/api/consultations')
 api.add_namespace(notification_ns, path='/api/notifications')
+api.add_namespace(admin_ns, path='/api/admin')
 
 # Register distance calibration blueprint
 app.register_blueprint(distance_bp)
+
+
+def ensure_user_schema_migrated():
+    """Run idempotent user table migration before serving requests."""
+    try:
+        migration = DatabaseMigration()
+        migration.run(skip_confirmation=True)
+    except Exception as exc:
+        # Keep startup resilient even if migration logging fails unexpectedly.
+        print(f"Warning: user schema migration check failed: {exc}")
 
 
 @app.route("/static/ishihara/<path:filename>")
@@ -219,6 +232,7 @@ def home():
 
 if __name__ == "__main__":
     with app.app_context():
+        ensure_user_schema_migrated()
         db.create_all()
 
     app.run(debug=True)

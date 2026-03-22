@@ -4,7 +4,7 @@ import '../../services/admin_service.dart';
 import 'admin_users_page.dart';
 import 'admin_doctors_page.dart';
 
-/// Admin Dashboard Ã¢â‚¬â€ Page 1: Overview with stats & quick navigation
+/// Admin Dashboard — Page 1: Overview with stats & quick navigation
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
 
@@ -15,11 +15,23 @@ class AdminDashboardPage extends StatefulWidget {
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
   final AdminService _service = AdminService();
   int _selectedIndex = 0;
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _service.initialize();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() { _isLoading = true; _error = null; });
+    try {
+      await _service.loadAll();
+    } catch (e) {
+      _error = e.toString();
+    }
+    if (mounted) setState(() => _isLoading = false);
   }
 
   void _refresh() => setState(() {});
@@ -29,30 +41,57 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: _buildAppBar(),
-      body: RefreshIndicator(
-        color: AppTheme.primary,
-        onRefresh: () async => _refresh(),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(AppTheme.spaceMD),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildWelcomeBanner(),
-              const SizedBox(height: AppTheme.spaceLG),
-              _buildStatsGrid(),
-              const SizedBox(height: AppTheme.spaceLG),
-              _buildQuickNavCards(),
-              const SizedBox(height: AppTheme.spaceLG),
-              _buildRecentSection(),
-              const SizedBox(height: AppTheme.spaceLG),
-              _buildSystemStatus(),
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+          : _error != null
+              ? _buildErrorView()
+              : RefreshIndicator(
+                  color: AppTheme.primary,
+                  onRefresh: () async {
+                    await _service.refresh();
+                    if (mounted) setState(() {});
+                  },
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(AppTheme.spaceMD),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildWelcomeBanner(),
+                        const SizedBox(height: AppTheme.spaceLG),
+                        _buildStatsGrid(),
+                        const SizedBox(height: AppTheme.spaceLG),
+                        _buildQuickNavCards(),
+                        const SizedBox(height: AppTheme.spaceLG),
+                        _buildRecentSection(),
+                        const SizedBox(height: AppTheme.spaceLG),
+                        _buildSystemStatus(),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                ),
       bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildErrorView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.cloud_off, size: 56, color: AppTheme.textLight),
+          const SizedBox(height: AppTheme.spaceSM),
+          const Text('Failed to load data', style: TextStyle(color: AppTheme.textSecondary)),
+          const SizedBox(height: AppTheme.spaceMD),
+          ElevatedButton.icon(
+            onPressed: _loadData,
+            icon: const Icon(Icons.refresh, size: 18),
+            label: const Text('Retry'),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, foregroundColor: Colors.white),
+          ),
+        ],
+      ),
     );
   }
 
@@ -195,18 +234,18 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         bgColor: AppTheme.categoryGreenBg,
       ),
       _StatData(
-        label: 'Tests / Month',
-        value: '${_service.totalTestsThisMonth}',
-        sub: '+15% growth',
+        label: 'Active Doctors',
+        value: '${_service.activeDoctors}',
+        sub: 'On duty',
         icon: Icons.assignment_outlined,
         color: AppTheme.warning,
         bgColor: AppTheme.warningBg,
       ),
       _StatData(
-        label: 'Avg Health',
-        value: '${_service.avgHealthScore}%',
-        sub: '+2% improve',
-        icon: Icons.favorite_outline,
+        label: 'Avg Rating',
+        value: _service.avgRating.toStringAsFixed(1),
+        sub: 'Doctor rating',
+        icon: Icons.star_outline,
         color: AppTheme.primary,
         bgColor: AppTheme.categoryIndigoBg,
       ),
@@ -586,7 +625,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          u.location,
+                          u.email,
                           style: const TextStyle(
                             fontSize: AppTheme.fontXS,
                             color: AppTheme.textSecondary,
@@ -596,42 +635,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       ],
                     ),
                   ),
-                  _buildHealthBadge(u.healthScore),
                 ],
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildHealthBadge(int score) {
-    Color color;
-    Color bgColor;
-    if (score >= 80) {
-      color = AppTheme.success;
-      bgColor = AppTheme.categoryGreenBg;
-    } else if (score >= 60) {
-      color = AppTheme.warning;
-      bgColor = AppTheme.warningBg;
-    } else {
-      color = AppTheme.error;
-      bgColor = AppTheme.errorBg;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        score.toString(),
-        style: TextStyle(
-          fontSize: AppTheme.fontXS,
-          fontWeight: FontWeight.bold,
-          color: color,
-        ),
       ),
     );
   }
@@ -753,7 +761,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       MaterialPageRoute(builder: (_) => const AdminUsersPage()),
     ).then((_) {
       if (mounted) setState(() => _selectedIndex = 0);
-      _refresh();
+      _loadData();
     });
   }
 
@@ -764,7 +772,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       MaterialPageRoute(builder: (_) => const AdminDoctorsPage()),
     ).then((result) {
       if (mounted) setState(() => _selectedIndex = 0);
-      _refresh();
+      _loadData();
       if (result == 'added' && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

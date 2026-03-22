@@ -16,6 +16,7 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLRO
 
 class BlinkFatigueModel:
     """CNN model for detecting drowsiness/fatigue from eye images"""
+    DROWSY_LABEL_THRESHOLD = 0.6
     
     def __init__(self, model_path: str = None):
         """
@@ -260,14 +261,14 @@ class BlinkFatigueModel:
         # Make prediction
         predictions = self.model.predict(processed_img, verbose=0)
         
-        # Get predicted class and confidence
-        predicted_class_idx = np.argmax(predictions[0])
-        predicted_class = self.class_names[predicted_class_idx]
-        confidence = float(predictions[0][predicted_class_idx])
-        
         # Calculate probabilities for both classes
         drowsy_probability = float(predictions[0][0])
         notdrowsy_probability = float(predictions[0][1])
+
+        # Use a thresholded decision so borderline values are treated as normal.
+        is_drowsy = drowsy_probability >= self.DROWSY_LABEL_THRESHOLD
+        predicted_class = 'drowsy' if is_drowsy else 'notdrowsy'
+        confidence = drowsy_probability if is_drowsy else notdrowsy_probability
         
         # Determine fatigue level
         fatigue_level = self._classify_fatigue_level(drowsy_probability)

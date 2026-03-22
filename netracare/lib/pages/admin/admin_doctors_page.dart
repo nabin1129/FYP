@@ -17,11 +17,24 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
   final AdminService _service = AdminService();
   final _searchCtrl = TextEditingController();
   String _filter = 'all';
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!_service.isLoaded) _loadData();
+  }
 
   @override
   void dispose() {
     _searchCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    await _service.loadAll();
+    if (mounted) setState(() => _isLoading = false);
   }
 
   List<AdminDoctor> get _filtered =>
@@ -45,26 +58,32 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
-      body: Column(
-        children: [
-          _buildStatsBar(),
-          _buildSearchBar(),
-          Expanded(
-            child: filtered.isEmpty
-                ? _buildEmpty()
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppTheme.spaceMD,
-                      AppTheme.spaceSM,
-                      AppTheme.spaceMD,
-                      80,
-                    ),
-                    itemCount: filtered.length,
-                    itemBuilder: (_, i) => _buildDoctorRow(filtered[i]),
-                  ),
-          ),
-        ],
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+          : Column(
+              children: [
+                _buildStatsBar(),
+                _buildSearchBar(),
+                Expanded(
+                  child: filtered.isEmpty
+                      ? _buildEmpty()
+                      : RefreshIndicator(
+                          onRefresh: _loadData,
+                          color: AppTheme.primary,
+                          child: ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppTheme.spaceMD,
+                              AppTheme.spaceSM,
+                              AppTheme.spaceMD,
+                              80,
+                            ),
+                            itemCount: filtered.length,
+                            itemBuilder: (_, i) => _buildDoctorRow(filtered[i]),
+                          ),
+                        ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -94,8 +113,7 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
   Widget _buildStatsBar() {
     final docs = _service.doctors;
     final avg = _service.avgRating.toStringAsFixed(1);
-    final totalTests = _service.totalTestsThisMonth;
-    final totalPatients = _service.totalPatients;
+    final activeDocs = docs.where((d) => d.isActive).length;
 
     return Container(
       margin: const EdgeInsets.all(AppTheme.spaceMD),
@@ -109,13 +127,11 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
       ),
       child: Row(
         children: [
-          _miniStat('Doctors', '${docs.length}', AppTheme.success),
+          _miniStat('Total', '${docs.length}', AppTheme.success),
           _divider(),
-          _miniStat('Patients', '$totalPatients', AppTheme.categoryBlue),
+          _miniStat('Active', '$activeDocs', AppTheme.categoryBlue),
           _divider(),
-          _miniStat('Tests/Mo', '$totalTests', AppTheme.primary),
-          _divider(),
-          _miniStat('Avg Ã¢Ëœâ€¦', avg, AppTheme.warning),
+          _miniStat('Avg ★', avg, AppTheme.warning),
         ],
       ),
     );
@@ -286,9 +302,17 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {
-                    _service.toggleDoctorStatus(doc.id);
-                    _refresh();
+                  onTap: () async {
+                    try {
+                      await _service.toggleDoctorStatus(doc.backendId!);
+                      _refresh();
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('$e'), behavior: SnackBarBehavior.floating),
+                        );
+                      }
+                    }
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -370,7 +394,7 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
                     _infoCell(
                       Icons.groups_outlined,
                       'Patients',
-                      '${doc.patients}',
+                      '${doc.totalPatients}',
                     ),
                   ],
                 ),
@@ -617,19 +641,29 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
-            onPressed: () {
-              _service.deleteDoctor(doc.id);
+            onPressed: () async {
               Navigator.pop(context);
-              _refresh();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${doc.name} removed'),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              );
+              try {
+                await _service.deleteDoctor(doc.backendId!);
+                _refresh();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${doc.name} removed'),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed: $e'), behavior: SnackBarBehavior.floating),
+                  );
+                }
+              }
             },
             child: const Text('Remove', style: TextStyle(color: Colors.white)),
           ),
@@ -684,7 +718,7 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
     super.initState();
     final d = widget.doctor;
     _idCtrl = TextEditingController(
-      text: d?.id ?? widget.service.generateNextDoctorId(),
+      text: d?.id ?? '',
     );
     _nameCtrl = TextEditingController(text: d?.name ?? '');
     _emailCtrl = TextEditingController(text: d?.email ?? '');
@@ -728,6 +762,7 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
     setState(() => _isLoading = true);
 
     final doctorData = AdminDoctor(
+      backendId: _isEdit ? widget.doctor!.backendId : null,
       id: _isEdit ? widget.doctor!.id : '',
       name: _nameCtrl.text.trim(),
       email: _emailCtrl.text.trim(),
@@ -743,61 +778,39 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
       isVerified: _isVerified,
       isAvailable: _isAvailable,
       joinDate: _isEdit ? widget.doctor!.joinDate : _formatDate(DateTime.now()),
-      patients: _isEdit ? widget.doctor!.patients : 0,
-      testsThisMonth: _isEdit ? widget.doctor!.testsThisMonth : 0,
-      avgResponseTime: _isEdit ? widget.doctor!.avgResponseTime : 'N/A',
-      rating: _isEdit ? widget.doctor!.rating : 4.5,
+      rating: _isEdit ? widget.doctor!.rating : 0.0,
+      totalPatients: _isEdit ? widget.doctor!.totalPatients : 0,
+      totalConsultations: _isEdit ? widget.doctor!.totalConsultations : 0,
     );
 
-    if (_isEdit) {
-      final error = widget.service.updateDoctor(widget.doctor!.id, doctorData);
-      setState(() => _isLoading = false);
-      if (error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error),
-            backgroundColor: AppTheme.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        return;
+    try {
+      AdminDoctor result;
+      if (_isEdit) {
+        result = await widget.service.updateDoctor(widget.doctor!.backendId!, doctorData);
+      } else {
+        result = await widget.service.addDoctor(doctorData);
       }
+      if (!mounted) return;
+      setState(() => _isLoading = false);
       Navigator.pop(context);
-      widget.onSaved(doctorData);
+      widget.onSaved(result);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${doctorData.name} updated'),
+          content: Text('${result.name} ${_isEdit ? 'updated' : 'added'}'),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
-    } else {
-      try {
-        final created = await widget.service.addDoctorViaApi(doctorData);
-        if (!mounted) return;
-        setState(() => _isLoading = false);
-        Navigator.pop(context);
-        widget.onSaved(created);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${created.name} added'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
-      } catch (e) {
-        if (!mounted) return;
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppTheme.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -1469,8 +1482,8 @@ class _DoctorDetailSheet extends StatelessWidget {
       ],
       [Icons.email_outlined, 'Email', doctor.email],
       [Icons.phone_outlined, 'Phone', doctor.phone],
-      [Icons.groups_outlined, 'Patients', '${doctor.patients}'],
-      [Icons.assignment_outlined, 'Tests/Month', '${doctor.testsThisMonth}'],
+      [Icons.groups_outlined, 'Patients', '${doctor.totalPatients}'],
+      [Icons.assignment_outlined, 'Consultations', '${doctor.totalConsultations}'],
       [Icons.location_on_outlined, 'Address', doctor.address],
       [Icons.calendar_today_outlined, 'Joined', doctor.joinDate],
     ];

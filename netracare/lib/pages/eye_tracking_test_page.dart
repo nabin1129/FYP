@@ -73,6 +73,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
   // Results
   EyeTrackingTestResult? _result;
   bool _isSaving = false;
+  int _faceDetectedFrames = 0;
 
   @override
   void initState() {
@@ -179,8 +180,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
     }
 
     final screenSize = MediaQuery.of(context).size;
-    _engine!.sessionData.screenWidth = screenSize.width.toInt();
-    _engine!.sessionData.screenHeight = screenSize.height.toInt();
+    _engine!.setScreenSize(screenSize);
     _targetPosition = Offset(screenSize.width / 2, screenSize.height / 2);
 
     setState(() {
@@ -189,6 +189,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
       _isTestComplete = false;
       _result = null;
       _noFaceSeconds = 0;
+      _faceDetectedFrames = 0;
     });
 
     _testStartTime = DateTime.now();
@@ -418,7 +419,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
 
     final result = EyeTrackingTestResult.fromSession(
       _engine!.sessionData,
-      _engine!.faceDetectedCount,
+      _faceDetectedFrames,
     );
 
     setState(() {
@@ -475,6 +476,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
 
       if (frame != null) {
         _phaseFrames[phaseName]?.add(frame);
+        _faceDetectedFrames++;
       }
     } catch (e) {
       debugPrint('Frame processing error: $e');
@@ -648,7 +650,10 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
               const SizedBox(height: 8),
               const Text(
                 'Keep 30-40 cm distance and ensure good lighting.\nThe test will track your eye movements as you follow the dot.',
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: AppTheme.fontSM),
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: AppTheme.fontSM,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -659,7 +664,10 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
                   icon: const Icon(Icons.play_arrow),
                   label: const Text(
                     'Start Test',
-                    style: TextStyle(fontSize: AppTheme.fontLG, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontSize: AppTheme.fontLG,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -794,7 +802,10 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
               const SizedBox(height: 8),
               const Text(
                 'Follow the dot with your eyes',
-                style: TextStyle(color: Colors.white60, fontSize: AppTheme.fontSM),
+                style: TextStyle(
+                  color: Colors.white60,
+                  fontSize: AppTheme.fontSM,
+                ),
               ),
             ],
           ),
@@ -823,7 +834,10 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
                   Expanded(
                     child: Text(
                       'Face not detected. Position your face in the camera.',
-                      style: TextStyle(color: Colors.white, fontSize: AppTheme.fontSM),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: AppTheme.fontSM,
+                      ),
                     ),
                   ),
                 ],
@@ -1341,7 +1355,10 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
             ),
             content: const Text(
               'Your progress will not be saved.',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: AppTheme.fontLG),
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: AppTheme.fontLG,
+              ),
             ),
             actions: [
               TextButton(

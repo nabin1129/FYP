@@ -100,4 +100,19 @@ class ApiConfig {
 
   // Helper method for doctor details
   static String doctorDetailEndpoint(int doctorId) => '/api/doctors/$doctorId';
+
+  // ========================================
+  // Admin Panel
+  // ========================================
+  static const String adminStatsEndpoint = '/api/admin/stats';
+  static const String adminUsersEndpoint = '/api/admin/users';
+  static const String adminDoctorsEndpoint = '/api/admin/doctors';
+  static const String adminCreateDoctorEndpoint = '/api/doctors/admin/create';
+
+  static String adminUserDetailEndpoint(int userId) =>
+      '/api/admin/users/$userId';
+  static String adminDoctorUpdateEndpoint(int doctorId) =>
+      '/api/doctors/admin/$doctorId';
+  static String adminDoctorDetailEndpoint(int doctorId) =>
+      '/api/admin/doctors/$doctorId';
 }

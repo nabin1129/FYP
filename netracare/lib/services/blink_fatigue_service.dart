@@ -1,25 +1,22 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../config/api_config.dart';
+import 'api_service.dart';
 
 /// Service for blink and eye fatigue detection API calls
 class BlinkFatigueService {
-  static const _storage = FlutterSecureStorage();
-  static const String _tokenKey = 'auth_token';
-
   // =========================
   // HELPER METHODS
   // =========================
 
   static Future<String?> _getToken() async {
-    return await _storage.read(key: _tokenKey);
+    return await ApiService.getToken();
   }
 
   static Future<void> _deleteToken() async {
-    await _storage.delete(key: _tokenKey);
+    await ApiService.deleteToken();
   }
 
   static Never _throwReadableError(http.Response response) {

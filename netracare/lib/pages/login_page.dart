@@ -5,7 +5,6 @@ import 'package:netracare/pages/dashboard_page.dart';
 import 'package:netracare/pages/doctor/doctor_dashboard_page.dart';
 import 'package:netracare/pages/admin/admin_dashboard_page.dart';
 import 'package:netracare/services/api_service.dart';
-import 'package:netracare/services/admin_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -184,7 +183,6 @@ class _LoginPageState extends State<LoginPage> {
 
       // ── Admin login (local, no API) ──────────────────────────────
       if (email == 'admin' && password == 'admin333221') {
-        AdminService().initialize();
         if (mounted) {
           Navigator.pushReplacement(
             context,

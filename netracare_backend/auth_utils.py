@@ -39,7 +39,7 @@ def token_required(fn):
             #  PASS self FIRST, then user
             return fn(self, user, *args, **kwargs)
 
-        except jwt.ExpiredSignatureEror as e:
+        except jwt.ExpiredSignatureError as e:
             print(f"Token expired: {e}")
             return {"error": "Token expired"}, 401
         except jwt.InvalidTokenError as e:

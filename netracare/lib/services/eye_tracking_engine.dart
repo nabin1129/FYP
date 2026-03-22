@@ -69,6 +69,12 @@ class EyeTrackingEngine {
   int get noFaceCount => _noFaceCount;
   EyeTrackingSessionData get sessionData => _sessionData;
 
+  void setScreenSize(Size screenSize) {
+    _screenSize = screenSize;
+    _sessionData.screenWidth = screenSize.width.toInt();
+    _sessionData.screenHeight = screenSize.height.toInt();
+  }
+
   // ─── Lifecycle ────────────────────────────────────────────────────────────
 
   Future<void> start(
@@ -86,9 +92,7 @@ class EyeTrackingEngine {
 
     _isRunning = true;
     _frameCounter = 0;
-    _screenSize = screenSize;
-    _sessionData.screenWidth = screenSize.width.toInt();
-    _sessionData.screenHeight = screenSize.height.toInt();
+    setScreenSize(screenSize);
 
     if (!controller.value.isStreamingImages) {
       await controller.startImageStream(

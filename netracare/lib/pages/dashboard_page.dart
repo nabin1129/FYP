@@ -96,26 +96,12 @@ class _DashboardPageState extends State<DashboardPage> {
       titleSpacing: 16,
       title: Row(
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              gradient: AppTheme.primaryGradient,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.remove_red_eye_outlined,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Text(
-            'Netra Care',
-            style: TextStyle(
-              color: AppTheme.textPrimary,
-              fontSize: AppTheme.fontLG,
-              fontWeight: FontWeight.w700,
+          ClipOval(
+            child: Image.asset(
+              'assets/images/netracare_logo.png',
+              width: 55,
+              height: 55,
+              fit: BoxFit.cover,
             ),
           ),
         ],
@@ -370,7 +356,10 @@ class _DashboardPageState extends State<DashboardPage> {
             const SizedBox(height: 25),
             const Text(
               "Available Tests",
-              style: TextStyle(fontSize: AppTheme.fontXXL, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTheme.fontXXL,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 12),
 

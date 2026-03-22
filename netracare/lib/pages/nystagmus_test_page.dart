@@ -165,7 +165,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
         !_cameraController!.value.isInitialized ||
         _isRecordingInProgress) {
       if (_isRecordingInProgress) {
-        debugPrint('ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Recording already in progress');
+        debugPrint('Recording already in progress');
       }
       return;
     }
@@ -399,16 +399,15 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
             ),
             child: const Row(
               children: [
-                Icon(
-                  Icons.tips_and_updates,
-                  color: AppTheme.warning,
-                  size: 24,
-                ),
+                Icon(Icons.tips_and_updates, color: AppTheme.warning, size: 24),
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'The test analyzes your eye movements to detect subtle patterns that may indicate nystagmus.',
-                    style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.warningDark),
+                    style: TextStyle(
+                      fontSize: AppTheme.fontBody,
+                      color: AppTheme.warningDark,
+                    ),
                   ),
                 ),
               ],
@@ -634,7 +633,10 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               Text(
                 'Analyzing your eye movements for signs of nystagmus',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppTheme.textSubtle, fontSize: AppTheme.fontBody),
+                style: TextStyle(
+                  color: AppTheme.textSubtle,
+                  fontSize: AppTheme.fontBody,
+                ),
               ),
             ],
           ),
@@ -666,11 +668,8 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color:
-                      (isNormal
-                              ? AppTheme.success
-                              : AppTheme.warning)
-                          .withOpacity(0.3),
+                  color: (isNormal ? AppTheme.success : AppTheme.warning)
+                      .withOpacity(0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -698,7 +697,10 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
                   isNormal
                       ? 'Your eye movements appear normal'
                       : 'Involuntary eye movements detected',
-                  style: const TextStyle(fontSize: AppTheme.fontBody, color: Colors.white70),
+                  style: const TextStyle(
+                    fontSize: AppTheme.fontBody,
+                    color: Colors.white70,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -935,7 +937,10 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               const Text(
                 'An error occurred during the test. Please try again.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppTheme.textSubtle, fontSize: AppTheme.fontBody),
+                style: TextStyle(
+                  color: AppTheme.textSubtle,
+                  fontSize: AppTheme.fontBody,
+                ),
               ),
               const SizedBox(height: 32),
               SizedBox(

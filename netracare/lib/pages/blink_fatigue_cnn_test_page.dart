@@ -22,6 +22,8 @@ class BlinkFatigueCNNTestPage extends StatefulWidget {
 }
 
 class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
+  static const double _drowsyThreshold = 0.6;
+
   CameraController? _cameraController;
   List<CameraDescription>? cameras;
 
@@ -741,7 +743,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
 
     // Use null-safe operators with default values
     final prediction =
-        predictionResult!['prediction'] as String? ?? 'notdrowsy';
+      predictionResult!['prediction'] as String? ?? 'notdrowsy';
     final confidence =
         (predictionResult!['confidence'] as num?)?.toDouble() ?? 0.0;
     final fatigueLevel =
@@ -752,7 +754,11 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
         predictionResult!['probabilities'] as Map<String, dynamic>? ??
         {'drowsy': 0.0, 'notdrowsy': 1.0};
 
-    final isDrowsy = prediction == 'drowsy';
+    final drowsyProb = (probabilities['drowsy'] as num?)?.toDouble() ?? 0.0;
+    final normalizedPrediction = prediction.toLowerCase().trim();
+    final isDrowsy = normalizedPrediction == 'drowsy' &&
+      drowsyProb >= _drowsyThreshold;
+
     final statusColor = isDrowsy ? AppTheme.error : AppTheme.success;
     final statusIcon = isDrowsy ? Icons.warning_amber : Icons.check_circle;
 
@@ -783,7 +789,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                 Icon(statusIcon, size: 64, color: statusColor),
                 const SizedBox(height: 16),
                 Text(
-                  isDrowsy ? 'Drowsiness Detected' : 'Alert State',
+                  isDrowsy ? 'Drowsiness Detected' : 'Normal State',
                   style: TextStyle(
                     fontSize: AppTheme.fontHeading,
                     fontWeight: FontWeight.bold,
@@ -1077,7 +1083,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
 
           // Not drowsy probability
           _buildProbabilityBar(
-            label: 'Alert',
+            label: 'Normal',
             probability: notDrowsyProb,
             color: AppTheme.success,
           ),

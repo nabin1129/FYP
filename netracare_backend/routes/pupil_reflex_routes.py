@@ -47,6 +47,11 @@ UPLOAD_FOLDER = 'uploads/pupil_reflex'
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'webm'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# Face detector used to ensure uploaded test videos contain a visible face.
+FACE_CASCADE = cv2.CascadeClassifier(
+    cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+)
+
 def allowed_file(filename):
     """Check if file extension is allowed"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -154,6 +159,51 @@ def calculate_pupil_response(video_path, flash_timestamps):
     except Exception as e:
         print(f"Error calculating pupil response: {str(e)}")
         return None, None
+
+
+def has_detectable_face(video_path, min_face_frames=1, sample_every_n_frames=5):
+    """Return True when a face is detected in sampled frames.
+
+    Kept intentionally permissive to avoid false negatives from lighting,
+    motion blur, or brief flash overexposure in test videos.
+    """
+    try:
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            return False
+
+        frame_index = 0
+        sampled_frames = 0
+        frames_with_face = 0
+
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+            if frame_index % sample_every_n_frames == 0:
+                sampled_frames += 1
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                faces = FACE_CASCADE.detectMultiScale(
+                    gray,
+                    scaleFactor=1.05,
+                    minNeighbors=3,
+                    minSize=(20, 20)
+                )
+                if len(faces) > 0:
+                    frames_with_face += 1
+
+            frame_index += 1
+
+        cap.release()
+
+        if sampled_frames == 0:
+            return False
+
+        return frames_with_face >= min_face_frames
+    except Exception as e:
+        print(f"Error detecting face presence: {str(e)}")
+        return False
 
 def detect_nystagmus_movements(video_path):
     """
@@ -384,6 +434,10 @@ class AnalyzeVideo(Resource):
             filename = secure_filename(f"{test_id}_{uuid.uuid4().hex}.{video_file.filename.rsplit('.', 1)[1].lower()}")
             video_path = os.path.join(UPLOAD_FOLDER, filename)
             video_file.save(video_path)
+
+            # Best-effort face validation. We do not hard-fail here because
+            # flash lighting and motion blur can cause false negatives.
+            face_detected = has_detectable_face(video_path)
             
             # Analyze pupil reflex (if flash timestamps provided)
             response_time, constriction = None, None
@@ -418,6 +472,7 @@ class AnalyzeVideo(Resource):
             
             return {
                 'message': 'Video analyzed successfully',
+                'face_detected': face_detected,
                 'results': {
                     'test_id': test.id,
                     'pupil_reflex': {

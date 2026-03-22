@@ -301,8 +301,8 @@ class BlinkTestSubmission(Resource):
                 else:
                     fatigue_level = 'Alert'
             
-            # Determine prediction class
-            prediction = 'drowsy' if drowsiness_prob > 0.5 else 'notdrowsy'
+            # Keep saved class aligned with the model/UI threshold.
+            prediction = 'drowsy' if drowsiness_prob >= 0.6 else 'notdrowsy'
             alert_triggered = drowsiness_prob > 0.7
             
             # Create test record

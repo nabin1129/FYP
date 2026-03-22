@@ -1,16 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:camera/camera.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/api_config.dart';
+import 'api_service.dart';
 
 /// Service for real-time blink detection using EAR algorithm
 class BlinkDetectionService {
-  static const _storage = FlutterSecureStorage();
-  static const String _tokenKey = 'auth_token';
-
   static Future<String?> _getToken() async {
-    return await _storage.read(key: _tokenKey);
+    return await ApiService.getToken();
   }
 
   /// Analyze single camera frame for blink detection
@@ -100,7 +97,7 @@ class BlinkDetectionService {
       if (response.statusCode == 201) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       } else if (response.statusCode == 401) {
-        await _storage.delete(key: _tokenKey);
+        await ApiService.deleteToken();
         throw Exception('Session expired. Please login again.');
       } else {
         final error = jsonDecode(response.body);

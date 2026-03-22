@@ -4,6 +4,11 @@ class User {
   final String email;
   final int? age;
   final String? sex;
+  final String? phone;
+  final String? address;
+  final String? emergencyContact;
+  final String? medicalHistory;
+  final String? profileImageUrl;
 
   User({
     required this.id,
@@ -11,6 +16,11 @@ class User {
     required this.email,
     this.age,
     this.sex,
+    this.phone,
+    this.address,
+    this.emergencyContact,
+    this.medicalHistory,
+    this.profileImageUrl,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -20,11 +30,30 @@ class User {
       email: json['email'] as String,
       age: json['age'] as int?,
       sex: json['sex'] as String?,
+      phone: json['phone'] as String?,
+      address: json['address'] as String?,
+      emergencyContact:
+          (json['emergency_contact'] ?? json['emergencyContact']) as String?,
+      medicalHistory:
+          (json['medical_history'] ?? json['medicalHistory']) as String?,
+      profileImageUrl:
+          (json['profile_image_url'] ?? json['profileImageUrl']) as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'id': id, 'name': name, 'email': email, 'age': age, 'sex': sex};
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'age': age,
+      'sex': sex,
+      'phone': phone,
+      'address': address,
+      'emergency_contact': emergencyContact,
+      'medical_history': medicalHistory,
+      'profile_image_url': profileImageUrl,
+    };
   }
 }
 

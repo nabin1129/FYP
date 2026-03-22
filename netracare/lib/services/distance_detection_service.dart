@@ -402,7 +402,7 @@ class DistanceDetectionService {
     if (debugMode) {
       debugPrint('DistanceDetection: Using mock calibration (Debug mode)');
       return DistanceCalibrationData(
-        userId: int.parse(userId),
+        userId: userId,
         calibratedAt: DateTime.now(),
         referenceDistance: referenceDistanceCm,
         baselineIpdPixels: 180.0,
@@ -475,7 +475,7 @@ class DistanceDetectionService {
       final deviceModel = 'Unknown'; // TODO: Get from device_info_plus package
 
       final calibrationData = DistanceCalibrationData(
-        userId: int.parse(userId),
+        userId: userId,
         calibratedAt: DateTime.now(),
         referenceDistance: referenceDistanceCm,
         baselineIpdPixels: ipdPixels,
