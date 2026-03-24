@@ -12,7 +12,7 @@ import '../models/consultation/chat_message_model.dart';
 class DoctorApiService {
   static const _storage = FlutterSecureStorage();
   static const String _tokenKey = 'auth_token';
-  static const String _doctorTokenKey = 'doctor_auth_token';
+  static const String _doctorTokenKey = 'doctor_token';
 
   // =========================
   // TOKEN MANAGEMENT
@@ -388,7 +388,7 @@ class DoctorApiService {
   }
 
   // =========================
-  // NOTIFICATIONS
+  // NOTIFICATIONS (USER)
   // =========================
 
   /// Get user notifications
@@ -482,6 +482,156 @@ class DoctorApiService {
       final response = await http.post(
         Uri.parse(
           '${ApiConfig.baseUrl}${ApiConfig.userNotificationsEndpoint}/read-all',
+        ),
+        headers: _getHeaders(token),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Delete a user notification
+  static Future<bool> deleteNotification(int notificationId) async {
+    try {
+      final token = await getToken();
+
+      if (token == null) {
+        throw Exception('Please login');
+      }
+
+      final response = await http.delete(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.userNotificationsEndpoint}/$notificationId',
+        ),
+        headers: _getHeaders(token),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // =========================
+  // NOTIFICATIONS (DOCTOR)
+  // =========================
+
+  /// Get doctor notifications
+  static Future<List<Map<String, dynamic>>> getDoctorNotifications({
+    bool unreadOnly = false,
+  }) async {
+    try {
+      final token = await getDoctorToken();
+
+      if (token == null) {
+        throw Exception('Please login');
+      }
+
+      var url = '${ApiConfig.baseUrl}${ApiConfig.doctorNotificationsEndpoint}';
+      if (unreadOnly) {
+        url += '?unread=true';
+      }
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: _getHeaders(token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(data['notifications'] as List);
+      }
+
+      throw Exception('Failed to fetch notifications');
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Get doctor unread notification count
+  static Future<int> getDoctorUnreadNotificationCount() async {
+    try {
+      final token = await getDoctorToken();
+
+      if (token == null) return 0;
+
+      final response = await http.get(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.doctorNotificationCountEndpoint}',
+        ),
+        headers: _getHeaders(token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['unread_count'] as int;
+      }
+
+      return 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  /// Mark doctor notification as read
+  static Future<bool> markDoctorNotificationRead(int notificationId) async {
+    try {
+      final token = await getDoctorToken();
+
+      if (token == null) {
+        throw Exception('Please login');
+      }
+
+      final response = await http.post(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.doctorNotificationsEndpoint}/$notificationId/read',
+        ),
+        headers: _getHeaders(token),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Mark all doctor notifications as read
+  static Future<bool> markAllDoctorNotificationsRead() async {
+    try {
+      final token = await getDoctorToken();
+
+      if (token == null) {
+        throw Exception('Please login');
+      }
+
+      final response = await http.post(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.doctorNotificationsEndpoint}/read-all',
+        ),
+        headers: _getHeaders(token),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Delete a doctor notification
+  /// Note: Doctor delete endpoint has /delete suffix unlike user endpoint
+  static Future<bool> deleteDoctorNotification(int notificationId) async {
+    try {
+      final token = await getDoctorToken();
+
+      if (token == null) {
+        throw Exception('Please login');
+      }
+
+      final response = await http.delete(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.doctorNotificationsEndpoint}/$notificationId/delete',
         ),
         headers: _getHeaders(token),
       );

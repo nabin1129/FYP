@@ -133,3 +133,7 @@ credentials/
 # Generated files
 coverage/
 .nyc_output/
+
+# Documentation artifacts
+*.md
+*.pdf

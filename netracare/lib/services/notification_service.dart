@@ -64,6 +64,9 @@ class AppNotification {
   }
 }
 
+/// Enum to identify the current user role for notification routing
+enum NotificationRole { user, doctor }
+
 /// Service to manage user notifications
 class NotificationService {
   // Singleton pattern
@@ -83,11 +86,24 @@ class NotificationService {
   int _unreadCount = 0;
   Timer? _pollTimer;
 
+  // Role awareness — determines which endpoints to call
+  NotificationRole _role = NotificationRole.user;
+
   /// Get all notifications
   List<AppNotification> get notifications => List.unmodifiable(_notifications);
 
   /// Get unread count
   int get unreadCount => _unreadCount;
+
+  /// Get current role
+  NotificationRole get role => _role;
+
+  /// Set the role for notification routing (call before initialize)
+  void setRole(NotificationRole role) {
+    _role = role;
+  }
+
+  bool get _isDoctor => _role == NotificationRole.doctor;
 
   /// Initialize and start polling
   void initialize() {
@@ -102,14 +118,16 @@ class NotificationService {
     );
   }
 
-  /// Fetch notifications from API
+  /// Fetch notifications from API (routes to user or doctor endpoint based on role)
   Future<List<AppNotification>> fetchNotifications({
     bool unreadOnly = false,
   }) async {
     try {
-      final data = await DoctorApiService.getUserNotifications(
-        unreadOnly: unreadOnly,
-      );
+      final data = _isDoctor
+          ? await DoctorApiService.getDoctorNotifications(
+              unreadOnly: unreadOnly,
+            )
+          : await DoctorApiService.getUserNotifications(unreadOnly: unreadOnly);
 
       _notifications = data.map((n) => AppNotification.fromJson(n)).toList();
       _unreadCount = _notifications.where((n) => !n.isRead).length;
@@ -125,7 +143,9 @@ class NotificationService {
   /// Get unread notification count
   Future<int> getUnreadCount() async {
     try {
-      _unreadCount = await DoctorApiService.getUnreadNotificationCount();
+      _unreadCount = _isDoctor
+          ? await DoctorApiService.getDoctorUnreadNotificationCount()
+          : await DoctorApiService.getUnreadNotificationCount();
       return _unreadCount;
     } catch (e) {
       return _unreadCount;
@@ -140,9 +160,9 @@ class NotificationService {
   /// Mark a notification as read
   Future<bool> markAsRead(int notificationId) async {
     try {
-      final success = await DoctorApiService.markNotificationRead(
-        notificationId,
-      );
+      final success = _isDoctor
+          ? await DoctorApiService.markDoctorNotificationRead(notificationId)
+          : await DoctorApiService.markNotificationRead(notificationId);
 
       if (success) {
         final index = _notifications.indexWhere((n) => n.id == notificationId);
@@ -162,11 +182,32 @@ class NotificationService {
   /// Mark all notifications as read
   Future<bool> markAllAsRead() async {
     try {
-      final success = await DoctorApiService.markAllNotificationsRead();
+      final success = _isDoctor
+          ? await DoctorApiService.markAllDoctorNotificationsRead()
+          : await DoctorApiService.markAllNotificationsRead();
 
       if (success) {
         _unreadCount = 0;
         await fetchNotifications();
+      }
+
+      return success;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Delete a notification
+  Future<bool> deleteNotification(int notificationId) async {
+    try {
+      final success = _isDoctor
+          ? await DoctorApiService.deleteDoctorNotification(notificationId)
+          : await DoctorApiService.deleteNotification(notificationId);
+
+      if (success) {
+        _notifications.removeWhere((n) => n.id == notificationId);
+        _unreadCount = _notifications.where((n) => !n.isRead).length;
+        _notificationController.add(_notifications);
       }
 
       return success;

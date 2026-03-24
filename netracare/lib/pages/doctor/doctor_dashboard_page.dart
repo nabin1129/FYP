@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../services/doctor_service.dart';
 import '../../services/notification_service.dart';
+import '../../widgets/notification/notification_bell.dart';
 import 'doctor_home_page.dart';
 import 'doctor_patients_page.dart';
 import 'doctor_consultations_page.dart';
@@ -17,8 +18,6 @@ class DoctorDashboardPage extends StatefulWidget {
 class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
   int _selectedIndex = 0;
   final DoctorService _doctorService = DoctorService();
-  final NotificationService _notificationService = NotificationService();
-  int _notificationCount = 0;
   bool _isLoading = true;
 
   @override
@@ -33,18 +32,12 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
     // Initialize doctor service with API data
     await _doctorService.initializeAsync();
 
-    // Load notification count
-    await _loadNotificationCount();
+    // Initialize notification polling for doctor role
+    NotificationService().setRole(NotificationRole.doctor);
+    NotificationService().initialize();
 
     if (mounted) {
       setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _loadNotificationCount() async {
-    final count = await _notificationService.getUnreadCountAsync();
-    if (mounted) {
-      setState(() => _notificationCount = count);
     }
   }
 
@@ -90,41 +83,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
     switch (_selectedIndex) {
       case 0:
         title = 'Doctor Dashboard';
-        actions = [
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                onPressed: () => _showNotifications(),
-              ),
-              if (_notificationCount > 0)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: AppTheme.error,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 16,
-                      minHeight: 16,
-                    ),
-                    child: Text(
-                      _notificationCount > 9 ? '9+' : '$_notificationCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: AppTheme.fontXS,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ];
+        actions = [const NotificationBell()];
         break;
       case 1:
         title = 'Patients';
@@ -172,7 +131,10 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
           ),
           const Text(
             'Dr. Rajesh Kumar Shrestha',
-            style: TextStyle(color: AppTheme.textSecondary, fontSize: AppTheme.fontSM),
+            style: TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: AppTheme.fontSM,
+            ),
           ),
         ],
       ),
@@ -284,145 +246,6 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
     );
   }
 
-  void _showNotifications() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppTheme.radiusLarge),
-        ),
-      ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (context, scrollController) {
-          return Container(
-            padding: const EdgeInsets.all(AppTheme.spaceMD),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppTheme.textLight.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spaceMD),
-                const Text(
-                  'Notifications',
-                  style: TextStyle(
-                    fontSize: AppTheme.fontXXL,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spaceMD),
-                Expanded(
-                  child: ListView(
-                    controller: scrollController,
-                    children: [
-                      _buildNotificationItem(
-                        'New Consultation Request',
-                        'Sarah Johnson requested a video consultation',
-                        '2 hours ago',
-                        Icons.video_call,
-                        AppTheme.info,
-                      ),
-                      _buildNotificationItem(
-                        'Test Results Available',
-                        'Michael Brown\'s visual acuity test is complete',
-                        '5 hours ago',
-                        Icons.assignment,
-                        AppTheme.success,
-                      ),
-                      _buildNotificationItem(
-                        'Critical Alert',
-                        'James Wilson\'s health score dropped below 70',
-                        '1 day ago',
-                        Icons.warning,
-                        AppTheme.error,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildNotificationItem(
-    String title,
-    String message,
-    String time,
-    IconData icon,
-    Color color,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.spaceSM),
-      padding: const EdgeInsets.all(AppTheme.spaceMD),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        border: Border.all(color: color.withOpacity(0.1)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: AppTheme.spaceMD),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  message,
-                  style: const TextStyle(
-                    fontSize: AppTheme.fontSM,
-                    color: AppTheme.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  time,
-                  style: const TextStyle(
-                    fontSize: AppTheme.fontXS,
-                    color: AppTheme.textLight,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showSortOptions() {
     showModalBottomSheet(
       context: context,
@@ -439,7 +262,10 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
           children: [
             const Text(
               'Sort Patients By',
-              style: TextStyle(fontSize: AppTheme.fontXL, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTheme.fontXL,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: AppTheme.spaceMD),
             ListTile(

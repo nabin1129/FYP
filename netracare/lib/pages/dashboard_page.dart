@@ -5,6 +5,7 @@ import 'package:netracare/services/api_service.dart';
 import 'package:netracare/models/consultation/consultation_model.dart';
 import 'package:netracare/services/consultation_service.dart';
 import 'package:netracare/services/notification_service.dart';
+import 'package:netracare/widgets/notification/notification_bell.dart';
 import 'visual_acuity_page.dart';
 import 'eye_tracking_page.dart';
 import 'pupil_reflex_page.dart';
@@ -36,7 +37,8 @@ class _DashboardPageState extends State<DashboardPage> {
   Future<void> _initializeData() async {
     await Future.wait([_loadNextConsultation(), _loadNotificationCount()]);
 
-    // Initialize notification polling
+    // Initialize notification polling for user role
+    _notificationService.setRole(NotificationRole.user);
     _notificationService.initialize();
   }
 
@@ -107,6 +109,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ],
       ),
       actions: [
+        const NotificationBell(),
         Padding(
           padding: const EdgeInsets.only(right: 16),
           child: GestureDetector(
