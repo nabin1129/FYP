@@ -44,6 +44,11 @@ dependencies:
   # 🖼️ Image Picker for profile photos
   image_picker: ^1.0.7
 
+  # 🔑 Google Sign-In + Firebase Auth
+  google_sign_in: ^6.2.2
+  firebase_core: ^3.8.1
+  firebase_auth: ^5.4.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

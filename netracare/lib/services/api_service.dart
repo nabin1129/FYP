@@ -743,6 +743,66 @@ class ApiService {
   }
 
   // =========================
+  // FORGOT / RESET PASSWORD
+  // =========================
+  static Future<void> forgotPassword(String email) async {
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/auth/forgot-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email}),
+    );
+
+    if (response.statusCode == 200) return;
+    _throwReadableError(response);
+  }
+
+  static Future<void> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/auth/reset-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': email,
+        'otp': otp,
+        'new_password': newPassword,
+      }),
+    );
+
+    if (response.statusCode == 200) return;
+    _throwReadableError(response);
+  }
+
+  // =========================
+  // GOOGLE SIGN-IN
+  // =========================
+  static Future<AuthResponse> googleSignIn({
+    required String googleToken,
+    required String email,
+    required String name,
+  }) async {
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/auth/google-login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'google_token': googleToken,
+        'email': email,
+        'name': name,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final auth = AuthResponse.fromJson(data);
+      await saveToken(auth.token);
+      return auth;
+    }
+
+    _throwReadableError(response);
+  }
+
   // =========================
   // ERROR HANDLER
   // =========================

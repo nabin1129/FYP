@@ -1,4 +1,4 @@
-package com.example.netracare
+package fyp.netracare
 
 import io.flutter.embedding.android.FlutterActivity
 

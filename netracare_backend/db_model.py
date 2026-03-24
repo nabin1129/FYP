@@ -16,6 +16,8 @@ class User(db.Model):
     emergency_contact = db.Column(db.String(20))
     medical_history = db.Column(db.Text)
     profile_image_url = db.Column(db.String(500))
+    reset_otp = db.Column(db.String(6))
+    reset_otp_expiry = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 

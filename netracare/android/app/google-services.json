@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "735051756678",
+    "project_id": "netracare-ef30d",
+    "storage_bucket": "netracare-ef30d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:735051756678:android:c55add5b95e9072706cd07",
+        "android_client_info": {
+          "package_name": "fyp.netracare"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "735051756678-8ju9d528l0peg62g2nstu45h3btbgb34.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "fyp.netracare",
+            "certificate_hash": "00b8e0ad302e74b8c5dd5a263868e003d39aafc9"
+          }
+        },
+        {
+          "client_id": "735051756678-ubgq2aj18vnd7567ec2cutvg860vt186.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyDS8zQ4DWHficzysQeSJWs6fgItpzYLE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "735051756678-ubgq2aj18vnd7567ec2cutvg860vt186.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "735051756678-6902mppq99jg5s3qqi0hhjg743ljetg1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.netracare"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
