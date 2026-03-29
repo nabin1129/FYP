@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/models/consultation/consultation_model.dart';
 
@@ -54,7 +54,7 @@ class ConsultationHistoryCard extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(consultation.status).withOpacity(0.1),
+                  color: _getStatusColor(consultation.status).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Text(

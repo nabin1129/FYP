@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../services/doctor_service.dart';
 import '../../models/doctor/medical_record_model.dart';
@@ -161,7 +161,7 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
               Container(
                 padding: const EdgeInsets.all(AppTheme.spaceMD),
                 decoration: BoxDecoration(
-                  color: _recordColor.withOpacity(0.1),
+                  color: _recordColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                 ),
                 child: Row(
@@ -170,7 +170,7 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: _recordColor.withOpacity(0.2),
+                        color: _recordColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(
                           AppTheme.radiusMedium,
                         ),
@@ -228,7 +228,7 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                     borderSide: BorderSide(
-                      color: AppTheme.textLight.withOpacity(0.3),
+                      color: AppTheme.textLight.withValues(alpha: 0.3),
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
@@ -268,7 +268,7 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                     borderSide: BorderSide(
-                      color: AppTheme.textLight.withOpacity(0.3),
+                      color: AppTheme.textLight.withValues(alpha: 0.3),
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
@@ -304,7 +304,7 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
                     color: AppTheme.surface,
                     borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                     border: Border.all(
-                      color: AppTheme.textLight.withOpacity(0.3),
+                      color: AppTheme.textLight.withValues(alpha: 0.3),
                       style: BorderStyle.solid,
                     ),
                   ),

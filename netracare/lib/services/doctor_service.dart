@@ -70,8 +70,7 @@ class DoctorService {
 
   /// Get all patients from API
   Future<List<Patient>> getPatientsAsync() async {
-    // TODO: Implement doctor-specific patient list API when backend is ready
-    // For now, use mock data
+    // Uses mock data until doctor-specific patient list API is available
     if (!_initialized) initialize();
     return List.from(_patients);
   }
@@ -88,7 +87,7 @@ class DoctorService {
 
   /// Get patient by ID from API
   Future<Patient?> getPatientByIdAsync(String id) async {
-    // TODO: Implement doctor-specific patient details API when backend is ready
+    // Falls back to local data until doctor-specific patient details API is available
     return getPatientById(id);
   }
 
@@ -194,7 +193,7 @@ class DoctorService {
 
   /// Get dashboard analytics from API
   Future<DoctorAnalytics> getAnalyticsAsync() async {
-    // TODO: Implement doctor stats API when backend is ready
+    // Falls back to local data until doctor stats API is available
     return getAnalytics();
   }
 
@@ -238,7 +237,7 @@ class DoctorService {
 
   /// Get all consultation requests from API
   Future<List<ConsultationRequest>> getConsultationRequestsAsync() async {
-    // TODO: Implement doctor consultations API when backend is ready
+    // Falls back to local data until doctor consultations API is available
     return getConsultationRequests();
   }
 
@@ -252,7 +251,7 @@ class DoctorService {
 
   /// Get pending requests from API
   Future<List<ConsultationRequest>> getPendingRequestsAsync() async {
-    // TODO: Implement doctor pending requests API when backend is ready
+    // Falls back to local data until doctor pending requests API is available
     return getPendingRequests();
   }
 
@@ -283,7 +282,7 @@ class DoctorService {
     int consultationId,
     String scheduledDate,
   ) async {
-    // TODO: Implement schedule consultation API when backend is ready
+    // Falls back to local accept until schedule consultation API is available
     return acceptRequest(consultationId.toString(), scheduledDate);
   }
 

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -67,7 +67,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
         blinkFatigueStats = await BlinkFatigueService.getStatistics();
       } catch (e) {
         // Blink fatigue might not have data yet
-        print('Blink fatigue data not available: $e');
+        debugPrint('Blink fatigue data not available: $e');
       }
 
       // Load pupil reflex data
@@ -76,7 +76,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
         pupilReflexData = await PupilReflexService.getTests();
       } catch (e) {
         // Pupil reflex might not have data yet
-        print('Pupil reflex data not available: $e');
+        debugPrint('Pupil reflex data not available: $e');
       }
 
       setState(() {
@@ -540,7 +540,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primary.withOpacity(0.3),
+            color: AppTheme.primary.withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -586,7 +586,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                       child: CircularProgressIndicator(
                         value: overallScore / 100,
                         strokeWidth: 8,
-                        backgroundColor: Colors.white.withOpacity(0.3),
+                        backgroundColor: Colors.white.withValues(alpha: 0.3),
                         valueColor: const AlwaysStoppedAnimation<Color>(
                           Colors.white,
                         ),
@@ -614,7 +614,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -644,7 +644,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -684,7 +684,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -787,15 +787,15 @@ class _ResultsReportPageState extends State<ResultsReportPage>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppTheme.categoryBlue.withOpacity(0.1),
-                  AppTheme.categoryPurple.withOpacity(0.1),
+                  AppTheme.categoryBlue.withValues(alpha: 0.1),
+                  AppTheme.categoryPurple.withValues(alpha: 0.1),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppTheme.categoryBlue.withOpacity(0.3),
+                color: AppTheme.categoryBlue.withValues(alpha: 0.3),
                 width: 2,
               ),
             ),
@@ -808,7 +808,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.textPrimary.withOpacity(0.05),
+                        color: AppTheme.textPrimary.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -911,7 +911,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.textPrimary.withOpacity(0.05),
+                  color: AppTheme.textPrimary.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -947,7 +947,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                   ),
                   dataSets: [
                     RadarDataSet(
-                      fillColor: AppTheme.categoryBlue.withOpacity(0.2),
+                      fillColor: AppTheme.categoryBlue.withValues(alpha: 0.2),
                       borderColor: AppTheme.categoryBlue,
                       borderWidth: 3,
                       entryRadius: 4,
@@ -1147,9 +1147,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
       ),
       child: Row(
         children: [
@@ -1179,7 +1179,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                   description,
                   style: TextStyle(
                     fontSize: AppTheme.fontSM,
-                    color: AppTheme.textPrimary.withOpacity(0.7),
+                    color: AppTheme.textPrimary.withValues(alpha: 0.7),
                     height: 1.4,
                   ),
                 ),
@@ -1203,12 +1203,12 @@ class _ResultsReportPageState extends State<ResultsReportPage>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [bgColor, bgColor.withOpacity(0.5)],
+          colors: [bgColor, bgColor.withValues(alpha: 0.5)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2), width: 1.5),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
       ),
       child: Row(
         children: [
@@ -1219,7 +1219,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -1359,7 +1359,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Icon(
             Icons.flash_on,
             size: 48,
-            color: AppTheme.categoryIndigo.withOpacity(0.3),
+            color: AppTheme.categoryIndigo.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 12),
           const Text(
@@ -1442,7 +1442,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: getReactionColor().withOpacity(0.1),
+                  color: getReactionColor().withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -1566,7 +1566,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppTheme.categoryBlue.withOpacity(0.1),
+                  color: AppTheme.categoryBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -1645,7 +1645,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppTheme.success.withOpacity(0.1),
+                  color: AppTheme.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -1744,7 +1744,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppTheme.categoryPurple.withOpacity(0.1),
+                  color: AppTheme.categoryPurple.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -1974,7 +1974,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 decoration: BoxDecoration(
                   color: getClassificationColor(
                     classification,
-                  ).withOpacity(0.1),
+                  ).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -2184,15 +2184,13 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           ),
         ),
         const SizedBox(height: 12),
-        ...allTests
-            .map(
-              (test) => _buildHistoryItem(
-                test['title'],
-                _formatDate(test['date']),
-                test['score'],
-              ),
-            )
-            .toList(),
+        ...allTests.map(
+          (test) => _buildHistoryItem(
+            test['title'],
+            _formatDate(test['date']),
+            test['score'],
+          ),
+        ),
       ],
     );
   }
@@ -2275,7 +2273,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppTheme.categoryPurple.withOpacity(0.3),
+                color: AppTheme.categoryPurple.withValues(alpha: 0.3),
               ),
             ),
             child: Row(
@@ -2283,7 +2281,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.categoryPurple.withOpacity(0.15),
+                    color: AppTheme.categoryPurple.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
@@ -2363,7 +2361,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           // Error state
           if (_aiReportError != null)
             Card(
-              color: AppTheme.error.withOpacity(0.08),
+              color: AppTheme.error.withValues(alpha: 0.08),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -2442,7 +2440,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: AppTheme.success.withOpacity(0.1),
+                            color: AppTheme.success.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -2725,6 +2723,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     );
   }
 }
+
 class _AIReportViewPage extends StatelessWidget {
   final Map<String, dynamic> report;
   final VoidCallback onDownloadPDF;
@@ -2739,7 +2738,8 @@ class _AIReportViewPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String reportText = report['ai_report_text'] ?? '';
-    final double overallScore = (report['overall_score'] as num?)?.toDouble() ?? 0;
+    final double overallScore =
+        (report['overall_score'] as num?)?.toDouble() ?? 0;
     final String healthStatus = report['health_status'] ?? '';
     final Map<String, dynamic> scores =
         (report['scores'] as Map<String, dynamic>?) ?? {};
@@ -2802,7 +2802,10 @@ class _AIReportViewPage extends StatelessWidget {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Icon(Icons.picture_as_pdf, color: AppTheme.categoryBlue),
+                : const Icon(
+                    Icons.picture_as_pdf,
+                    color: AppTheme.categoryBlue,
+                  ),
             onPressed: isDownloadingPDF ? null : onDownloadPDF,
           ),
         ],
@@ -2823,7 +2826,7 @@ class _AIReportViewPage extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: AppTheme.categoryPurple.withOpacity(0.3),
+                  color: AppTheme.categoryPurple.withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -2863,7 +2866,7 @@ class _AIReportViewPage extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        '${overallScore.toStringAsFixed(0)}',
+                        overallScore.toStringAsFixed(0),
                         style: const TextStyle(
                           fontSize: 48,
                           fontWeight: FontWeight.bold,
@@ -2881,9 +2884,11 @@ class _AIReportViewPage extends StatelessWidget {
                       if (healthStatus.isNotEmpty)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
-                            color: AppTheme.success.withOpacity(0.15),
+                            color: AppTheme.success.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -2940,7 +2945,7 @@ class _AIReportViewPage extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                     side: BorderSide(
-                      color: Colors.grey.withOpacity(0.15),
+                      color: Colors.grey.withValues(alpha: 0.15),
                     ),
                   ),
                   child: Padding(
@@ -2989,7 +2994,9 @@ class _AIReportViewPage extends StatelessWidget {
                     )
                   : const Icon(Icons.picture_as_pdf),
               label: Text(
-                isDownloadingPDF ? 'Generating PDF...' : 'Download AI Report PDF',
+                isDownloadingPDF
+                    ? 'Generating PDF...'
+                    : 'Download AI Report PDF',
               ),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),

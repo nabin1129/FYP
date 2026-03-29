@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:math' as math;
@@ -523,8 +523,9 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
       canPop: _isTestComplete || !_isTestRunning,
       onPopInvokedWithResult: (didPop, _) async {
         if (!didPop && _isTestRunning) {
+          final nav = Navigator.of(context);
           final exit = await _showExitDialog();
-          if (exit && mounted) Navigator.of(context).pop();
+          if (exit) nav.pop();
         }
       },
       child: Scaffold(
@@ -736,7 +737,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
               boxShadow: [
                 BoxShadow(
                   color: (_faceDetected ? AppTheme.success : AppTheme.error)
-                      .withOpacity(0.5),
+                      .withValues(alpha: 0.5),
                   blurRadius: 6,
                 ),
               ],
@@ -820,7 +821,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTheme.warning.withOpacity(0.9),
+                color: AppTheme.warning.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Row(
@@ -857,7 +858,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primary.withOpacity(0.6),
+            color: AppTheme.primary.withValues(alpha: 0.6),
             blurRadius: 16,
             spreadRadius: 4,
           ),
@@ -909,7 +910,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.success.withOpacity(0.15),
+              color: AppTheme.success.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -950,7 +951,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3), width: 2),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
         boxShadow: AppTheme.cardShadow,
       ),
       child: Column(
@@ -976,9 +977,9 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: color.withOpacity(0.3)),
+              border: Border.all(color: color.withValues(alpha: 0.3)),
             ),
             child: Text(
               r.classification,
@@ -1196,7 +1197,9 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
                 Navigator.of(context).popUntil((route) => route.isFirst),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
-              side: BorderSide(color: AppTheme.textLight.withOpacity(0.5)),
+              side: BorderSide(
+                color: AppTheme.textLight.withValues(alpha: 0.5),
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -1245,7 +1248,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
   }
 
   Widget _divider() =>
-      Divider(color: AppTheme.textLight.withOpacity(0.2), height: 1);
+      Divider(color: AppTheme.textLight.withValues(alpha: 0.2), height: 1);
 
   Color _getClassificationColor(String classification) {
     switch (classification) {

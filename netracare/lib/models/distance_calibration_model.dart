@@ -1,7 +1,7 @@
-/// Distance Calibration Model
-/// Stores baseline measurements for arm-length distance enforcement
-/// Author: NetraCare Team
-/// Date: January 26, 2026
+﻿// Distance Calibration Model
+// Stores baseline measurements for arm-length distance enforcement
+// Author: NetraCare Team
+// Date: January 26, 2026
 
 /// Represents a user's calibration profile for distance enforcement
 class DistanceCalibrationData {

@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/services/api_service.dart';
@@ -173,7 +173,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: _getSeverityColor(result.severity).withOpacity(0.1),
+                  color: _getSeverityColor(result.severity).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -403,7 +403,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -428,7 +428,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primary.withOpacity(0.1),
+                                  color: AppTheme.primary.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
@@ -467,13 +467,13 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                       ),
                       decoration: BoxDecoration(
                         color: calibration != null
-                            ? AppTheme.success.withOpacity(0.1)
-                            : AppTheme.warning.withOpacity(0.1),
+                            ? AppTheme.success.withValues(alpha: 0.1)
+                            : AppTheme.warning.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: calibration != null
-                              ? AppTheme.success.withOpacity(0.3)
-                              : AppTheme.warning.withOpacity(0.3),
+                              ? AppTheme.success.withValues(alpha: 0.3)
+                              : AppTheme.warning.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -519,7 +519,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
+                            color: Colors.black.withValues(alpha: 0.08),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -545,10 +545,10 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppTheme.primary.withOpacity(0.08),
+                        color: AppTheme.primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: AppTheme.primary.withOpacity(0.2),
+                          color: AppTheme.primary.withValues(alpha: 0.2),
                           width: 1,
                         ),
                       ),
@@ -593,7 +593,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -626,9 +626,9 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                                   borderRadius: BorderRadius.circular(12),
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: AppTheme.primary.withOpacity(0.08),
+                                      color: AppTheme.primary.withValues(alpha: 0.08),
                                       border: Border.all(
-                                        color: AppTheme.primary.withOpacity(0.3),
+                                        color: AppTheme.primary.withValues(alpha: 0.3),
                                         width: 2,
                                       ),
                                       borderRadius: BorderRadius.circular(12),

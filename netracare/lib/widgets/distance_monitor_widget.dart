@@ -1,7 +1,7 @@
-/// Distance Monitor Widget
-/// Wrapper widget that adds real-time distance enforcement to test screens
-/// Author: NetraCare Team
-/// Date: January 26, 2026
+﻿// Distance Monitor Widget
+// Wrapper widget that adds real-time distance enforcement to test screens
+// Author: NetraCare Team
+// Date: January 26, 2026
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -204,7 +204,7 @@ class _DistanceMonitorWidgetState extends State<DistanceMonitorWidget> {
 
   Widget _buildPausedOverlay() {
     return Container(
-      color: Colors.black.withOpacity(0.7),
+      color: Colors.black.withValues(alpha: 0.7),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -226,7 +226,10 @@ class _DistanceMonitorWidgetState extends State<DistanceMonitorWidget> {
             const SizedBox(height: 10),
             Text(
               _currentResult?.feedbackMessage ?? 'Adjust your position',
-              style: const TextStyle(color: Colors.white, fontSize: AppTheme.fontLG),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: AppTheme.fontLG,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -277,7 +280,10 @@ class _DistanceMonitorWidgetState extends State<DistanceMonitorWidget> {
               const SizedBox(height: 10),
               Text(
                 _errorMessage ?? 'Unknown error',
-                style: const TextStyle(color: Colors.white, fontSize: AppTheme.fontBody),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: AppTheme.fontBody,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),
@@ -401,15 +407,18 @@ class _DistanceValidationGuardState extends State<DistanceValidationGuard> {
               child: Column(
                 children: [
                   Text(
-                    'Hold steady: ${_consecutiveValidFrames}/$_requiredValidFrames',
-                    style: const TextStyle(color: Colors.white, fontSize: AppTheme.fontLG),
+                    'Hold steady: $_consecutiveValidFrames/$_requiredValidFrames',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: AppTheme.fontLG,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
                     width: 200,
                     child: LinearProgressIndicator(
                       value: _consecutiveValidFrames / _requiredValidFrames,
-                      backgroundColor: Colors.white.withOpacity(0.3),
+                      backgroundColor: Colors.white.withValues(alpha: 0.3),
                       valueColor: const AlwaysStoppedAnimation<Color>(
                         AppTheme.success,
                       ),

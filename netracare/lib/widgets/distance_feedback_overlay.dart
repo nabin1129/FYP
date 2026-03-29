@@ -1,7 +1,7 @@
-/// Distance Feedback Overlay Widget
-/// Provides real-time visual feedback for distance positioning
-/// Author: NetraCare Team
-/// Date: January 26, 2026
+﻿// Distance Feedback Overlay Widget
+// Provides real-time visual feedback for distance positioning
+// Author: NetraCare Team
+// Date: January 26, 2026
 
 import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
@@ -83,11 +83,11 @@ class _DistanceFeedbackOverlayState extends State<DistanceFeedbackOverlay>
             margin: const EdgeInsets.symmetric(horizontal: 20),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.9),
+              color: color.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: color.withOpacity(0.4),
+                  color: color.withValues(alpha: 0.4),
                   blurRadius: 20,
                   spreadRadius: 2,
                 ),
@@ -126,7 +126,7 @@ class _DistanceFeedbackOverlayState extends State<DistanceFeedbackOverlay>
                     Text(
                       'Target: ${result.referenceDistance.toStringAsFixed(0)} cm',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         fontSize: AppTheme.fontSM,
                       ),
                     ),
@@ -214,7 +214,7 @@ class DistanceIndicatorRing extends StatelessWidget {
             value: 1.0,
             strokeWidth: 12,
             valueColor: AlwaysStoppedAnimation<Color>(
-              AppTheme.textSecondary.withOpacity(0.2),
+              AppTheme.textSecondary.withValues(alpha: 0.2),
             ),
           ),
 
@@ -275,7 +275,7 @@ class DistanceStatusBar extends StatelessWidget {
     if (result == null) {
       return Container(
         height: 4,
-        color: AppTheme.textSecondary.withOpacity(0.3),
+        color: AppTheme.textSecondary.withValues(alpha: 0.3),
       );
     }
 
@@ -287,9 +287,9 @@ class DistanceStatusBar extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            color.withOpacity(0.5),
+            color.withValues(alpha: 0.5),
             color,
-            color.withOpacity(0.5),
+            color.withValues(alpha: 0.5),
           ],
         ),
       ),

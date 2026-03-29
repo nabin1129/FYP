@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:camera/camera.dart';
 import 'dart:async';
@@ -346,7 +346,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               border: Border.all(color: AppTheme.border),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -393,7 +393,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.warning.withOpacity(0.15),
+              color: AppTheme.warning.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppTheme.warning),
             ),
@@ -455,7 +455,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: AppTheme.accent.withOpacity(0.1),
+              color: AppTheme.accent.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Center(
@@ -507,9 +507,9 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.black.withOpacity(0.5),
+                Colors.black.withValues(alpha: 0.5),
                 Colors.transparent,
-                Colors.black.withOpacity(0.5),
+                Colors.black.withValues(alpha: 0.5),
               ],
             ),
           ),
@@ -558,7 +558,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.7),
+              color: Colors.black.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -607,7 +607,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
@@ -669,7 +669,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               boxShadow: [
                 BoxShadow(
                   color: (isNormal ? AppTheme.success : AppTheme.warning)
-                      .withOpacity(0.3),
+                      .withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -717,7 +717,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
                 border: Border.all(color: AppTheme.border),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -755,7 +755,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               border: Border.all(color: AppTheme.border),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -804,7 +804,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               border: Border.all(color: AppTheme.border),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -903,7 +903,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
@@ -915,7 +915,7 @@ class _NystagmusTestPageState extends State<NystagmusTestPage> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.error.withOpacity(0.1),
+                  color: AppTheme.error.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../services/doctor_service.dart';
 import '../../models/doctor/patient_model.dart';
@@ -195,7 +195,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
       label: Text(label),
       selected: isSelected,
       onSelected: (_) => _onFilterChanged(isSelected ? null : status),
-      selectedColor: chipColor.withOpacity(0.2),
+      selectedColor: chipColor.withValues(alpha: 0.2),
       backgroundColor: AppTheme.surfaceLight,
       labelStyle: TextStyle(
         color: isSelected ? chipColor : AppTheme.textSecondary,
@@ -203,7 +203,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
       ),
       checkmarkColor: chipColor,
       side: BorderSide(
-        color: isSelected ? chipColor : AppTheme.textLight.withOpacity(0.3),
+        color: isSelected ? chipColor : AppTheme.textLight.withValues(alpha: 0.3),
       ),
     );
   }
@@ -216,7 +216,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
           Icon(
             Icons.search_off,
             size: 64,
-            color: AppTheme.textLight.withOpacity(0.5),
+            color: AppTheme.textLight.withValues(alpha: 0.5),
           ),
           const SizedBox(height: AppTheme.spaceMD),
           const Text(
@@ -376,7 +376,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
         vertical: 4,
       ),
       decoration: BoxDecoration(
-        color: badgeColor.withOpacity(0.1),
+        color: badgeColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
       ),
       child: Text(

@@ -1,7 +1,7 @@
-/// Face Alignment Guide Widget
-/// Provides visual guidance for proper face positioning
-/// Author: NetraCare Team
-/// Date: January 26, 2026
+﻿// Face Alignment Guide Widget
+// Provides visual guidance for proper face positioning
+// Author: NetraCare Team
+// Date: January 26, 2026
 
 import 'package:flutter/material.dart';
 import '../models/distance_calibration_model.dart';
@@ -63,12 +63,12 @@ class _FaceGuidePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withOpacity(opacity)
+      ..color = color.withValues(alpha: opacity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.0;
 
     final dashedPaint = Paint()
-      ..color = color.withOpacity(opacity * 0.6)
+      ..color = color.withValues(alpha: opacity * 0.6)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
@@ -216,8 +216,8 @@ class _FaceSilhouetteGuideState extends State<FaceSilhouetteGuide>
           Icons.face,
           size: 200,
           color: result != null
-              ? Color(result.status.colorValue).withOpacity(0.3)
-              : Colors.white.withOpacity(0.3),
+              ? Color(result.status.colorValue).withValues(alpha: 0.3)
+              : Colors.white.withValues(alpha: 0.3),
         ),
       ),
     );

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../services/doctor_service.dart';
 import '../../models/doctor/medical_record_model.dart';
@@ -135,7 +135,7 @@ class _AddClinicalNotePageState extends State<AddClinicalNotePage> {
                     onSelected: (_) {
                       setState(() => _selectedCategory = category);
                     },
-                    selectedColor: AppTheme.primary.withOpacity(0.2),
+                    selectedColor: AppTheme.primary.withValues(alpha: 0.2),
                     labelStyle: TextStyle(
                       color: isSelected
                           ? AppTheme.primary
@@ -171,7 +171,7 @@ class _AddClinicalNotePageState extends State<AddClinicalNotePage> {
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                     borderSide: BorderSide(
-                      color: AppTheme.textLight.withOpacity(0.3),
+                      color: AppTheme.textLight.withValues(alpha: 0.3),
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
@@ -212,7 +212,7 @@ class _AddClinicalNotePageState extends State<AddClinicalNotePage> {
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                     borderSide: BorderSide(
-                      color: AppTheme.textLight.withOpacity(0.3),
+                      color: AppTheme.textLight.withValues(alpha: 0.3),
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(

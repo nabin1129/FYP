@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:netracare/pages/profile_page.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/services/api_service.dart';
@@ -261,7 +261,7 @@ class _DashboardPageState extends State<DashboardPage> {
         color: AppTheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -315,7 +315,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppTheme.primary.withOpacity(0.1)
+              ? AppTheme.primary.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         ),
@@ -461,8 +461,8 @@ class _DashboardPageState extends State<DashboardPage> {
           borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
           border: Border.all(
             color: nextConsultation != null
-                ? AppTheme.primaryLight.withOpacity(0.3)
-                : AppTheme.textLight.withOpacity(0.2),
+                ? AppTheme.primaryLight.withValues(alpha: 0.3)
+                : AppTheme.textLight.withValues(alpha: 0.2),
           ),
         ),
         child: Row(
@@ -522,7 +522,7 @@ class _DashboardPageState extends State<DashboardPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withOpacity(0.1),
+                  color: AppTheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Icon(
@@ -551,7 +551,7 @@ class _DashboardPageState extends State<DashboardPage> {
         children: [
           CircleAvatar(
             radius: 30,
-            backgroundColor: AppTheme.success.withOpacity(0.1),
+            backgroundColor: AppTheme.success.withValues(alpha: 0.1),
             child: const Text(
               "85",
               style: TextStyle(

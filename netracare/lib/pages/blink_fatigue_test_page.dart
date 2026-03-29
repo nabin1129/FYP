@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:camera/camera.dart';
 import 'dart:async';
@@ -506,8 +506,9 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
       canPop: isTestComplete,
       onPopInvokedWithResult: (didPop, _) async {
         if (!didPop) {
+          final nav = Navigator.of(context);
           final exit = await _showExitDialog();
-          if (exit && mounted) Navigator.of(context).pop();
+          if (exit) nav.pop();
         }
       },
       child: Scaffold(
@@ -587,7 +588,7 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
                 borderRadius: BorderRadius.circular(160),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.primary.withOpacity(0.3),
+                    color: AppTheme.primary.withValues(alpha: 0.3),
                     blurRadius: 10,
                     spreadRadius: 2,
                   ),
@@ -599,7 +600,7 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
                   Icon(
                     Icons.face,
                     size: 80,
-                    color: AppTheme.primary.withOpacity(0.3),
+                    color: AppTheme.primary.withValues(alpha: 0.3),
                   ),
                   const SizedBox(height: 16),
                   Container(
@@ -608,7 +609,7 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
                       vertical: 10,
                     ),
                     decoration: BoxDecoration(
-                      color: AppTheme.primary.withOpacity(0.9),
+                      color: AppTheme.primary.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Text(
@@ -636,7 +637,7 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
                 borderRadius: BorderRadius.circular(160),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.warning.withOpacity(0.3),
+                    color: AppTheme.warning.withValues(alpha: 0.3),
                     blurRadius: 10,
                     spreadRadius: 2,
                   ),
@@ -648,7 +649,7 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
                   Icon(
                     Icons.face,
                     size: 80,
-                    color: AppTheme.warning.withOpacity(0.3),
+                    color: AppTheme.warning.withValues(alpha: 0.3),
                   ),
                 ],
               ),
@@ -668,7 +669,7 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: AppTheme.warning.withOpacity(0.9),
+                  color: AppTheme.warning.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
@@ -690,7 +691,7 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
         //       width: 128,
         //       height: 128,
         //       decoration: BoxDecoration(
-        //         color: Colors.black.withOpacity(0.6),
+        //         color: Colors.black.withValues(alpha: 0.6),
         //         borderRadius: BorderRadius.circular(64),
         //       ),
         //       child: Column(
@@ -734,11 +735,11 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -781,11 +782,11 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -840,7 +841,10 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
               gradient: LinearGradient(
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
-                colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                colors: [
+                  Colors.black.withValues(alpha: 0.8),
+                  Colors.transparent,
+                ],
               ),
             ),
             child: Column(
@@ -850,7 +854,7 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
                   children: [
                     const Text(
                       "Progress",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: AppTheme.fontBody,
                         color: AppTheme.textSecondary,
                         fontWeight: FontWeight.w600,
@@ -879,7 +883,7 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
                 const Text(
                   "Look at the centre point and blink naturally. The AI is monitoring your blink patterns.",
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: AppTheme.fontSM,
                     color: AppTheme.textSecondary,
                     fontWeight: FontWeight.w500,
@@ -909,7 +913,7 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
                       ),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppTheme.warning.withOpacity(0.1),
+                        color: AppTheme.warning.withValues(alpha: 0.1),
                         border: Border.all(color: AppTheme.warning),
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -1007,8 +1011,8 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  (fatigueStatus['color'] as Color).withOpacity(0.2),
-                  (fatigueStatus['color'] as Color).withOpacity(0.1),
+                  (fatigueStatus['color'] as Color).withValues(alpha: 0.2),
+                  (fatigueStatus['color'] as Color).withValues(alpha: 0.1),
                 ],
               ),
               shape: BoxShape.circle,
@@ -1097,12 +1101,12 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  (fatigueStatus['color'] as Color).withOpacity(0.2),
-                  (fatigueStatus['color'] as Color).withOpacity(0.1),
+                  (fatigueStatus['color'] as Color).withValues(alpha: 0.2),
+                  (fatigueStatus['color'] as Color).withValues(alpha: 0.1),
                 ],
               ),
               border: Border.all(
-                color: (fatigueStatus['color'] as Color).withOpacity(0.3),
+                color: (fatigueStatus['color'] as Color).withValues(alpha: 0.3),
               ),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -1225,7 +1229,7 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 side: BorderSide(
-                  color: AppTheme.textSecondary.withOpacity(0.5),
+                  color: AppTheme.textSecondary.withValues(alpha: 0.5),
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -1236,7 +1240,7 @@ class _BlinkFatigueTestPageState extends State<BlinkFatigueTestPage> {
                 style: TextStyle(
                   fontSize: AppTheme.fontLG,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.textSecondary.withOpacity(0.7),
+                  color: AppTheme.textSecondary.withValues(alpha: 0.7),
                 ),
               ),
             ),

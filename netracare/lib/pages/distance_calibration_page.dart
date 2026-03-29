@@ -1,7 +1,7 @@
-/// Distance Calibration Page
-/// User-guided calibration flow for arm-length distance measurement
-/// Author: NetraCare Team
-/// Date: January 26, 2026
+﻿// Distance Calibration Page
+// User-guided calibration flow for arm-length distance measurement
+// Author: NetraCare Team
+// Date: January 26, 2026
 
 import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
@@ -196,9 +196,9 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.7),
+                      Colors.black.withValues(alpha: 0.7),
                       Colors.transparent,
-                      Colors.black.withOpacity(0.7),
+                      Colors.black.withValues(alpha: 0.7),
                     ],
                   ),
                 ),
@@ -209,7 +209,7 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
             // Processing overlay
             if (_isProcessing)
               Container(
-                color: Colors.black.withOpacity(0.8),
+                color: Colors.black.withValues(alpha: 0.8),
                 child: const Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -285,9 +285,9 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.2),
+              color: AppTheme.primary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppTheme.primary.withOpacity(0.3)),
+              border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
             ),
             child: const Row(
               children: [
@@ -356,7 +356,7 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.2),
+              color: AppTheme.primary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppTheme.primary, width: 2),
             ),
@@ -399,7 +399,7 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
             height: 320,
             decoration: BoxDecoration(
               border: Border.all(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 width: 2,
               ),
               borderRadius: BorderRadius.circular(150),
@@ -453,7 +453,7 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppTheme.success.withOpacity(0.2),
+              color: AppTheme.success.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppTheme.success, width: 2),
             ),
@@ -586,7 +586,7 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -600,9 +600,9 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.2),
+              color: AppTheme.primary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.primary.withOpacity(0.5)),
+              border: Border.all(color: AppTheme.primary.withValues(alpha: 0.5)),
             ),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -676,7 +676,7 @@ class _DistanceCalibrationPageState extends State<DistanceCalibrationPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

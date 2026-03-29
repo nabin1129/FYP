@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'dart:async';
 import '../services/api_service.dart';
@@ -394,8 +394,9 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
       canPop: isTestComplete,
       onPopInvokedWithResult: (didPop, _) async {
         if (!didPop) {
+          final nav = Navigator.of(context);
           final exit = await _showExitDialog();
-          if (exit && mounted) Navigator.of(context).pop();
+          if (exit) nav.pop();
         }
       },
       child: Scaffold(
@@ -439,7 +440,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -464,7 +465,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.primary.withOpacity(0.1),
+                          color: AppTheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -514,7 +515,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -577,7 +578,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -608,9 +609,9 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                           borderRadius: BorderRadius.circular(12),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: AppTheme.primary.withOpacity(0.08),
+                              color: AppTheme.primary.withValues(alpha: 0.08),
                               border: Border.all(
-                                color: AppTheme.primary.withOpacity(0.3),
+                                color: AppTheme.primary.withValues(alpha: 0.3),
                                 width: 2,
                               ),
                               borderRadius: BorderRadius.circular(12),
@@ -663,7 +664,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: (resultMsg['color'] as Color).withOpacity(0.1),
+              color: (resultMsg['color'] as Color).withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(resultMsg['icon'], size: 64, color: resultMsg['color']),
@@ -694,7 +695,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -736,9 +737,9 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: (resultMsg['color'] as Color).withOpacity(0.1),
+              color: (resultMsg['color'] as Color).withValues(alpha: 0.1),
               border: Border.all(
-                color: (resultMsg['color'] as Color).withOpacity(0.3),
+                color: (resultMsg['color'] as Color).withValues(alpha: 0.3),
               ),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -771,14 +772,14 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                   }).toList();
 
                   // Debug: Print what we're sending
-                  print('===== SUBMITTING COLOR VISION TEST =====');
-                  print(
+                  debugPrint('===== SUBMITTING COLOR VISION TEST =====');
+                  debugPrint(
                     'Plate IDs: ${ishiharaPlates.map((p) => p.plateNumber).toList()}',
                   );
-                  print('Plate Images: $plateImages');
-                  print('User Answers: $answers');
-                  print('Score: ${calculateScore()}');
-                  print('==========================================');
+                  debugPrint('Plate Images: $plateImages');
+                  debugPrint('User Answers: $answers');
+                  debugPrint('Score: ${calculateScore()}');
+                  debugPrint('==========================================');
 
                   final response = await ApiService.submitColorVisionTest(
                     plateIds: ishiharaPlates.map((p) => p.plateNumber).toList(),

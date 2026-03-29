@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../services/doctor_service.dart';
 import '../../services/doctor_api_service.dart';
@@ -274,7 +274,7 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
             Icon(
               Icons.chat_bubble_outline,
               size: 64,
-              color: AppTheme.textLight.withOpacity(0.5),
+              color: AppTheme.textLight.withValues(alpha: 0.5),
             ),
             const SizedBox(height: AppTheme.spaceMD),
             const Text(
@@ -370,7 +370,7 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
                     style: TextStyle(
                       fontSize: AppTheme.fontXS,
                       color: isDoctor
-                          ? Colors.white.withOpacity(0.7)
+                          ? Colors.white.withValues(alpha: 0.7)
                           : AppTheme.textLight,
                     ),
                   ),
@@ -384,7 +384,7 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
               width: 28,
               height: 28,
               decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.1),
+                color: AppTheme.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -411,7 +411,7 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
         color: AppTheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -569,7 +569,7 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 28),

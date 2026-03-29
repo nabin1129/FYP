@@ -172,7 +172,7 @@ class _SignupPageState extends State<SignupPage> {
               const SizedBox(height: AppTheme.spaceMD),
 
               DropdownButtonFormField<String>(
-                value: selectedSex,
+                initialValue: selectedSex,
                 decoration: AppTheme.inputDecoration(
                   label: 'Sex (optional)',
                   prefixIcon: Icons.person_outline,

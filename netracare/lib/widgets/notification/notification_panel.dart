@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../services/notification_service.dart';
@@ -167,7 +167,7 @@ class _NotificationPanelState extends State<NotificationPanel>
               Icon(
                 Icons.notifications_off_outlined,
                 size: 48,
-                color: AppTheme.textSecondary.withOpacity(0.3),
+                color: AppTheme.textSecondary.withValues(alpha: 0.3),
               ),
               const SizedBox(height: AppTheme.spaceMD),
               const Text(

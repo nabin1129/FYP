@@ -1314,9 +1314,12 @@ class _UserEditSheetState extends State<_UserEditSheet> {
                       Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty)
+                        if (v == null || v.trim().isEmpty) {
                           return 'Email required';
-                        if (!v.contains('@')) return 'Invalid email';
+                        }
+                        if (!v.contains('@')) {
+                          return 'Invalid email';
+                        }
                         return null;
                       },
                     ),

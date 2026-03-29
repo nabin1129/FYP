@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../services/doctor_service.dart';
 import '../../models/doctor/patient_model.dart';
@@ -126,7 +126,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                     children: [
                       CircleAvatar(
                         radius: 40,
-                        backgroundColor: Colors.white.withOpacity(0.2),
+                        backgroundColor: Colors.white.withValues(alpha: 0.2),
                         child: Text(
                           _patient!.initials,
                           style: const TextStyle(
@@ -153,7 +153,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                             Text(
                               '${_patient!.age ?? 'N/A'} years â€¢ ${_patient!.sex ?? 'N/A'}',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
+                                color: Colors.white.withValues(alpha: 0.9),
                                 fontSize: AppTheme.fontBody,
                               ),
                             ),
@@ -161,7 +161,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                             Text(
                               _patient!.email,
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                                 fontSize: AppTheme.fontSM,
                               ),
                             ),
@@ -209,7 +209,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
           vertical: AppTheme.spaceSM,
         ),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         ),
         child: Column(
@@ -235,7 +235,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
             Text(
               label,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 fontSize: AppTheme.fontXS,
               ),
             ),
@@ -395,7 +395,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
             decoration: BoxDecoration(
               color: isCompleted
                   ? AppTheme.testIconBackground
-                  : AppTheme.textLight.withOpacity(0.1),
+                  : AppTheme.textLight.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
             ),
             child: Icon(
@@ -558,7 +558,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
             ),
             child: Icon(icon, color: iconColor, size: 22),
@@ -735,7 +735,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 64, color: AppTheme.textLight.withOpacity(0.5)),
+          Icon(icon, size: 64, color: AppTheme.textLight.withValues(alpha: 0.5)),
           const SizedBox(height: AppTheme.spaceMD),
           Text(
             message,

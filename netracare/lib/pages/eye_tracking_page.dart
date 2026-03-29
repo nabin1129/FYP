@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'eye_tracking_test_page.dart';
 import '../config/app_theme.dart';
 import '../utils/permission_helper.dart';
@@ -222,9 +222,9 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.amber.withOpacity(0.1),
+            color: Colors.amber.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.amber.withOpacity(0.3)),
+            border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
           ),
           child: const Row(
             children: [
@@ -275,7 +275,7 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.green.withOpacity(0.1),
+            color: Colors.green.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.settings, size: 56, color: Colors.green),
@@ -299,7 +299,7 @@ class _EyeTrackingPageState extends State<EyeTrackingPage> {
           decoration: BoxDecoration(
             color: AppTheme.testIconBackground,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppTheme.primaryLight.withOpacity(0.3)),
+            border: Border.all(color: AppTheme.primaryLight.withValues(alpha: 0.3)),
           ),
           child: Column(
             children: [

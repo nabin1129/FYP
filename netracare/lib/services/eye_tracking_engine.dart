@@ -1,8 +1,8 @@
-/// Eye Tracking Engine — Real-time camera-based gaze estimation
-/// Uses Google ML Kit FaceDetector with contours + classification
-/// to estimate gaze direction, compute EAR, and detect blinks/saccades.
-///
-/// Follows the same pattern as BlinkDetectionEngine for consistency.
+﻿// Eye Tracking Engine — Real-time camera-based gaze estimation
+// Uses Google ML Kit FaceDetector with contours + classification
+// to estimate gaze direction, compute EAR, and detect blinks/saccades.
+//
+// Follows the same pattern as BlinkDetectionEngine for consistency.
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';

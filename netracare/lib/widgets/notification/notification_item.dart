@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../services/notification_service.dart';
 
@@ -56,7 +56,7 @@ class NotificationItem extends StatelessWidget {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: AppTheme.spaceMD),
         decoration: BoxDecoration(
-          color: AppTheme.error.withOpacity(0.1),
+          color: AppTheme.error.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         ),
         child: const Icon(Icons.delete_outline, color: AppTheme.error),
@@ -70,12 +70,12 @@ class NotificationItem extends StatelessWidget {
           decoration: BoxDecoration(
             color: notification.isRead
                 ? AppTheme.surface
-                : _accentColor.withOpacity(0.05),
+                : _accentColor.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             border: Border.all(
               color: notification.isRead
                   ? AppTheme.border
-                  : _accentColor.withOpacity(0.15),
+                  : _accentColor.withValues(alpha: 0.15),
             ),
           ),
           child: Row(
@@ -86,7 +86,7 @@ class NotificationItem extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: _accentColor.withOpacity(0.1),
+                  color: _accentColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Icon(_icon, color: _accentColor, size: 20),

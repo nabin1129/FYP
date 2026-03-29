@@ -59,7 +59,9 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primary),
+            )
           : Column(
               children: [
                 _buildStatsBar(),
@@ -309,7 +311,10 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
                     } catch (e) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('$e'), behavior: SnackBarBehavior.floating),
+                          SnackBar(
+                            content: Text('$e'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
                         );
                       }
                     }
@@ -326,8 +331,8 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: doc.isActive
-                            ? AppTheme.success.withOpacity(0.4)
-                            : AppTheme.textLight.withOpacity(0.4),
+                            ? AppTheme.success.withValues(alpha: 0.4)
+                            : AppTheme.textLight.withValues(alpha: 0.4),
                       ),
                     ),
                     child: Text(
@@ -660,7 +665,10 @@ class _AdminDoctorsPageState extends State<AdminDoctorsPage> {
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed: $e'), behavior: SnackBarBehavior.floating),
+                    SnackBar(
+                      content: Text('Failed: $e'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
                   );
                 }
               }
@@ -717,9 +725,7 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
   void initState() {
     super.initState();
     final d = widget.doctor;
-    _idCtrl = TextEditingController(
-      text: d?.id ?? '',
-    );
+    _idCtrl = TextEditingController(text: d?.id ?? '');
     _nameCtrl = TextEditingController(text: d?.name ?? '');
     _emailCtrl = TextEditingController(text: d?.email ?? '');
     _passwordCtrl = TextEditingController(text: d?.password ?? '');
@@ -786,7 +792,10 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
     try {
       AdminDoctor result;
       if (_isEdit) {
-        result = await widget.service.updateDoctor(widget.doctor!.backendId!, doctorData);
+        result = await widget.service.updateDoctor(
+          widget.doctor!.backendId!,
+          doctorData,
+        );
       } else {
         result = await widget.service.addDoctor(doctorData);
       }
@@ -990,8 +999,9 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
                             setState(() => _showPassword = !_showPassword),
                       ),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty)
+                        if (v == null || v.trim().isEmpty) {
                           return 'Password is required';
+                        }
                         if (v.trim().length < 6) return 'Minimum 6 characters';
                         return null;
                       },
@@ -1016,8 +1026,9 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
                       icon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty)
+                        if (v == null || v.trim().isEmpty) {
                           return 'Email is required';
+                        }
                         if (!v.contains('@')) return 'Enter a valid email';
                         return null;
                       },
@@ -1280,7 +1291,9 @@ class _DoctorFormSheetState extends State<_DoctorFormSheet> {
           color: value ? AppTheme.categoryGreenBg : AppTheme.surfaceMuted,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: value ? AppTheme.success.withOpacity(0.5) : AppTheme.border,
+            color: value
+                ? AppTheme.success.withValues(alpha: 0.5)
+                : AppTheme.border,
           ),
         ),
         child: Row(
@@ -1483,7 +1496,11 @@ class _DoctorDetailSheet extends StatelessWidget {
       [Icons.email_outlined, 'Email', doctor.email],
       [Icons.phone_outlined, 'Phone', doctor.phone],
       [Icons.groups_outlined, 'Patients', '${doctor.totalPatients}'],
-      [Icons.assignment_outlined, 'Consultations', '${doctor.totalConsultations}'],
+      [
+        Icons.assignment_outlined,
+        'Consultations',
+        '${doctor.totalConsultations}',
+      ],
       [Icons.location_on_outlined, 'Address', doctor.address],
       [Icons.calendar_today_outlined, 'Joined', doctor.joinDate],
     ];

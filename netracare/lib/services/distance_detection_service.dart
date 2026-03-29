@@ -1,8 +1,8 @@
-/// Distance Detection Service
-/// Real-time distance measurement using IPD-based depth estimation
-/// Implements: Distance = (FocalLength × RealIPD) / PixelIPD
-/// Author: NetraCare Team
-/// Date: January 26, 2026
+﻿// Distance Detection Service
+// Real-time distance measurement using IPD-based depth estimation
+// Implements: Distance = (FocalLength × RealIPD) / PixelIPD
+// Author: NetraCare Team
+// Date: January 26, 2026
 
 import 'dart:async';
 import 'dart:math' as math;
@@ -472,7 +472,8 @@ class DistanceDetectionService {
 
       // Get device info
       final resolution = _cameraManager.resolution;
-      final deviceModel = 'Unknown'; // TODO: Get from device_info_plus package
+      final deviceModel =
+          'Unknown'; // Get from device_info_plus package if needed
 
       final calibrationData = DistanceCalibrationData(
         userId: userId,

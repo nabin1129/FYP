@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'blink_fatigue_cnn_test_page.dart';
 import '../services/api_service.dart';
 import '../config/app_theme.dart';
@@ -147,7 +147,7 @@ class _BlinkFatiguePageState extends State<BlinkFatiguePage> {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: AppTheme.primary.withOpacity(0.3),
+                color: AppTheme.primary.withValues(alpha: 0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -179,7 +179,7 @@ class _BlinkFatiguePageState extends State<BlinkFatiguePage> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppTheme.testIconBackground,
-            border: Border.all(color: AppTheme.primaryLight.withOpacity(0.3)),
+            border: Border.all(color: AppTheme.primaryLight.withValues(alpha: 0.3)),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(

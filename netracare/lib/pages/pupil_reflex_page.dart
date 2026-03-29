@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'pupil_reflex_test_page.dart';
 import '../config/app_theme.dart';
 
@@ -314,7 +314,7 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.amber.withOpacity(0.1),
+            color: Colors.amber.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(
@@ -342,8 +342,8 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppTheme.error.withOpacity(0.1),
-            border: Border.all(color: AppTheme.error.withOpacity(0.3)),
+            color: AppTheme.error.withValues(alpha: 0.1),
+            border: Border.all(color: AppTheme.error.withValues(alpha: 0.3)),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(

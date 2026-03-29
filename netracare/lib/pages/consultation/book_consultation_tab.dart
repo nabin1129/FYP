@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/models/consultation/doctor_model.dart';
 import 'package:netracare/models/consultation/consultation_model.dart';
@@ -28,7 +28,10 @@ class BookConsultationTab extends StatelessWidget {
             SizedBox(height: AppTheme.spaceMD),
             Text(
               'No doctors available',
-              style: TextStyle(fontSize: AppTheme.fontLG, color: AppTheme.textSecondary),
+              style: TextStyle(
+                fontSize: AppTheme.fontLG,
+                color: AppTheme.textSecondary,
+              ),
             ),
           ],
         ),
@@ -84,9 +87,11 @@ class BookConsultationTab extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppTheme.spaceSM),
                 decoration: BoxDecoration(
-                  color: AppTheme.info.withOpacity(0.1),
+                  color: AppTheme.info.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-                  border: Border.all(color: AppTheme.info.withOpacity(0.3)),
+                  border: Border.all(
+                    color: AppTheme.info.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,7 +114,10 @@ class BookConsultationTab extends StatelessWidget {
               const SizedBox(height: AppTheme.spaceMD),
               const Text(
                 'Requesting consultation with:',
-                style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary),
+                style: TextStyle(
+                  fontSize: AppTheme.fontBody,
+                  color: AppTheme.textSecondary,
+                ),
               ),
               const SizedBox(height: AppTheme.spaceMD),
               Container(
@@ -198,9 +206,11 @@ class BookConsultationTab extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppTheme.spaceSM),
                 decoration: BoxDecoration(
-                  color: AppTheme.success.withOpacity(0.05),
+                  color: AppTheme.success.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-                  border: Border.all(color: AppTheme.success.withOpacity(0.2)),
+                  border: Border.all(
+                    color: AppTheme.success.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -229,6 +239,9 @@ class BookConsultationTab extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
+              // Capture navigator and messenger before async gap
+              final nav = Navigator.of(context);
+              final messenger = ScaffoldMessenger.of(context);
               // Show loading indicator
               showDialog(
                 context: context,
@@ -247,14 +260,14 @@ class BookConsultationTab extends StatelessWidget {
                 );
 
                 // Close loading dialog
-                Navigator.pop(context);
+                nav.pop();
                 // Close booking dialog
-                Navigator.pop(context);
+                nav.pop();
 
                 // Notify parent to refresh
                 onConsultationRequested?.call();
 
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   SnackBar(
                     content: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -281,7 +294,7 @@ class BookConsultationTab extends StatelessWidget {
                 );
               } catch (e) {
                 // Close loading dialog
-                Navigator.pop(context);
+                nav.pop();
 
                 // Fallback to local booking
                 final consultationService = ConsultationService();
@@ -290,10 +303,10 @@ class BookConsultationTab extends StatelessWidget {
                   type: ConsultationType.videoCall,
                 );
 
-                Navigator.pop(context);
+                nav.pop();
                 onConsultationRequested?.call();
 
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   SnackBar(
                     content: Column(
                       mainAxisSize: MainAxisSize.min,

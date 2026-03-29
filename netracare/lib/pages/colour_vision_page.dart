@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'colour_vision_test_page.dart';
 import '../config/app_theme.dart';
 
@@ -213,7 +213,7 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: AppTheme.testIconBackground,
-            border: Border.all(color: AppTheme.primaryLight.withOpacity(0.3)),
+            border: Border.all(color: AppTheme.primaryLight.withValues(alpha: 0.3)),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(

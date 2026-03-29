@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../config/app_theme.dart';
 import '../../services/doctor_service.dart';
@@ -96,7 +96,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             ),
             child: const Icon(
@@ -122,7 +122,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                 Text(
                   'Manage your patients and view analytics',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     fontSize: AppTheme.fontBody,
                   ),
                 ),
@@ -155,7 +155,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
               child: _StatCard(
                 icon: Icons.insights,
                 iconColor: AppTheme.success,
-                iconBgColor: AppTheme.success.withOpacity(0.1),
+                iconBgColor: AppTheme.success.withValues(alpha: 0.1),
                 value: '${_analytics.averageHealthScore.round()}',
                 label: 'Avg Health Score',
                 subtitle: '+${_analytics.healthScoreChange}% from last month',
@@ -171,7 +171,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
               child: _StatCard(
                 icon: Icons.calendar_today,
                 iconColor: AppTheme.warning,
-                iconBgColor: AppTheme.warning.withOpacity(0.1),
+                iconBgColor: AppTheme.warning.withValues(alpha: 0.1),
                 value: '${_analytics.testsThisWeek}',
                 label: 'Tests This Week',
                 subtitle: '${_analytics.pendingReviews} pending reviews',
@@ -183,7 +183,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
               child: _StatCard(
                 icon: Icons.priority_high,
                 iconColor: AppTheme.error,
-                iconBgColor: AppTheme.error.withOpacity(0.1),
+                iconBgColor: AppTheme.error.withValues(alpha: 0.1),
                 value: '${_analytics.distribution.critical}',
                 label: 'Critical Patients',
                 subtitle: 'Need immediate attention',
@@ -294,7 +294,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                 horizontalInterval: 10,
                 getDrawingHorizontalLine: (value) {
                   return FlLine(
-                    color: AppTheme.textLight.withOpacity(0.2),
+                    color: AppTheme.textLight.withValues(alpha: 0.2),
                     strokeWidth: 1,
                   );
                 },
@@ -369,7 +369,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                   ),
                   belowBarData: BarAreaData(
                     show: true,
-                    color: AppTheme.primary.withOpacity(0.1),
+                    color: AppTheme.primary.withValues(alpha: 0.1),
                   ),
                 ),
               ],
@@ -390,7 +390,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        border: Border.all(color: AppTheme.textLight.withOpacity(0.2)),
+        border: Border.all(color: AppTheme.textLight.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -520,7 +520,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        border: Border.all(color: AppTheme.textLight.withOpacity(0.2)),
+        border: Border.all(color: AppTheme.textLight.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -743,7 +743,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
               vertical: 4,
             ),
             decoration: BoxDecoration(
-              color: _getScoreColor(stat.avgScore).withOpacity(0.1),
+              color: _getScoreColor(stat.avgScore).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
             ),
             child: Text(
@@ -814,7 +814,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         border: isLast
             ? null
             : Border(
-                bottom: BorderSide(color: AppTheme.textLight.withOpacity(0.2)),
+                bottom: BorderSide(color: AppTheme.textLight.withValues(alpha: 0.2)),
               ),
       ),
       child: Row(
@@ -885,7 +885,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
               vertical: 4,
             ),
             decoration: BoxDecoration(
-              color: _getStatusColor(patient.status).withOpacity(0.1),
+              color: _getStatusColor(patient.status).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
             ),
             child: Text(

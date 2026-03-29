@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/models/consultation/chat_message_model.dart';
 
@@ -43,7 +43,7 @@ class ChatBubble extends StatelessWidget {
               style: TextStyle(
                 fontSize: AppTheme.fontXS,
                 color: isUser
-                    ? Colors.white.withOpacity(0.7)
+                    ? Colors.white.withValues(alpha: 0.7)
                     : AppTheme.textLight,
               ),
             ),

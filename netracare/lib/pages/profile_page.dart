@@ -95,10 +95,9 @@ class _ProfilePageState extends State<ProfilePage> {
         actions: [
           TextButton(
             onPressed: () async {
+              final nav = Navigator.of(context);
               await ApiService.deleteToken();
-              if (!mounted) return;
-              Navigator.pushAndRemoveUntil(
-                context,
+              nav.pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const LoginPage()),
                 (_) => false,
               );
@@ -131,7 +130,11 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 64, color: AppTheme.error),
+                const Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: AppTheme.error,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   errorMessage!,
@@ -185,7 +188,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   const SizedBox(height: 4),
                   Text(
                     "Manage your account settings",
-                    style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary),
+                    style: TextStyle(
+                      fontSize: AppTheme.fontBody,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -337,10 +343,9 @@ class _ProfilePageState extends State<ProfilePage> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: LogoutButton(
                 onLogout: () async {
+                  final nav = Navigator.of(context);
                   await ApiService.deleteToken();
-                  if (!mounted) return;
-                  Navigator.pushAndRemoveUntil(
-                    context,
+                  nav.pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const LoginPage()),
                     (_) => false,
                   );

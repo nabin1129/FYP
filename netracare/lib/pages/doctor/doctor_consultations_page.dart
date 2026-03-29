@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../services/doctor_service.dart';
 import '../../models/doctor/doctor_analytics_model.dart';
@@ -141,7 +141,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
         vertical: AppTheme.spaceSM,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
       ),
       child: Column(
@@ -246,7 +246,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 64, color: AppTheme.textLight.withOpacity(0.5)),
+          Icon(icon, size: 64, color: AppTheme.textLight.withValues(alpha: 0.5)),
           const SizedBox(height: AppTheme.spaceMD),
           Text(
             message,
@@ -413,7 +413,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
         vertical: 4,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
       ),
       child: Text(

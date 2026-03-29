@@ -215,8 +215,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
           ),
           validator: (v) {
-            if (v != _newPasswordController.text)
+            if (v != _newPasswordController.text) {
               return 'Passwords do not match';
+            }
             return null;
           },
         ),

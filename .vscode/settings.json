@@ -3,5 +3,8 @@
   "python.analysis.extraPaths": [
     "D:/3rd Year/FYP/venv/Lib/site-packages"
   ],
-  "cmake.sourceDirectory": "D:/3rd Year/FYP/netracare/linux"
+  "cmake.sourceDirectory": "D:/3rd Year/FYP/netracare/linux",
+  "dart.analysisExcludedFolders": [
+    "flutter"
+  ]
 }

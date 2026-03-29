@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/models/consultation/chat_message_model.dart';
 import 'package:netracare/widgets/consultation/chat_bubble.dart';
@@ -137,7 +137,7 @@ class _ChatTabState extends State<ChatTab> {
             color: AppTheme.surface,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, -2),
               ),

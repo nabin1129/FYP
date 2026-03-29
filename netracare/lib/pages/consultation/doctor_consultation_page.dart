@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/models/consultation/doctor_model.dart';
 import 'package:netracare/models/consultation/consultation_model.dart';
@@ -119,7 +119,7 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage>
           preferredSize: const Size.fromHeight(1),
           child: Container(
             height: 1,
-            color: AppTheme.textLight.withOpacity(0.1),
+            color: AppTheme.textLight.withValues(alpha: 0.1),
           ),
         ),
       ),

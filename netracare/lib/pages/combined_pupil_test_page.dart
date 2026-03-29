@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:camera/camera.dart';
 import 'dart:async';
@@ -74,8 +74,9 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
   }
 
   Future<void> _startTest() async {
-    if (_cameraController == null || !_cameraController!.value.isInitialized)
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
       return;
+    }
 
     // Start test session
     try {
@@ -143,9 +144,9 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: AppTheme.error));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: AppTheme.error),
+    );
   }
 
   @override
@@ -203,7 +204,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
               border: Border.all(color: AppTheme.border),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -252,7 +253,10 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
               ),
               child: const Text(
                 'Start Test',
-                style: TextStyle(fontSize: AppTheme.fontXL, color: Colors.white),
+                style: TextStyle(
+                  fontSize: AppTheme.fontXL,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
@@ -269,7 +273,10 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
           const Icon(Icons.check_circle, color: AppTheme.accent, size: 20),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(text, style: const TextStyle(color: AppTheme.textSubtle)),
+            child: Text(
+              text,
+              style: const TextStyle(color: AppTheme.textSubtle),
+            ),
           ),
         ],
       ),
@@ -288,8 +295,8 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
           animation: _flashAnimationController,
           builder: (context, child) {
             return Container(
-              color: Colors.white.withOpacity(
-                _flashAnimationController.value * 0.7,
+              color: Colors.white.withValues(
+                alpha: _flashAnimationController.value * 0.7,
               ),
             );
           },
@@ -359,12 +366,18 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
             SizedBox(height: 20),
             Text(
               'Analyzing results...',
-              style: TextStyle(fontSize: AppTheme.fontLG, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                fontSize: AppTheme.fontLG,
+                fontWeight: FontWeight.w500,
+              ),
             ),
             SizedBox(height: 8),
             Text(
               'Processing video for nystagmus detection',
-              style: TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSecondary),
+              style: TextStyle(
+                fontSize: AppTheme.fontSM,
+                color: AppTheme.textSecondary,
+              ),
             ),
           ],
         ),
@@ -451,7 +464,10 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   _diagnosis!,
-                  style: const TextStyle(color: AppTheme.textSubtle, height: 1.5),
+                  style: const TextStyle(
+                    color: AppTheme.textSubtle,
+                    height: 1.5,
+                  ),
                 ),
               ),
             ]),
@@ -464,7 +480,10 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   _recommendations!,
-                  style: const TextStyle(color: AppTheme.textSubtle, height: 1.5),
+                  style: const TextStyle(
+                    color: AppTheme.textSubtle,
+                    height: 1.5,
+                  ),
                 ),
               ),
             ]),
@@ -484,7 +503,10 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
               ),
               child: const Text(
                 'Done',
-                style: TextStyle(fontSize: AppTheme.fontXL, color: Colors.white),
+                style: TextStyle(
+                  fontSize: AppTheme.fontXL,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
@@ -502,7 +524,7 @@ class _CombinedPupilTestPageState extends State<CombinedPupilTestPage>
         border: Border.all(color: AppTheme.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

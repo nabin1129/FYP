@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
@@ -677,8 +677,9 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
       canPop: isTestComplete,
       onPopInvokedWithResult: (didPop, _) async {
         if (!didPop) {
+          final nav = Navigator.of(context);
           final exit = await _showExitDialog();
-          if (exit && mounted) Navigator.of(context).pop();
+          if (exit) nav.pop();
         }
       },
       child: Scaffold(
@@ -725,7 +726,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
               height: MediaQuery.of(context).size.height * 0.6,
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: AppTheme.primary.withOpacity(0.3),
+                  color: AppTheme.primary.withValues(alpha: 0.3),
                   width: 2,
                 ),
                 borderRadius: BorderRadius.circular(12),
@@ -779,7 +780,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
             builder: (context, child) {
               return Container(
                 color: _flashAnimationController.value > 0.5
-                    ? Colors.white.withOpacity(0.8)
+                    ? Colors.white.withValues(alpha: 0.8)
                     : Colors.white,
                 width: double.infinity,
                 height: double.infinity,
@@ -797,7 +798,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                   height: MediaQuery.of(context).size.height * 0.6,
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: AppTheme.primary.withOpacity(0.3),
+                      color: AppTheme.primary.withValues(alpha: 0.3),
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -888,10 +889,10 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: AppTheme.primary.withOpacity(0.1),
+                    color: AppTheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(60),
                     border: Border.all(
-                      color: AppTheme.primary.withOpacity(0.3),
+                      color: AppTheme.primary.withValues(alpha: 0.3),
                       width: 2,
                     ),
                   ),
@@ -909,7 +910,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                 const SizedBox(height: 24),
                 const Text(
                   "Look directly at the camera",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: AppTheme.fontLG,
                     color: AppTheme.textSecondary,
                     fontWeight: FontWeight.w600,
@@ -1038,7 +1039,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         side: BorderSide(
-                          color: AppTheme.textSecondary.withOpacity(0.6),
+                          color: AppTheme.textSecondary.withValues(alpha: 0.6),
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -1065,7 +1066,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.success.withOpacity(0.1),
+              color: AppTheme.success.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.check_circle, size: 48, color: AppTheme.success),
@@ -1099,7 +1100,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -1154,7 +1155,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -1225,7 +1226,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.1),
+                color: AppTheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -1266,7 +1267,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.success.withOpacity(0.1),
+                color: AppTheme.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -1306,7 +1307,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.1),
+              color: AppTheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -1420,7 +1421,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 side: BorderSide(
-                  color: AppTheme.textSecondary.withOpacity(0.5),
+                  color: AppTheme.textSecondary.withValues(alpha: 0.5),
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -1431,7 +1432,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                 style: TextStyle(
                   fontSize: AppTheme.fontLG,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.textSecondary.withOpacity(0.7),
+                  color: AppTheme.textSecondary.withValues(alpha: 0.7),
                 ),
               ),
             ),

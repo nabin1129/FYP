@@ -14,7 +14,7 @@ class ConsultationService {
   List<Consultation> _consultations = [];
   List<Doctor> _doctors = [];
   bool _initialized = false;
-  bool _useApi = true; // Set to false to use mock data only
+  final bool _useApi = true; // Set to false to use mock data only
 
   /// Initialize service - attempts to load from API first
   Future<void> initializeAsync() async {

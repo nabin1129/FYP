@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/models/consultation/doctor_model.dart';
 
@@ -242,8 +242,8 @@ class DoctorCard extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: doctor.availability.contains('Today')
-                      ? AppTheme.success.withOpacity(0.1)
-                      : AppTheme.warning.withOpacity(0.1),
+                      ? AppTheme.success.withValues(alpha: 0.1)
+                      : AppTheme.warning.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Row(

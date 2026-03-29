@@ -1,8 +1,8 @@
-/// Camera Manager Service
-/// Centralized camera lifecycle management for all tests
-/// Prevents resource conflicts and ensures proper cleanup
-/// Author: NetraCare Team
-/// Date: January 26, 2026
+﻿// Camera Manager Service
+// Centralized camera lifecycle management for all tests
+// Prevents resource conflicts and ensures proper cleanup
+// Author: NetraCare Team
+// Date: January 26, 2026
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
