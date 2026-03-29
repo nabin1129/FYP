@@ -11,6 +11,7 @@ class ApiService {
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
   static const String _tokenKey = 'auth_token';
+  static const String _adminTokenKey = 'admin_token';
 
   // =========================
   // TOKEN
@@ -25,6 +26,18 @@ class ApiService {
 
   static Future<void> deleteToken() async {
     await _storage.delete(key: _tokenKey);
+  }
+
+  static Future<String?> getAdminToken() async {
+    return await _storage.read(key: _adminTokenKey);
+  }
+
+  static Future<void> saveAdminToken(String token) async {
+    await _storage.write(key: _adminTokenKey, value: token);
+  }
+
+  static Future<void> deleteAdminToken() async {
+    await _storage.delete(key: _adminTokenKey);
   }
 
   // =========================
@@ -73,6 +86,35 @@ class ApiService {
       return true;
     }
     if (response.statusCode == 401) return false;
+    _throwReadableError(response);
+  }
+
+  /// Try to login as admin via /api/admin/login.
+  /// Returns true on success (also saves admin token).
+  /// Returns false if credentials are wrong (401).
+  /// Throws a [String] message for other errors.
+  static Future<bool> adminLogin(String email, String password) async {
+    final response = await http
+        .post(
+          Uri.parse('${ApiConfig.baseUrl}${ApiConfig.adminLoginEndpoint}'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'email': email, 'password': password}),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final token = data['token'] as String?;
+      if (token != null) {
+        await saveAdminToken(token);
+      }
+      return true;
+    }
+
+    if (response.statusCode == 401) {
+      return false;
+    }
+
     _throwReadableError(response);
   }
 

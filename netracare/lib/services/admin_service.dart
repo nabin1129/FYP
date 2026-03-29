@@ -245,6 +245,23 @@ class AdminService {
   }
 
   /// Update a user via the backend API.
+  Future<AdminUser> getUserDetail(int backendId) async {
+    final res = await http.get(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.adminUserDetailEndpoint(backendId)}',
+      ),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
+    if (res.statusCode == 200) {
+      return AdminUser.fromJson(data['user'] as Map<String, dynamic>);
+    }
+
+    throw data['message'] as String? ?? 'Failed to fetch user detail';
+  }
+
+  /// Update a user via the backend API.
   Future<AdminUser> updateUser(
     int backendId,
     Map<String, dynamic> fields,
@@ -281,5 +298,59 @@ class AdminService {
     }
     final data = jsonDecode(res.body) as Map<String, dynamic>;
     throw data['message'] as String? ?? 'Failed to delete user';
+  }
+
+  Future<Map<String, dynamic>> getAnalyticsOverview({int days = 30}) async {
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}${ApiConfig.adminAnalyticsOverviewEndpoint}?days=$days',
+    );
+
+    final res = await http.get(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+    );
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
+
+    if (res.statusCode == 200) {
+      return data;
+    }
+
+    throw data['message'] as String? ?? 'Failed to fetch analytics overview';
+  }
+
+  Future<Map<String, dynamic>> createReminder({
+    required String recipientType,
+    required int recipientId,
+    required String title,
+    required String message,
+    String priority = 'normal',
+    String? relatedType,
+    int? relatedId,
+    String? scheduledFor,
+  }) async {
+    final payload = <String, dynamic>{
+      'recipient_type': recipientType,
+      'recipient_id': recipientId,
+      'title': title,
+      'message': message,
+      'priority': priority,
+      if (relatedType != null) 'related_type': relatedType,
+      if (relatedId != null) 'related_id': relatedId,
+      if (scheduledFor != null) 'scheduled_for': scheduledFor,
+    };
+
+    final res = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.adminReminderCreateEndpoint}'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(payload),
+    );
+
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
+
+    if (res.statusCode == 201) {
+      return data;
+    }
+
+    throw data['message'] as String? ?? 'Failed to create reminder';
   }
 }

@@ -179,7 +179,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Welcome, Admin Ã°Å¸â€˜â€¹',
+                  'Welcome, Admin',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: AppTheme.fontXXL,

@@ -105,9 +105,14 @@ class ApiConfig {
   // Admin Panel
   // ========================================
   static const String adminStatsEndpoint = '/api/admin/stats';
+  static const String adminAnalyticsOverviewEndpoint =
+      '/api/admin/analytics/overview';
+  static const String adminLoginEndpoint = '/api/admin/login';
   static const String adminUsersEndpoint = '/api/admin/users';
   static const String adminDoctorsEndpoint = '/api/admin/doctors';
   static const String adminCreateDoctorEndpoint = '/api/doctors/admin/create';
+  static const String adminReminderCreateEndpoint =
+      '/api/notifications/admin/reminders';
 
   static String adminUserDetailEndpoint(int userId) =>
       '/api/admin/users/$userId';
@@ -115,4 +120,11 @@ class ApiConfig {
       '/api/doctors/admin/$doctorId';
   static String adminDoctorDetailEndpoint(int doctorId) =>
       '/api/admin/doctors/$doctorId';
+
+  // ========================================
+  // AI Report
+  // ========================================
+  static const String aiReportGenerateEndpoint = '/api/ai-report/generate';
+  static const String aiReportPdfEndpoint = '/api/ai-report/generate-pdf';
+  static const String aiReportInsightsEndpoint = '/api/ai-report/insights';
 }

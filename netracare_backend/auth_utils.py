@@ -2,6 +2,7 @@
 from functools import wraps
 from flask import request
 import jwt
+from datetime import datetime, timedelta
 
 from db_model import User
 from config import SECRET_KEY
@@ -81,3 +82,40 @@ def get_user_from_auth():
 
     except jwt.InvalidTokenError:
         return None
+
+
+def generate_admin_token(admin_email: str) -> str:
+    """Generate JWT token for admin access."""
+    payload = {
+        "sub": admin_email,
+        "type": "admin",
+        "iat": datetime.utcnow(),
+        "exp": datetime.utcnow() + timedelta(hours=24),
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+
+
+def admin_token_required(fn):
+    """Decorator to protect admin-only endpoints."""
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        auth = request.headers.get("Authorization", "")
+
+        if not auth.startswith("Bearer "):
+            return {"message": "Admin authorization token missing"}, 401
+
+        token = auth.split(" ", 1)[1]
+
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            if payload.get("type") != "admin":
+                return {"message": "Invalid token type for admin route"}, 403
+            kwargs["current_admin"] = payload.get("sub")
+            return fn(*args, **kwargs)
+        except jwt.ExpiredSignatureError:
+            return {"message": "Admin token expired"}, 401
+        except jwt.InvalidTokenError:
+            return {"message": "Invalid admin token"}, 401
+
+    return wrapper

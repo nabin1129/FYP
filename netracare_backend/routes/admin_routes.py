@@ -5,14 +5,18 @@ Handles user listing/editing, doctor listing, and dashboard stats.
 from flask import request
 from flask_restx import Namespace, Resource, fields
 from werkzeug.security import generate_password_hash
-from datetime import datetime
+from werkzeug.security import check_password_hash
+from datetime import datetime, timedelta
 
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from db_model import db, User
+from db_model import EyeTrackingTest, VisualAcuityTest, ColourVisionTest, BlinkFatigueTest, PupilReflexTest
 from models.doctor import Doctor
+from auth_utils import generate_admin_token
+from config import ADMIN_EMAIL, ADMIN_PASSWORD
 
 admin_ns = Namespace('admin', description='Admin management operations')
 
@@ -28,6 +32,53 @@ user_update_model = admin_ns.model('AdminUserUpdate', {
     'sex': fields.String(description='Sex'),
     'address': fields.String(description='Address'),
 })
+
+admin_login_model = admin_ns.model('AdminLogin', {
+    'email': fields.String(required=True, description='Admin email or username'),
+    'password': fields.String(required=True, description='Admin password'),
+})
+
+analytics_query_model = admin_ns.model('AdminAnalyticsQuery', {
+    'days': fields.Integer(description='Lookback window in days (default: 30)')
+})
+
+
+@admin_ns.route('/login')
+class AdminLogin(Resource):
+    @admin_ns.expect(admin_login_model)
+    def post(self):
+        """Authenticate admin and issue admin JWT."""
+        try:
+            data = request.get_json() or {}
+            email = (data.get('email') or '').strip()
+            password = data.get('password') or ''
+
+            if not email or not password:
+                return {'message': 'Email and password are required'}, 400
+
+            if email != ADMIN_EMAIL:
+                return {'message': 'Invalid admin credentials'}, 401
+
+            is_valid = False
+            if ADMIN_PASSWORD.startswith('pbkdf2:'):
+                is_valid = check_password_hash(ADMIN_PASSWORD, password)
+            else:
+                is_valid = password == ADMIN_PASSWORD
+
+            if not is_valid:
+                return {'message': 'Invalid admin credentials'}, 401
+
+            token = generate_admin_token(ADMIN_EMAIL)
+            return {
+                'message': 'Admin login successful',
+                'token': token,
+                'admin': {
+                    'email': ADMIN_EMAIL,
+                    'role': 'admin',
+                }
+            }, 200
+        except Exception as e:
+            return {'message': f'Admin login failed: {str(e)}'}, 500
 
 
 # ==========================
@@ -51,6 +102,70 @@ class AdminStats(Resource):
             }, 200
         except Exception as e:
             return {'message': f'Failed to fetch stats: {str(e)}'}, 500
+
+
+@admin_ns.route('/analytics/overview')
+class AdminAnalyticsOverview(Resource):
+    def get(self):
+        """Get protected admin analytics: usage, demographics, and condition indicators."""
+        try:
+            days = request.args.get('days', default=30, type=int)
+            if days <= 0:
+                return {'message': 'days must be greater than 0'}, 400
+
+            cutoff = datetime.utcnow() - timedelta(days=days)
+
+            total_users = User.query.count()
+            demographics = {
+                'sex': {
+                    'male': User.query.filter(User.sex.ilike('male')).count(),
+                    'female': User.query.filter(User.sex.ilike('female')).count(),
+                    'other_or_unspecified': User.query.filter(
+                        (User.sex.is_(None)) |
+                        (~User.sex.ilike('male') & ~User.sex.ilike('female'))
+                    ).count(),
+                },
+                'age_buckets': {
+                    'under_18': User.query.filter(User.age.isnot(None), User.age < 18).count(),
+                    '18_to_29': User.query.filter(User.age >= 18, User.age <= 29).count(),
+                    '30_to_44': User.query.filter(User.age >= 30, User.age <= 44).count(),
+                    '45_to_59': User.query.filter(User.age >= 45, User.age <= 59).count(),
+                    '60_plus': User.query.filter(User.age >= 60).count(),
+                    'unknown': User.query.filter(User.age.is_(None)).count(),
+                }
+            }
+
+            usage = {
+                'window_days': days,
+                'visual_acuity_tests': VisualAcuityTest.query.filter(VisualAcuityTest.created_at >= cutoff).count(),
+                'colour_vision_tests': ColourVisionTest.query.filter(ColourVisionTest.created_at >= cutoff).count(),
+                'blink_fatigue_tests': BlinkFatigueTest.query.filter(BlinkFatigueTest.created_at >= cutoff).count(),
+                'pupil_reflex_tests': PupilReflexTest.query.filter(PupilReflexTest.created_at >= cutoff).count(),
+            }
+
+            condition_signals = {
+                'colour_vision_deficiency_indications': ColourVisionTest.query.filter(
+                    ColourVisionTest.created_at >= cutoff,
+                    ColourVisionTest.severity.ilike('%deficiency%')
+                ).count(),
+                'high_fatigue_indications': BlinkFatigueTest.query.filter(
+                    BlinkFatigueTest.created_at >= cutoff,
+                    BlinkFatigueTest.prediction == 'drowsy'
+                ).count(),
+                'nystagmus_indications': PupilReflexTest.query.filter(
+                    PupilReflexTest.created_at >= cutoff,
+                    PupilReflexTest.nystagmus_detected.is_(True)
+                ).count(),
+            }
+
+            return {
+                'total_users': total_users,
+                'demographics': demographics,
+                'usage': usage,
+                'condition_signals': condition_signals,
+            }, 200
+        except Exception as e:
+            return {'message': f'Failed to fetch analytics overview: {str(e)}'}, 500
 
 
 # ==========================
@@ -78,7 +193,7 @@ class AdminUserDetail(Resource):
         user = User.query.get(user_id)
         if not user:
             return {'message': 'User not found'}, 404
-        return {'user': _user_to_admin_dict(user)}, 200
+        return {'user': _user_to_admin_dict(user, include_history=True)}, 200
 
     @admin_ns.expect(user_update_model)
     def put(self, user_id):
@@ -155,9 +270,27 @@ class AdminDoctorDetail(Resource):
 # HELPERS
 # ==========================
 
-def _user_to_admin_dict(user: User) -> dict:
+def _user_to_admin_dict(user: User, include_history: bool = False) -> dict:
     """Convert User model to admin-friendly dict."""
-    return {
+    latest_eye = EyeTrackingTest.query.filter_by(user_id=user.id).order_by(EyeTrackingTest.created_at.desc()).first()
+    latest_visual = VisualAcuityTest.query.filter_by(user_id=user.id).order_by(VisualAcuityTest.created_at.desc()).first()
+    latest_colour = ColourVisionTest.query.filter_by(user_id=user.id).order_by(ColourVisionTest.created_at.desc()).first()
+    latest_blink = BlinkFatigueTest.query.filter_by(user_id=user.id).order_by(BlinkFatigueTest.created_at.desc()).first()
+    latest_pupil = PupilReflexTest.query.filter_by(user_id=user.id).order_by(PupilReflexTest.created_at.desc()).first()
+
+    eye_count = EyeTrackingTest.query.filter_by(user_id=user.id).count()
+    visual_count = VisualAcuityTest.query.filter_by(user_id=user.id).count()
+    colour_count = ColourVisionTest.query.filter_by(user_id=user.id).count()
+    blink_count = BlinkFatigueTest.query.filter_by(user_id=user.id).count()
+    pupil_count = PupilReflexTest.query.filter_by(user_id=user.id).count()
+
+    latest_dates = [
+        t.created_at for t in [latest_eye, latest_visual, latest_colour, latest_blink, latest_pupil]
+        if t and t.created_at
+    ]
+    last_test_at = max(latest_dates).isoformat() if latest_dates else None
+
+    response = {
         'id': user.id,
         'name': user.name or '',
         'email': user.email or '',
@@ -166,7 +299,79 @@ def _user_to_admin_dict(user: User) -> dict:
         'sex': user.sex or '',
         'address': getattr(user, 'address', None) or '',
         'created_at': user.created_at.isoformat() if user.created_at else None,
+        'test_summary': {
+            'total_tests': eye_count + visual_count + colour_count + blink_count + pupil_count,
+            'eye_tracking_count': eye_count,
+            'visual_acuity_count': visual_count,
+            'colour_vision_count': colour_count,
+            'blink_fatigue_count': blink_count,
+            'pupil_reflex_count': pupil_count,
+            'last_test_at': last_test_at,
+        },
+        'recent_tests': {
+            'eye_tracking': {
+                'created_at': latest_eye.created_at.isoformat() if latest_eye and latest_eye.created_at else None,
+                'gaze_accuracy': latest_eye.gaze_accuracy if latest_eye else None,
+                'classification': latest_eye.performance_classification if latest_eye else None,
+                'duration': latest_eye.test_duration if latest_eye else None,
+                'fixation_stability': latest_eye.fixation_stability_score if latest_eye else None,
+                'saccade_consistency': latest_eye.saccade_consistency_score if latest_eye else None,
+            },
+            'visual_acuity': {
+                'created_at': latest_visual.created_at.isoformat() if latest_visual and latest_visual.created_at else None,
+                'snellen': latest_visual.snellen_value if latest_visual else None,
+                'severity': latest_visual.severity if latest_visual else None,
+                'score': round((latest_visual.correct_answers / latest_visual.total_questions) * 100) if latest_visual and latest_visual.total_questions else None,
+                'correct': latest_visual.correct_answers if latest_visual else None,
+                'total': latest_visual.total_questions if latest_visual else None,
+            },
+            'colour_vision': {
+                'created_at': latest_colour.created_at.isoformat() if latest_colour and latest_colour.created_at else None,
+                'severity': latest_colour.severity if latest_colour else None,
+                'score': latest_colour.score if latest_colour else None,
+                'correct_count': latest_colour.correct_count if latest_colour else None,
+                'total_plates': latest_colour.total_plates if latest_colour else None,
+            },
+            'blink_fatigue': {
+                'created_at': latest_blink.created_at.isoformat() if latest_blink and latest_blink.created_at else None,
+                'prediction': latest_blink.prediction if latest_blink else None,
+                'fatigue_level': latest_blink.fatigue_level if latest_blink else None,
+                'alertness_percentage': round((1 - latest_blink.drowsy_probability) * 100) if latest_blink and latest_blink.drowsy_probability is not None else None,
+                'avg_blinks_per_minute': latest_blink.avg_blinks_per_minute if latest_blink else None,
+                'total_blinks': latest_blink.total_blinks if latest_blink else None,
+                'duration': latest_blink.test_duration if latest_blink else None,
+            },
+            'pupil_reflex': {
+                'created_at': latest_pupil.created_at.isoformat() if latest_pupil and latest_pupil.created_at else None,
+                'nystagmus_detected': latest_pupil.nystagmus_detected if latest_pupil else None,
+                'nystagmus_severity': latest_pupil.nystagmus_severity if latest_pupil else None,
+                'reaction_time': latest_pupil.reaction_time if latest_pupil else None,
+                'constriction_amplitude': latest_pupil.constriction_amplitude if latest_pupil else None,
+                'symmetry': latest_pupil.symmetry if latest_pupil else None,
+            },
+        },
     }
+
+    if include_history:
+        response['test_history'] = {
+            'eye_tracking': [
+                t.to_dict() for t in EyeTrackingTest.query.filter_by(user_id=user.id).order_by(EyeTrackingTest.created_at.desc()).all()
+            ],
+            'visual_acuity': [
+                t.to_dict() for t in VisualAcuityTest.query.filter_by(user_id=user.id).order_by(VisualAcuityTest.created_at.desc()).all()
+            ],
+            'colour_vision': [
+                t.to_dict() for t in ColourVisionTest.query.filter_by(user_id=user.id).order_by(ColourVisionTest.created_at.desc()).all()
+            ],
+            'blink_fatigue': [
+                t.to_dict() for t in BlinkFatigueTest.query.filter_by(user_id=user.id).order_by(BlinkFatigueTest.created_at.desc()).all()
+            ],
+            'pupil_reflex': [
+                t.to_dict() for t in PupilReflexTest.query.filter_by(user_id=user.id).order_by(PupilReflexTest.created_at.desc()).all()
+            ],
+        }
+
+    return response
 
 
 def _doctor_to_admin_dict(doctor: Doctor) -> dict:

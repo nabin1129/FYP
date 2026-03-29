@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../config/app_theme.dart';
+import '../config/api_config.dart';
 import '../services/api_service.dart';
 import '../services/blink_fatigue_service.dart';
 import '../services/pupil_reflex_service.dart';
@@ -32,6 +36,12 @@ class _ResultsReportPageState extends State<ResultsReportPage>
   Map<String, dynamic>? _blinkFatigueStats;
 
   DateTime? _lastUpdated;
+
+  // AI Report state
+  bool _isGeneratingAIReport = false;
+  bool _isDownloadingAIPDF = false;
+  Map<String, dynamic>? _aiReport;
+  String? _aiReportError;
 
   @override
   void initState() {
@@ -111,6 +121,92 @@ class _ResultsReportPageState extends State<ResultsReportPage>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _generateAIReport() async {
+    setState(() {
+      _isGeneratingAIReport = true;
+      _aiReportError = null;
+    });
+    try {
+      final token = await ApiService.getToken();
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.aiReportGenerateEndpoint}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'time_range_days': 30}),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _aiReport = data['report'] as Map<String, dynamic>?;
+          _isGeneratingAIReport = false;
+        });
+      } else {
+        final err = jsonDecode(response.body);
+        setState(() {
+          _aiReportError = err['message'] ?? 'Failed to generate report';
+          _isGeneratingAIReport = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _aiReportError = e.toString();
+        _isGeneratingAIReport = false;
+      });
+    }
+  }
+
+  Future<void> _downloadAIPDF() async {
+    setState(() => _isDownloadingAIPDF = true);
+    try {
+      final token = await ApiService.getToken();
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.aiReportPdfEndpoint}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'time_range_days': 30}),
+      );
+      if (response.statusCode == 200) {
+        final Uint8List bytes = response.bodyBytes;
+        final dir = await getTemporaryDirectory();
+        final file = File(
+          '${dir.path}/netracare_ai_report_${DateTime.now().millisecondsSinceEpoch}.pdf',
+        );
+        await file.writeAsBytes(bytes);
+        setState(() => _isDownloadingAIPDF = false);
+        if (mounted) {
+          await Share.shareXFiles([
+            XFile(file.path),
+          ], text: 'NetraCare AI Eye Health Report');
+        }
+      } else {
+        final err = jsonDecode(response.body);
+        setState(() => _isDownloadingAIPDF = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(err['message'] ?? 'Failed to download PDF'),
+              backgroundColor: AppTheme.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() => _isDownloadingAIPDF = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error downloading PDF: $e'),
+            backgroundColor: AppTheme.error,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _handleSendToDoctor() async {
@@ -345,7 +441,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
         ),
         title: const Text(
           'Your Eye Health Report',
-          style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: AppTheme.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
           IconButton(
@@ -364,7 +463,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Text(
                 'Last updated: $lastUpdatedText',
-                style: const TextStyle(color: AppTheme.textSecondary, fontSize: AppTheme.fontBody),
+                style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: AppTheme.fontBody,
+                ),
               ),
             ),
 
@@ -464,7 +566,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                     SizedBox(height: 4),
                     Text(
                       'Comprehensive assessment',
-                      style: TextStyle(color: AppTheme.overlayBlueLight, fontSize: AppTheme.fontBody),
+                      style: TextStyle(
+                        color: AppTheme.overlayBlueLight,
+                        fontSize: AppTheme.fontBody,
+                      ),
                     ),
                   ],
                 ),
@@ -718,7 +823,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                           fontWeight: FontWeight.bold,
                           foreground: Paint()
                             ..shader = const LinearGradient(
-                              colors: [AppTheme.categoryBlue, AppTheme.categoryPurple],
+                              colors: [
+                                AppTheme.categoryBlue,
+                                AppTheme.categoryPurple,
+                              ],
                             ).createShader(const Rect.fromLTWH(0, 0, 200, 70)),
                         ),
                       ),
@@ -892,10 +1000,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                     color: AppTheme.textLight,
                     fontWeight: FontWeight.w500,
                   ),
-                  tickBorderData: BorderSide(
-                    color: AppTheme.border,
-                    width: 1,
-                  ),
+                  tickBorderData: BorderSide(color: AppTheme.border, width: 1),
                   gridBorderData: BorderSide(
                     color: AppTheme.border,
                     width: 1.5,
@@ -1138,7 +1243,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: AppTheme.fontXS, color: AppTheme.textSecondary),
+                  style: TextStyle(
+                    fontSize: AppTheme.fontXS,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -1266,7 +1374,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           Text(
             'Complete a pupil reflex test to see your results here',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSubtle),
+            style: TextStyle(
+              fontSize: AppTheme.fontSM,
+              color: AppTheme.textSubtle,
+            ),
           ),
         ],
       ),
@@ -1388,11 +1499,17 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           leading: Icon(icon, color: color),
           title: Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: AppTheme.fontLG),
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: AppTheme.fontLG,
+            ),
           ),
           subtitle: Text(
             '$count test${count != 1 ? 's' : ''} available',
-            style: TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSubtle),
+            style: TextStyle(
+              fontSize: AppTheme.fontSM,
+              color: AppTheme.textSubtle,
+            ),
           ),
           children: [
             if (testCards.isEmpty)
@@ -1476,7 +1593,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           LinearProgressIndicator(
             value: score / 100,
             backgroundColor: AppTheme.border,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.categoryBlue),
+            valueColor: const AlwaysStoppedAnimation<Color>(
+              AppTheme.categoryBlue,
+            ),
             minHeight: 8,
             borderRadius: BorderRadius.circular(4),
           ),
@@ -1655,7 +1774,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           LinearProgressIndicator(
             value: totalPlates > 0 ? correctCount / totalPlates : 0,
             backgroundColor: AppTheme.border,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.categoryPurple),
+            valueColor: const AlwaysStoppedAnimation<Color>(
+              AppTheme.categoryPurple,
+            ),
             minHeight: 8,
             borderRadius: BorderRadius.circular(4),
           ),
@@ -1924,7 +2045,13 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: AppTheme.fontXS, color: AppTheme.textSecondary)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: AppTheme.fontXS,
+            color: AppTheme.textSecondary,
+          ),
+        ),
         const SizedBox(height: 2),
         Text(
           value,
@@ -2034,7 +2161,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               const Text(
                 'Complete some tests to see your history here',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary),
+                style: TextStyle(
+                  fontSize: AppTheme.fontBody,
+                  color: AppTheme.textSecondary,
+                ),
               ),
             ],
           ),
@@ -2086,7 +2216,11 @@ class _ResultsReportPageState extends State<ResultsReportPage>
       ),
       child: Row(
         children: [
-          const Icon(Icons.calendar_today, color: AppTheme.categoryBlue, size: 18),
+          const Icon(
+            Icons.calendar_today,
+            color: AppTheme.categoryBlue,
+            size: 18,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -2103,7 +2237,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 const SizedBox(height: 2),
                 Text(
                   date,
-                  style: const TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSecondary),
+                  style: const TextStyle(
+                    fontSize: AppTheme.fontSM,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -2122,79 +2259,427 @@ class _ResultsReportPageState extends State<ResultsReportPage>
   }
 
   Widget _buildAIReportTab() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppTheme.categoryPurpleBg, AppTheme.categoryBlueBg],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppTheme.categoryPurple.withOpacity(0.3),
-                ),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header card
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [AppTheme.categoryPurpleBg, AppTheme.categoryBlueBg],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppTheme.categoryPurple.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.psychology,
-                      color: AppTheme.categoryPurple,
-                      size: 64,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'AI Report',
-                    style: TextStyle(
-                      fontSize: AppTheme.fontHeading,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Coming Soon',
-                    style: TextStyle(
-                      fontSize: AppTheme.fontXL,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.categoryPurple,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'The AI-powered comprehensive report feature is currently under development. We are working on finalizing the template to provide you with detailed insights and personalized recommendations.\n\nCheck back soon for updates!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: AppTheme.fontBody,
-                        color: AppTheme.textPrimary,
-                        height: 1.6,
-                      ),
-                    ),
-                  ),
-                ],
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.categoryPurple.withOpacity(0.3),
               ),
             ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.categoryPurple.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.psychology,
+                    color: AppTheme.categoryPurple,
+                    size: 36,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'AI Eye Health Report',
+                        style: TextStyle(
+                          fontSize: AppTheme.fontXL,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Powered by Google Gemini AI',
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSM,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Generate button
+          if (_aiReport == null && !_isGeneratingAIReport)
+            ElevatedButton.icon(
+              onPressed: _generateAIReport,
+              icon: const Icon(Icons.auto_awesome),
+              label: const Text('Generate AI Report'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: AppTheme.categoryPurple,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          // Loading state
+          if (_isGeneratingAIReport)
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text(
+                      'Analyzing your eye health data...',
+                      style: TextStyle(color: AppTheme.textSecondary),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'This may take a few seconds',
+                      style: TextStyle(
+                        fontSize: AppTheme.fontSM,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          // Error state
+          if (_aiReportError != null)
+            Card(
+              color: AppTheme.error.withOpacity(0.08),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      color: AppTheme.error,
+                      size: 32,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _aiReportError!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: AppTheme.error),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _generateAIReport,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.error,
+                      ),
+                      child: const Text(
+                        'Retry',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          // AI Report content
+          if (_aiReport != null) ...[
+            // Overall score card
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Overall Health Score',
+                      style: TextStyle(
+                        fontSize: AppTheme.fontBody,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Text(
+                          '${_aiReport!['overall_score'] ?? '--'}',
+                          style: const TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.categoryPurple,
+                          ),
+                        ),
+                        const Text(
+                          '/100',
+                          style: TextStyle(
+                            fontSize: AppTheme.fontXL,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.success.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${_aiReport!['health_status'] ?? 'N/A'}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.success,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_aiReport!['scores'] != null) ...[
+                      const Divider(height: 24),
+                      ...(_aiReport!['scores'] as Map<String, dynamic>).entries
+                          .map(
+                            (e) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    e.key.replaceAll('_', ' ').toUpperCase(),
+                                    style: const TextStyle(
+                                      fontSize: AppTheme.fontSM,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${e.value}/100',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // AI Report text
+            if (_aiReport!['ai_report_text'] != null)
+              Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.article_outlined,
+                            color: AppTheme.categoryPurple,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'AI Analysis',
+                            style: TextStyle(
+                              fontSize: AppTheme.fontBody,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 20),
+                      Text(
+                        '${_aiReport!['ai_report_text']}',
+                        style: const TextStyle(
+                          fontSize: AppTheme.fontBody,
+                          color: AppTheme.textPrimary,
+                          height: 1.6,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            const SizedBox(height: 12),
+            // Findings
+            if (_aiReport!['findings'] != null &&
+                (_aiReport!['findings'] as Map).isNotEmpty)
+              Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Key Findings',
+                        style: TextStyle(
+                          fontSize: AppTheme.fontBody,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const Divider(height: 20),
+                      ...(_aiReport!['findings'] as Map<String, dynamic>)
+                          .entries
+                          .map(
+                            (e) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(
+                                    Icons.circle,
+                                    size: 8,
+                                    color: AppTheme.categoryPurple,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          e.key
+                                              .replaceAll('_', ' ')
+                                              .toUpperCase(),
+                                          style: const TextStyle(
+                                            fontSize: AppTheme.fontSM,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppTheme.textSecondary,
+                                          ),
+                                        ),
+                                        Text(
+                                          '${e.value}',
+                                          style: const TextStyle(
+                                            color: AppTheme.textPrimary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                    ],
+                  ),
+                ),
+              ),
+            const SizedBox(height: 16),
+            // View Full Report button
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => _AIReportViewPage(
+                      report: _aiReport!,
+                      onDownloadPDF: _downloadAIPDF,
+                      isDownloadingPDF: _isDownloadingAIPDF,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.visibility),
+              label: const Text('View Full Report'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: AppTheme.categoryPurple,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Download AI PDF button
+            ElevatedButton.icon(
+              onPressed: _isDownloadingAIPDF ? null : _downloadAIPDF,
+              icon: _isDownloadingAIPDF
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.picture_as_pdf),
+              label: Text(
+                _isDownloadingAIPDF
+                    ? 'Generating PDF...'
+                    : 'Download AI Report PDF',
+              ),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: AppTheme.categoryBlue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Regenerate button
+            OutlinedButton.icon(
+              onPressed: _isGeneratingAIReport ? null : _generateAIReport,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Regenerate Report'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: const BorderSide(color: AppTheme.categoryPurple),
+                foregroundColor: AppTheme.categoryPurple,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'AI-generated reports are for informational purposes only. Consult a qualified eye care professional for medical advice.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: AppTheme.fontXS,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -2236,6 +2721,297 @@ class _ResultsReportPageState extends State<ResultsReportPage>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+class _AIReportViewPage extends StatelessWidget {
+  final Map<String, dynamic> report;
+  final VoidCallback onDownloadPDF;
+  final bool isDownloadingPDF;
+
+  const _AIReportViewPage({
+    required this.report,
+    required this.onDownloadPDF,
+    required this.isDownloadingPDF,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final String reportText = report['ai_report_text'] ?? '';
+    final double overallScore = (report['overall_score'] as num?)?.toDouble() ?? 0;
+    final String healthStatus = report['health_status'] ?? '';
+    final Map<String, dynamic> scores =
+        (report['scores'] as Map<String, dynamic>?) ?? {};
+    final String generationDate = report['generation_date'] ?? '';
+
+    // Parse sections: lines ending with ':' that are all-caps are headers
+    final List<Map<String, String>> sections = [];
+    String currentHeader = '';
+    final StringBuffer currentBody = StringBuffer();
+    for (final line in reportText.split('\n')) {
+      final trimmed = line.trim();
+      if (trimmed.isNotEmpty &&
+          trimmed.endsWith(':') &&
+          trimmed == trimmed.toUpperCase()) {
+        if (currentHeader.isNotEmpty || currentBody.isNotEmpty) {
+          sections.add({
+            'header': currentHeader,
+            'body': currentBody.toString().trim(),
+          });
+          currentBody.clear();
+        }
+        currentHeader = trimmed.replaceAll(':', '');
+      } else {
+        if (trimmed.isNotEmpty) currentBody.writeln(line);
+      }
+    }
+    if (currentHeader.isNotEmpty || currentBody.isNotEmpty) {
+      sections.add({
+        'header': currentHeader,
+        'body': currentBody.toString().trim(),
+      });
+    }
+    // If no sections parsed, treat entire text as one block
+    if (sections.isEmpty && reportText.isNotEmpty) {
+      sections.add({'header': '', 'body': reportText});
+    }
+
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'AI Eye Health Report',
+          style: TextStyle(
+            color: AppTheme.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          IconButton(
+            tooltip: 'Download PDF',
+            icon: isDownloadingPDF
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.picture_as_pdf, color: AppTheme.categoryBlue),
+            onPressed: isDownloadingPDF ? null : onDownloadPDF,
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Report header
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppTheme.categoryPurpleBg, AppTheme.categoryBlueBg],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppTheme.categoryPurple.withOpacity(0.3),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.psychology,
+                        color: AppTheme.categoryPurple,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          'NetraCare AI Report',
+                          style: TextStyle(
+                            fontSize: AppTheme.fontXL,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (generationDate.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Generated: ${generationDate.split('T').first}',
+                      style: const TextStyle(
+                        fontSize: AppTheme.fontSM,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Text(
+                        '${overallScore.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.categoryPurple,
+                        ),
+                      ),
+                      const Text(
+                        '/100',
+                        style: TextStyle(
+                          fontSize: AppTheme.fontXL,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (healthStatus.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.success.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            healthStatus,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.success,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (scores.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    const Divider(height: 1),
+                    const SizedBox(height: 12),
+                    ...scores.entries.map(
+                      (e) => Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                e.key.replaceAll('_', ' ').toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: AppTheme.fontSM,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${e.value}/100',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Report sections
+            ...sections.map(
+              (section) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Card(
+                  elevation: 0,
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color: Colors.grey.withOpacity(0.15),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (section['header']!.isNotEmpty) ...[
+                          Text(
+                            section['header']!,
+                            style: const TextStyle(
+                              fontSize: AppTheme.fontBody,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.categoryPurple,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const Divider(height: 16),
+                        ],
+                        Text(
+                          section['body']!,
+                          style: const TextStyle(
+                            fontSize: AppTheme.fontBody,
+                            color: AppTheme.textPrimary,
+                            height: 1.7,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Download button at bottom
+            ElevatedButton.icon(
+              onPressed: isDownloadingPDF ? null : onDownloadPDF,
+              icon: isDownloadingPDF
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.picture_as_pdf),
+              label: Text(
+                isDownloadingPDF ? 'Generating PDF...' : 'Download AI Report PDF',
+              ),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: AppTheme.categoryBlue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'AI-generated reports are for informational purposes only. Consult a qualified eye care professional for medical advice.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: AppTheme.fontXS,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }

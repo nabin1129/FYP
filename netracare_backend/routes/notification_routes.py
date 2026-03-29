@@ -19,6 +19,17 @@ from routes.doctor_routes import doctor_token_required
 # Create namespace
 notification_ns = Namespace('notifications', description='Notification management')
 
+reminder_model = notification_ns.model('ReminderCreate', {
+    'recipient_type': fields.String(required=True, description='user or doctor'),
+    'recipient_id': fields.Integer(required=True, description='Target user/doctor id'),
+    'title': fields.String(required=True, description='Reminder title'),
+    'message': fields.String(required=True, description='Reminder message body'),
+    'priority': fields.String(description='low, normal, high, urgent'),
+    'related_type': fields.String(description='Optional related entity type'),
+    'related_id': fields.Integer(description='Optional related entity id'),
+    'scheduled_for': fields.String(description='Optional ISO datetime for follow-up context'),
+})
+
 
 # ==========================
 # USER NOTIFICATION ROUTES
@@ -314,3 +325,116 @@ class DeleteDoctorNotification(Resource):
         except Exception as e:
             db.session.rollback()
             return {'message': f'Failed to delete: {str(e)}'}, 500
+
+
+# ==========================
+# REMINDER CREATION (ADMIN/DOCTOR)
+# ==========================
+
+@notification_ns.route('/admin/reminders')
+class CreateAdminReminder(Resource):
+    """Create a follow-up reminder as admin."""
+
+    @notification_ns.expect(reminder_model)
+    def post(self):
+        """Create in-app reminder notification for user/doctor."""
+        try:
+            data = request.get_json() or {}
+
+            recipient_type = (data.get('recipient_type') or '').strip().lower()
+            recipient_id = data.get('recipient_id')
+            title = (data.get('title') or '').strip()
+            message = (data.get('message') or '').strip()
+
+            if recipient_type not in {'user', 'doctor'}:
+                return {'message': 'recipient_type must be user or doctor'}, 400
+            if not isinstance(recipient_id, int):
+                return {'message': 'recipient_id must be an integer'}, 400
+            if not title or not message:
+                return {'message': 'title and message are required'}, 400
+
+            notification = Notification(
+                recipient_type=recipient_type,
+                recipient_id=recipient_id,
+                notification_type='reminder',
+                title=title,
+                message=message,
+                related_type=data.get('related_type'),
+                related_id=data.get('related_id'),
+                priority=(data.get('priority') or 'normal').lower(),
+            )
+
+            action_data = {
+                'created_by_role': 'admin',
+                'created_by': 'local_admin',
+            }
+            if data.get('scheduled_for'):
+                action_data['scheduled_for'] = data.get('scheduled_for')
+            notification.set_action_data(action_data)
+
+            db.session.add(notification)
+            db.session.commit()
+
+            return {
+                'message': 'Reminder created successfully',
+                'notification': notification.to_dict(),
+            }, 201
+        except Exception as e:
+            db.session.rollback()
+            return {'message': f'Failed to create reminder: {str(e)}'}, 500
+
+
+@notification_ns.route('/doctor/reminders')
+class CreateDoctorReminder(Resource):
+    """Create a follow-up reminder as doctor."""
+
+    @notification_ns.doc(security='Bearer')
+    @notification_ns.expect(reminder_model)
+    @doctor_token_required
+    def post(self, current_doctor):
+        """Create in-app reminder notification for patient users."""
+        try:
+            data = request.get_json() or {}
+
+            recipient_type = (data.get('recipient_type') or '').strip().lower()
+            recipient_id = data.get('recipient_id')
+            title = (data.get('title') or '').strip()
+            message = (data.get('message') or '').strip()
+
+            if recipient_type != 'user':
+                return {'message': 'Doctor reminders can only target users'}, 400
+            if not isinstance(recipient_id, int):
+                return {'message': 'recipient_id must be an integer'}, 400
+            if not title or not message:
+                return {'message': 'title and message are required'}, 400
+
+            notification = Notification(
+                recipient_type='user',
+                recipient_id=recipient_id,
+                notification_type='reminder',
+                title=title,
+                message=message,
+                related_type=data.get('related_type') or 'followup',
+                related_id=data.get('related_id'),
+                priority=(data.get('priority') or 'normal').lower(),
+            )
+
+            action_data = {
+                'created_by_role': 'doctor',
+                'doctor_id': current_doctor.id,
+                'doctor_name': current_doctor.name,
+            }
+            if data.get('scheduled_for'):
+                action_data['scheduled_for'] = data.get('scheduled_for')
+            notification.set_action_data(action_data)
+
+            db.session.add(notification)
+            db.session.commit()
+
+            return {
+                'message': 'Reminder created successfully',
+                'notification': notification.to_dict(),
+            }, 201
+        except Exception as e:
+            db.session.rollback()
+            return {'message': f'Failed to create reminder: {str(e)}'}, 500
