@@ -25,6 +25,10 @@ class _DashboardPageState extends State<DashboardPage> {
   int selectedIndex = 0;
   Consultation? nextConsultation;
 
+  int _eyeHealthScore = 0;
+  int _pendingTests = 3;
+  bool _eyeHealthLoading = true;
+
   final ConsultationService _consultationService = ConsultationService();
   final NotificationService _notificationService = NotificationService();
 
@@ -35,7 +39,11 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> _initializeData() async {
-    await Future.wait([_loadNextConsultation(), _loadNotificationCount()]);
+    await Future.wait([
+      _loadNextConsultation(),
+      _loadNotificationCount(),
+      _loadEyeHealthSummary(),
+    ]);
 
     // Initialize notification polling for user role
     _notificationService.setRole(NotificationRole.user);
@@ -68,6 +76,62 @@ class _DashboardPageState extends State<DashboardPage> {
       await _notificationService.getUnreadCount();
     } catch (e) {
       // Ignore errors
+    }
+  }
+
+  Future<void> _loadEyeHealthSummary() async {
+    try {
+      final data = await ApiService.getAllTestResults();
+
+      final vaTests = (data['visual_acuity']?['tests'] as List? ?? [])
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
+      final cvTests = (data['colour_vision']?['tests'] as List? ?? [])
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
+      final etTests = (data['eye_tracking']?['tests'] as List? ?? [])
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
+
+      int totalScore = 0;
+      int completedTypes = 0;
+
+      if (vaTests.isNotEmpty) {
+        totalScore += (vaTests.first['score'] as num?)?.toInt() ?? 70;
+        completedTypes++;
+      }
+
+      if (cvTests.isNotEmpty) {
+        totalScore += (cvTests.first['score'] as num?)?.toInt() ?? 80;
+        completedTypes++;
+      }
+
+      if (etTests.isNotEmpty) {
+        final accuracy =
+            (etTests.first['gaze_accuracy'] as num?)?.toDouble() ?? 75.0;
+        totalScore += accuracy.toInt();
+        completedTypes++;
+      }
+
+      const totalTypes = 3; // VA, Colour Vision, Eye Tracking
+      final score = completedTypes > 0
+          ? (totalScore / completedTypes).round()
+          : 0;
+      final pending = (totalTypes - completedTypes).clamp(0, totalTypes);
+
+      if (mounted) {
+        setState(() {
+          _eyeHealthScore = score;
+          _pendingTests = pending;
+          _eyeHealthLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _eyeHealthLoading = false;
+        });
+      }
     }
   }
 
@@ -540,6 +604,22 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _eyeHealthStatus() {
+    final statusColor = _eyeHealthScore >= 80
+        ? AppTheme.success
+        : _eyeHealthScore >= 60
+        ? AppTheme.warning
+        : AppTheme.error;
+
+    final pendingText = _pendingTests > 0
+        ? '$_pendingTests test${_pendingTests == 1 ? '' : 's'} pending'
+        : 'All tests up to date';
+
+    final statusText = _eyeHealthScore >= 80
+        ? 'Good Eye Health'
+        : _eyeHealthScore >= 60
+        ? 'Moderate Eye Health'
+        : 'Needs Attention';
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -551,25 +631,45 @@ class _DashboardPageState extends State<DashboardPage> {
         children: [
           CircleAvatar(
             radius: 30,
-            backgroundColor: AppTheme.success.withValues(alpha: 0.1),
-            child: const Text(
-              "85",
-              style: TextStyle(
-                color: AppTheme.success,
-                fontWeight: FontWeight.bold,
-                fontSize: AppTheme.fontTitle,
-              ),
-            ),
+            backgroundColor: statusColor.withValues(alpha: 0.1),
+            child: _eyeHealthLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    _eyeHealthScore.toString(),
+                    style: TextStyle(
+                      color: statusColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: AppTheme.fontTitle,
+                    ),
+                  ),
           ),
           const SizedBox(width: 20),
-          const Expanded(
-            child: Text(
-              "Good Eye Health\n2 tests pending",
-              style: TextStyle(
-                fontSize: AppTheme.fontBody,
-                fontWeight: FontWeight.w500,
-                color: AppTheme.textPrimary,
-              ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _eyeHealthLoading ? 'Loading eye health...' : statusText,
+                  style: const TextStyle(
+                    fontSize: AppTheme.fontBody,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _eyeHealthLoading ? 'Please wait' : pendingText,
+                  style: const TextStyle(
+                    fontSize: AppTheme.fontBody,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
