@@ -96,10 +96,10 @@ def generate_admin_token(admin_email: str) -> str:
 
 
 def admin_token_required(fn):
-    """Decorator to protect admin-only endpoints."""
+    """Decorator to protect admin-only endpoints (expects self as first arg)."""
 
     @wraps(fn)
-    def wrapper(*args, **kwargs):
+    def wrapper(self, *args, **kwargs):  # KEEP self for class-based views
         auth = request.headers.get("Authorization", "")
 
         if not auth.startswith("Bearer "):
@@ -108,14 +108,25 @@ def admin_token_required(fn):
         token = auth.split(" ", 1)[1]
 
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            payload = jwt.decode(
+                token,
+                SECRET_KEY,
+                algorithms=["HS256"],
+                options={"require": ["exp", "iat", "sub"], "verify_exp": True},
+                leeway=30,
+            )
+
             if payload.get("type") != "admin":
                 return {"message": "Invalid token type for admin route"}, 403
-            kwargs["current_admin"] = payload.get("sub")
-            return fn(*args, **kwargs)
+
+            current_admin = payload.get("sub")
+            return fn(self, *args, current_admin=current_admin, **kwargs)
         except jwt.ExpiredSignatureError:
             return {"message": "Admin token expired"}, 401
         except jwt.InvalidTokenError:
             return {"message": "Invalid admin token"}, 401
+        except Exception as e:
+            print(f"Unexpected admin token validation error: {e}")
+            return {"message": "Admin token validation failed"}, 401
 
     return wrapper

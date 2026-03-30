@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from db_model import db
 from models.notification import Notification
-from auth_utils import token_required
+from auth_utils import token_required, admin_token_required
 from routes.doctor_routes import doctor_token_required
 
 # Create namespace
@@ -335,8 +335,10 @@ class DeleteDoctorNotification(Resource):
 class CreateAdminReminder(Resource):
     """Create a follow-up reminder as admin."""
 
+    @notification_ns.doc(security='Bearer')
     @notification_ns.expect(reminder_model)
-    def post(self):
+    @admin_token_required
+    def post(self, current_admin=None):
         """Create in-app reminder notification for user/doctor."""
         try:
             data = request.get_json() or {}
@@ -382,6 +384,37 @@ class CreateAdminReminder(Resource):
         except Exception as e:
             db.session.rollback()
             return {'message': f'Failed to create reminder: {str(e)}'}, 500
+
+
+@notification_ns.route('/admin')
+class AdminNotifications(Resource):
+    """List system notifications for admins (read-only)."""
+
+    @notification_ns.doc(security='Bearer')
+    @admin_token_required
+    def get(self, current_admin=None):
+        try:
+            unread_only = request.args.get('unread', 'false').lower() == 'true'
+            priority = request.args.get('priority')
+            notif_type = request.args.get('type')
+            limit = request.args.get('limit', 100, type=int)
+
+            query = Notification.query
+            if unread_only:
+                query = query.filter_by(is_read=False)
+            if priority:
+                query = query.filter_by(priority=priority.lower())
+            if notif_type:
+                query = query.filter_by(notification_type=notif_type)
+
+            notifications = query.order_by(desc(Notification.created_at)).limit(limit).all()
+
+            return {
+                'notifications': [n.to_dict() for n in notifications],
+                'total': len(notifications),
+            }, 200
+        except Exception as e:
+            return {'message': f'Failed to fetch admin notifications: {str(e)}'}, 500
 
 
 @notification_ns.route('/doctor/reminders')

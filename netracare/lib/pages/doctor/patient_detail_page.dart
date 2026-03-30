@@ -1,6 +1,10 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../../config/app_theme.dart';
+import '../../config/api_config.dart';
 import '../../services/doctor_service.dart';
+import '../../services/doctor_api_service.dart';
 import '../../models/doctor/patient_model.dart';
 import '../../models/doctor/medical_record_model.dart';
 import 'add_clinical_note_page.dart';
@@ -24,6 +28,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
   Patient? _patient;
   List<MedicalRecord> _medicalRecords = [];
   List<ClinicalNote> _clinicalNotes = [];
+  Map<String, List<Map<String, dynamic>>> _testHistory = {};
   bool _isLoading = true;
 
   @override
@@ -39,13 +44,66 @@ class _PatientDetailPageState extends State<PatientDetailPage>
     super.dispose();
   }
 
-  void _loadData() {
-    setState(() {
-      _patient = _doctorService.getPatientById(widget.patientId);
-      _medicalRecords = _doctorService.getMedicalRecords(widget.patientId);
-      _clinicalNotes = _doctorService.getClinicalNotes(widget.patientId);
-      _isLoading = false;
-    });
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    try {
+      final token = await DoctorApiService.getDoctorToken();
+      if (token != null) {
+        final patientId = int.tryParse(widget.patientId);
+        if (patientId != null) {
+          final response = await http.get(
+            Uri.parse(
+              '${ApiConfig.baseUrl}${ApiConfig.doctorPatientDetailEndpoint(patientId)}',
+            ),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          );
+
+          if (response.statusCode == 200) {
+            final data = jsonDecode(response.body) as Map<String, dynamic>;
+            final patientJson = data['patient'] as Map<String, dynamic>?;
+            final historyJson =
+                data['test_history'] as Map<String, dynamic>? ?? {};
+
+            if (mounted) {
+              setState(() {
+                if (patientJson != null) {
+                  _patient = Patient.fromJson(patientJson);
+                }
+                _testHistory = historyJson.map(
+                  (key, value) => MapEntry(
+                    key,
+                    List<Map<String, dynamic>>.from(value as List),
+                  ),
+                );
+                _medicalRecords = _doctorService.getMedicalRecords(
+                  widget.patientId,
+                );
+                _clinicalNotes = _doctorService.getClinicalNotes(
+                  widget.patientId,
+                );
+                _isLoading = false;
+              });
+            }
+            return;
+          }
+        }
+      }
+    } catch (_) {
+      // Fall through to local data
+    }
+
+    // Fallback to local service data
+    if (mounted) {
+      setState(() {
+        _patient = _doctorService.getPatientById(widget.patientId);
+        _medicalRecords = _doctorService.getMedicalRecords(widget.patientId);
+        _clinicalNotes = _doctorService.getClinicalNotes(widget.patientId);
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -254,7 +312,10 @@ class _PatientDetailPageState extends State<PatientDetailPage>
         unselectedLabelColor: AppTheme.textSecondary,
         indicatorColor: AppTheme.primary,
         indicatorWeight: 2,
-        labelStyle: const TextStyle(fontSize: AppTheme.fontSM, fontWeight: FontWeight.w600),
+        labelStyle: const TextStyle(
+          fontSize: AppTheme.fontSM,
+          fontWeight: FontWeight.w600,
+        ),
         tabs: const [
           Tab(text: 'Test Results'),
           Tab(text: 'Medical Records'),
@@ -268,6 +329,12 @@ class _PatientDetailPageState extends State<PatientDetailPage>
   // TEST RESULTS TAB
   // ============================================
   Widget _buildTestResultsTab() {
+    // Use real test history from API when available
+    if (_testHistory.isNotEmpty) {
+      return _buildRealTestHistory();
+    }
+
+    // Fallback to PatientTestSummary from local model
     final testSummary = _patient!.testSummary;
     if (testSummary == null) {
       return _buildEmptyState('No test results available', Icons.assignment);
@@ -433,6 +500,158 @@ class _PatientDetailPageState extends State<PatientDetailPage>
         ],
       ),
     );
+  }
+
+  // ============================================
+  // REAL TEST HISTORY (from API)
+  // ============================================
+  Widget _buildRealTestHistory() {
+    final testTypes = {
+      'visual_acuity': (label: 'Visual Acuity', icon: Icons.visibility),
+      'colour_vision': (label: 'Colour Vision', icon: Icons.color_lens),
+      'blink_fatigue': (label: 'Blink Fatigue', icon: Icons.remove_red_eye),
+      'pupil_reflex': (label: 'Pupil Reflex', icon: Icons.flash_on),
+      'eye_tracking': (label: 'Eye Tracking', icon: Icons.track_changes),
+    };
+
+    final hasAny = testTypes.keys.any(
+      (k) => (_testHistory[k]?.isNotEmpty ?? false),
+    );
+
+    if (!hasAny) {
+      return _buildEmptyState('No test results available', Icons.assignment);
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppTheme.spaceMD),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final entry in testTypes.entries)
+            if (_testHistory[entry.key]?.isNotEmpty ?? false) ...[
+              _buildTestHistorySection(
+                entry.value.label,
+                entry.value.icon,
+                _testHistory[entry.key]!,
+              ),
+              const SizedBox(height: AppTheme.spaceMD),
+            ],
+          const SizedBox(height: 80),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTestHistorySection(
+    String label,
+    IconData icon,
+    List<Map<String, dynamic>> results,
+  ) {
+    final latest = results.first;
+    final createdAt = latest['created_at'] as String?;
+    String dateStr = '';
+    if (createdAt != null) {
+      final dt = DateTime.tryParse(createdAt);
+      if (dt != null) {
+        final diff = DateTime.now().difference(dt);
+        if (diff.inDays > 0) {
+          dateStr = '${diff.inDays}d ago';
+        } else if (diff.inHours > 0) {
+          dateStr = '${diff.inHours}h ago';
+        } else {
+          dateStr = 'Just now';
+        }
+      }
+    }
+
+    // Extract meaningful result text
+    String resultText = _extractTestResultText(label, latest);
+
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spaceMD),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppTheme.testIconBackground,
+              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+            ),
+            child: Icon(icon, color: AppTheme.testIconColor, size: 22),
+          ),
+          const SizedBox(width: AppTheme.spaceMD),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                Text(
+                  resultText,
+                  style: const TextStyle(
+                    fontSize: AppTheme.fontSM,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (dateStr.isNotEmpty)
+            Text(
+              dateStr,
+              style: const TextStyle(
+                fontSize: AppTheme.fontXS,
+                color: AppTheme.textLight,
+              ),
+            ),
+          const SizedBox(width: AppTheme.spaceSM),
+          Text(
+            '${results.length}',
+            style: const TextStyle(
+              fontSize: AppTheme.fontXS,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const Icon(Icons.history, size: 14, color: AppTheme.textLight),
+        ],
+      ),
+    );
+  }
+
+  String _extractTestResultText(String testLabel, Map<String, dynamic> result) {
+    switch (testLabel) {
+      case 'Visual Acuity':
+        final score = result['score'] ?? result['snellen_equivalent'];
+        return score != null ? 'Score: $score' : 'Completed';
+      case 'Colour Vision':
+        final passed = result['passed'];
+        if (passed is bool) return passed ? 'Normal' : 'Deficiency detected';
+        return 'Completed';
+      case 'Blink Fatigue':
+        final bpm = result['blink_rate'] ?? result['blinks_per_minute'];
+        return bpm != null
+            ? '${bpm.toStringAsFixed(1)} blinks/min'
+            : 'Completed';
+      case 'Pupil Reflex':
+        final status = result['result'] ?? result['status'];
+        return status?.toString() ?? 'Completed';
+      case 'Eye Tracking':
+        final status = result['tracking_status'] ?? result['result'];
+        return status?.toString() ?? 'Completed';
+      default:
+        return 'Completed';
+    }
   }
 
   // ============================================
@@ -698,7 +917,10 @@ class _PatientDetailPageState extends State<PatientDetailPage>
               const Spacer(),
               Text(
                 note.formattedDate,
-                style: const TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textLight),
+                style: const TextStyle(
+                  fontSize: AppTheme.fontSM,
+                  color: AppTheme.textLight,
+                ),
               ),
             ],
           ),
@@ -714,7 +936,10 @@ class _PatientDetailPageState extends State<PatientDetailPage>
           const SizedBox(height: 4),
           Text(
             note.content,
-            style: const TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSecondary),
+            style: const TextStyle(
+              fontSize: AppTheme.fontSM,
+              color: AppTheme.textSecondary,
+            ),
           ),
           const SizedBox(height: AppTheme.spaceSM),
           Text(
@@ -735,11 +960,18 @@ class _PatientDetailPageState extends State<PatientDetailPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 64, color: AppTheme.textLight.withValues(alpha: 0.5)),
+          Icon(
+            icon,
+            size: 64,
+            color: AppTheme.textLight.withValues(alpha: 0.5),
+          ),
           const SizedBox(height: AppTheme.spaceMD),
           Text(
             message,
-            style: const TextStyle(fontSize: AppTheme.fontLG, color: AppTheme.textSecondary),
+            style: const TextStyle(
+              fontSize: AppTheme.fontLG,
+              color: AppTheme.textSecondary,
+            ),
           ),
         ],
       ),

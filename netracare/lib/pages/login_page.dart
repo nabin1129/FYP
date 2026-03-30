@@ -7,6 +7,7 @@ import '../pages/signup_page.dart';
 import '../pages/forgot_password_page.dart';
 import '../pages/dashboard_page.dart';
 import '../pages/doctor/doctor_dashboard_page.dart';
+import '../pages/doctor/doctor_change_password_page.dart';
 import '../pages/admin/admin_dashboard_page.dart';
 import '../services/api_service.dart';
 import '../widgets/auth/animated_input_field.dart';
@@ -425,8 +426,9 @@ class _LoginPageState extends State<LoginPage>
 
       await _saveOrClearCredentials();
 
-      // ── Admin login (local, no API) ──────────────────────────────
-      if (email == 'admin' && password == 'admin333221') {
+      // ── Admin login (real API, saves admin token) ────────────────
+      final isAdmin = await ApiService.adminLogin(email, password);
+      if (isAdmin) {
         if (mounted) {
           Navigator.pushReplacement(
             context,
@@ -439,11 +441,23 @@ class _LoginPageState extends State<LoginPage>
       // ── Doctor login ─────────────────────────────────────────────
       final isDoctor = await ApiService.doctorLogin(email, password);
       if (isDoctor) {
+        // Check if doctor needs to change password on first login
+        final forcePasswordChange =
+            await ApiService.getDoctorForcePasswordChange();
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const DoctorDashboardPage()),
-          );
+          if (forcePasswordChange) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const DoctorChangePasswordPage(),
+              ),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const DoctorDashboardPage()),
+            );
+          }
         }
         return;
       }

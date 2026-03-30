@@ -82,11 +82,36 @@ class ApiService {
           value: token,
           aOptions: const AndroidOptions(encryptedSharedPreferences: true),
         );
+        // Save force_password_change flag from response
+        final forcePasswordChange =
+            data['force_password_change'] as bool? ?? false;
+        await _storage.write(
+          key: 'doctor_force_password_change',
+          value: forcePasswordChange ? 'true' : 'false',
+          aOptions: const AndroidOptions(encryptedSharedPreferences: true),
+        );
       }
       return true;
     }
     if (response.statusCode == 401) return false;
     _throwReadableError(response);
+  }
+
+  /// Check if doctor needs to change password
+  static Future<bool> getDoctorForcePasswordChange() async {
+    final value = await _storage.read(
+      key: 'doctor_force_password_change',
+      aOptions: const AndroidOptions(encryptedSharedPreferences: true),
+    );
+    return value == 'true';
+  }
+
+  static Future<void> clearDoctorForcePasswordChange() async {
+    await _storage.write(
+      key: 'doctor_force_password_change',
+      value: 'false',
+      aOptions: const AndroidOptions(encryptedSharedPreferences: true),
+    );
   }
 
   /// Try to login as admin via /api/admin/login.

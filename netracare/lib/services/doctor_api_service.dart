@@ -5,12 +5,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/api_config.dart';
 import '../models/consultation/consultation_model.dart';
 import '../models/consultation/doctor_model.dart';
-import '../models/consultation/chat_message_model.dart';
 
 /// API Service for Doctor-Patient linking and consultations
 /// Handles real API calls to the backend
 class DoctorApiService {
-  static const _storage = FlutterSecureStorage();
+  static const _storage = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
   static const String _tokenKey = 'auth_token';
   static const String _doctorTokenKey = 'doctor_token';
 
@@ -39,6 +40,272 @@ class DoctorApiService {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
     };
+  }
+
+  // =========================
+  // DOCTOR ACCOUNT MANAGEMENT
+  // =========================
+
+  /// Change doctor's password
+  static Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final token = await getDoctorToken();
+      if (token == null) {
+        throw Exception('Please login as a doctor');
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/doctors/change-password'),
+        headers: _getHeaders(token),
+        body: jsonEncode({
+          'current_password': currentPassword,
+          'new_password': newPassword,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Password change failed');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Get all users for doctor to view
+  static Future<List<Map<String, dynamic>>> getAllUsers() async {
+    try {
+      final token = await getDoctorToken();
+      if (token == null) {
+        throw Exception('Please login as a doctor');
+      }
+
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/api/doctors/all-users'),
+        headers: _getHeaders(token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(data['users'] ?? []);
+      }
+
+      throw Exception('Failed to fetch users');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Share test result with doctor via consultation
+  static Future<void> shareTestWithDoctor({
+    required String consultationId,
+    required String testType,
+    required String testId,
+  }) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        throw Exception('Please login');
+      }
+
+      final response = await http.post(
+        Uri.parse(
+          '${ApiConfig.baseUrl}/api/consultations/$consultationId/share-test',
+        ),
+        headers: _getHeaders(token),
+        body: jsonEncode({'test_type': testType, 'test_id': testId}),
+      );
+
+      if (response.statusCode != 201 && response.statusCode != 200) {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Failed to share test');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // =========================
+  // MESSAGING (PATIENT)
+  // =========================
+
+  /// Get chat messages for patient-doctor consultation
+  static Future<List<Map<String, dynamic>>> getConsultationMessages({
+    required String consultationId,
+  }) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        throw Exception('Please login');
+      }
+
+      final response = await http.get(
+        Uri.parse(
+          '${ApiConfig.baseUrl}/api/consultations/$consultationId/messages',
+        ),
+        headers: _getHeaders(token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(data['messages'] ?? []);
+      }
+
+      throw Exception('Failed to fetch messages');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Send message from patient to doctor
+  static Future<Map<String, dynamic>> sendPatientMessage({
+    required String consultationId,
+    required String message,
+  }) async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        throw Exception('Please login');
+      }
+
+      final response = await http.post(
+        Uri.parse(
+          '${ApiConfig.baseUrl}/api/consultations/$consultationId/messages',
+        ),
+        headers: _getHeaders(token),
+        body: jsonEncode({'message': message}),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['message'] ?? {};
+      }
+
+      final error = jsonDecode(response.body);
+      throw Exception(error['message'] ?? 'Failed to send message');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // =========================
+  // MESSAGING (DOCTOR)
+  // =========================
+
+  /// Get chat messages for doctor (doctor-side endpoint)
+  static Future<List<Map<String, dynamic>>> getDoctorConsultationMessages({
+    required String consultationId,
+  }) async {
+    try {
+      final token = await getDoctorToken();
+      if (token == null) {
+        throw Exception('Please login as a doctor');
+      }
+
+      final response = await http.get(
+        Uri.parse(
+          '${ApiConfig.baseUrl}/api/consultations/$consultationId/doctor/messages',
+        ),
+        headers: _getHeaders(token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(data['messages'] ?? []);
+      }
+
+      throw Exception('Failed to fetch messages');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Send message from doctor to patient
+  static Future<Map<String, dynamic>> sendDoctorMessage({
+    required String consultationId,
+    required String message,
+  }) async {
+    try {
+      final token = await getDoctorToken();
+      if (token == null) {
+        throw Exception('Please login as a doctor');
+      }
+
+      final response = await http.post(
+        Uri.parse(
+          '${ApiConfig.baseUrl}/api/consultations/$consultationId/doctor/messages',
+        ),
+        headers: _getHeaders(token),
+        body: jsonEncode({'message': message}),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['message'] ?? {};
+      }
+
+      final error = jsonDecode(response.body);
+      throw Exception(error['message'] ?? 'Failed to send message');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // =========================
+  // CONSULTATION MANAGEMENT
+  // =========================
+
+  /// Accept a consultation request
+  static Future<void> acceptConsultation({
+    required String consultationId,
+  }) async {
+    try {
+      final token = await getDoctorToken();
+      if (token == null) {
+        throw Exception('Please login as a doctor');
+      }
+
+      final response = await http.put(
+        Uri.parse('${ApiConfig.baseUrl}/api/consultations/$consultationId'),
+        headers: _getHeaders(token),
+        body: jsonEncode({'status': 'scheduled'}),
+      );
+
+      if (response.statusCode != 200) {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Failed to accept consultation');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Reject a consultation request
+  static Future<void> rejectConsultation({
+    required String consultationId,
+  }) async {
+    try {
+      final token = await getDoctorToken();
+      if (token == null) {
+        throw Exception('Please login as a doctor');
+      }
+
+      final response = await http.put(
+        Uri.parse('${ApiConfig.baseUrl}/api/consultations/$consultationId'),
+        headers: _getHeaders(token),
+        body: jsonEncode({'status': 'rejected'}),
+      );
+
+      if (response.statusCode != 200) {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Failed to reject consultation');
+      }
+    } catch (e) {
+      rethrow;
+    }
   }
 
   // =========================
@@ -281,107 +548,6 @@ class DoctorApiService {
       );
 
       return response.statusCode == 200;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // =========================
-  // CONSULTATION MESSAGES
-  // =========================
-
-  /// Get consultation messages
-  static Future<List<ChatMessage>> getConsultationMessages(
-    int consultationId,
-  ) async {
-    try {
-      final token = await getToken();
-
-      if (token == null) {
-        throw Exception('Please login');
-      }
-
-      final response = await http.get(
-        Uri.parse(
-          '${ApiConfig.baseUrl}${ApiConfig.consultationMessagesEndpoint(consultationId)}',
-        ),
-        headers: _getHeaders(token),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return (data['messages'] as List)
-            .map((m) => ChatMessage.fromJson(m as Map<String, dynamic>))
-            .toList();
-      }
-
-      throw Exception('Failed to fetch messages');
-    } catch (e) {
-      return ChatMessage.getMockMessages();
-    }
-  }
-
-  /// Send a message in consultation
-  static Future<ChatMessage?> sendMessage({
-    required int consultationId,
-    required String content,
-    String messageType = 'text',
-    String? testType,
-    int? testId,
-  }) async {
-    try {
-      final token = await getToken();
-
-      if (token == null) {
-        throw Exception('Please login');
-      }
-
-      final body = {'content': content, 'message_type': messageType};
-
-      if (testType != null) body['test_type'] = testType;
-      if (testId != null) body['test_id'] = testId.toString();
-
-      final response = await http.post(
-        Uri.parse(
-          '${ApiConfig.baseUrl}${ApiConfig.consultationMessagesEndpoint(consultationId)}',
-        ),
-        headers: _getHeaders(token),
-        body: jsonEncode(body),
-      );
-
-      if (response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        return ChatMessage.fromJson(data['data'] as Map<String, dynamic>);
-      }
-
-      throw Exception('Failed to send message');
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Share test result with doctor
-  static Future<bool> shareTestResult({
-    required int consultationId,
-    required String testType,
-    required int testId,
-  }) async {
-    try {
-      final token = await getToken();
-
-      if (token == null) {
-        throw Exception('Please login');
-      }
-
-      final response = await http.post(
-        Uri.parse(
-          '${ApiConfig.baseUrl}${ApiConfig.shareTestEndpoint(consultationId)}',
-        ),
-        headers: _getHeaders(token),
-        body: jsonEncode({'test_type': testType, 'test_id': testId}),
-      );
-
-      return response.statusCode == 201;
     } catch (e) {
       return false;
     }

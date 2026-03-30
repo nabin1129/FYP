@@ -49,6 +49,7 @@ class Doctor(db.Model):
     # Status
     is_verified = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
+    force_password_change = db.Column(db.Boolean, default=False)  # True for admin-created accounts
     
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -89,6 +90,7 @@ class Doctor(db.Model):
             'total_consultations': self.total_consultations,
             'total_patients': self.total_patients,
             'is_verified': self.is_verified,
+            'force_password_change': self.force_password_change,
             'created_at': self.created_at.isoformat() if self.created_at else None,
         }
         

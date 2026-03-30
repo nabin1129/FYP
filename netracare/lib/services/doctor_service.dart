@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 import '../models/doctor/patient_model.dart';
 import '../models/doctor/medical_record_model.dart';
 import '../models/doctor/doctor_analytics_model.dart';
@@ -39,9 +42,19 @@ class DoctorService {
     _initialized = true;
   }
 
-  /// Initialize from API
+  /// Initialize from API — always resets state (called on each login)
   Future<void> initializeAsync() async {
+    // Reset so stale data from a previous session is cleared
+    _initialized = false;
+    _patients.clear();
+    _consultationRequests.clear();
+    _analytics = null;
+    _doctorName = null;
+    _doctorSpecialization = null;
+
     try {
+      await fetchDoctorProfileAsync();
+
       final patients = await getPatientsAsync();
       _patients.clear();
       _patients.addAll(patients);
@@ -53,8 +66,42 @@ class DoctorService {
       _analytics = await getAnalyticsAsync();
       _initialized = true;
     } catch (e) {
-      // Fall back to mock data
-      initialize();
+      _initialized = true; // Mark done even on failure so sync getters work
+    }
+  }
+
+  // ============================================
+  // DOCTOR PROFILE
+  // ============================================
+
+  String? _doctorName;
+  String? _doctorSpecialization;
+
+  String get doctorName => _doctorName ?? 'Doctor';
+  String get doctorSpecialization => _doctorSpecialization ?? '';
+
+  /// Fetch doctor profile from API
+  Future<void> fetchDoctorProfileAsync() async {
+    try {
+      final token = await DoctorApiService.getDoctorToken();
+      if (token == null) return;
+
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.doctorProfileEndpoint}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final doctor = data['doctor'] as Map<String, dynamic>? ?? {};
+        _doctorName = doctor['name'] as String?;
+        _doctorSpecialization = doctor['specialization'] as String?;
+      }
+    } catch (_) {
+      // Keep defaults
     }
   }
 
@@ -70,9 +117,30 @@ class DoctorService {
 
   /// Get all patients from API
   Future<List<Patient>> getPatientsAsync() async {
-    // Uses mock data until doctor-specific patient list API is available
-    if (!_initialized) initialize();
-    return List.from(_patients);
+    try {
+      final token = await DoctorApiService.getDoctorToken();
+      if (token == null) throw Exception('No doctor token');
+
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.doctorPatientsEndpoint}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final list = data['patients'] as List;
+        return list
+            .map((p) => Patient.fromJson(p as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw Exception('Failed: ${response.statusCode}');
+    } catch (_) {
+      return List.from(_patients);
+    }
   }
 
   /// Get patient by ID
@@ -87,8 +155,30 @@ class DoctorService {
 
   /// Get patient by ID from API
   Future<Patient?> getPatientByIdAsync(String id) async {
-    // Falls back to local data until doctor-specific patient details API is available
-    return getPatientById(id);
+    try {
+      final token = await DoctorApiService.getDoctorToken();
+      if (token == null) throw Exception('No doctor token');
+
+      final patientId = int.parse(id);
+      final response = await http.get(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.doctorPatientDetailEndpoint(patientId)}',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return Patient.fromJson(data['patient'] as Map<String, dynamic>);
+      }
+
+      return null;
+    } catch (_) {
+      return getPatientById(id);
+    }
   }
 
   /// Search patients by name
@@ -193,8 +283,28 @@ class DoctorService {
 
   /// Get dashboard analytics from API
   Future<DoctorAnalytics> getAnalyticsAsync() async {
-    // Falls back to local data until doctor stats API is available
-    return getAnalytics();
+    try {
+      final token = await DoctorApiService.getDoctorToken();
+      if (token == null) throw Exception('No doctor token');
+
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.doctorStatsEndpoint}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final stats = jsonDecode(response.body) as Map<String, dynamic>;
+        final scores = _patients.map((p) => p.healthScore).toList();
+        return DoctorAnalytics.fromJson(stats, scores);
+      }
+
+      throw Exception('Failed: ${response.statusCode}');
+    } catch (_) {
+      return _analytics ?? DoctorAnalytics.empty();
+    }
   }
 
   /// Get patient statistics summary
@@ -237,8 +347,32 @@ class DoctorService {
 
   /// Get all consultation requests from API
   Future<List<ConsultationRequest>> getConsultationRequestsAsync() async {
-    // Falls back to local data until doctor consultations API is available
-    return getConsultationRequests();
+    try {
+      final token = await DoctorApiService.getDoctorToken();
+      if (token == null) throw Exception('No doctor token');
+
+      final response = await http.get(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.doctorConsultationsEndpoint}',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final list = data['consultations'] as List;
+        return list
+            .map((c) => ConsultationRequest.fromJson(c as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw Exception('Failed: ${response.statusCode}');
+    } catch (_) {
+      return List.from(_consultationRequests);
+    }
   }
 
   /// Get pending consultation requests
@@ -331,13 +465,34 @@ class DoctorService {
   Future<List<ChatMessage>> getChatHistoryAsync(int consultationId) async {
     try {
       final messages = await DoctorApiService.getConsultationMessages(
-        consultationId,
+        consultationId: consultationId.toString(),
       );
-      return messages;
+      // Convert Map messages to ChatMessage objects
+      return messages.map((msg) {
+        return ChatMessage(
+          id: msg['id']?.toString() ?? '',
+          sender: msg['sender'] == 'doctor'
+              ? MessageSender.doctor
+              : MessageSender.user,
+          message: msg['content'] ?? msg['message'] ?? '',
+          time: _formatTime(msg['timestamp'] ?? msg['created_at'] ?? ''),
+        );
+      }).toList();
     } catch (e) {
       // Fall through to mock data
     }
     return ChatMessage.getMockMessages();
+  }
+
+  /// Format API timestamp to display time
+  String _formatTime(dynamic timestamp) {
+    if (timestamp == null) return '';
+    try {
+      final dt = DateTime.parse(timestamp.toString());
+      return '${dt.hour}:${dt.minute.toString().padLeft(2, '0')} ${dt.hour >= 12 ? 'PM' : 'AM'}';
+    } catch (e) {
+      return '';
+    }
   }
 
   /// Send message to patient
@@ -368,11 +523,16 @@ class DoctorService {
     String message,
   ) async {
     try {
-      final chatMessage = await DoctorApiService.sendMessage(
-        consultationId: consultationId,
-        content: message,
+      final msgData = await DoctorApiService.sendDoctorMessage(
+        consultationId: consultationId.toString(),
+        message: message,
       );
-      return chatMessage;
+      return ChatMessage(
+        id: msgData['id']?.toString() ?? '',
+        sender: MessageSender.doctor,
+        message: msgData['content'] ?? msgData['message'] ?? message,
+        time: _formatTime(msgData['timestamp'] ?? msgData['created_at'] ?? ''),
+      );
     } catch (e) {
       // Return null if API fails
     }

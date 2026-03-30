@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
+import '../../services/doctor_api_service.dart';
 import '../../services/doctor_service.dart';
 import '../../services/notification_service.dart';
 import '../../widgets/notification/notification_bell.dart';
@@ -129,9 +130,11 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const Text(
-            'Dr. Rajesh Kumar Shrestha',
-            style: TextStyle(
+          Text(
+            _doctorService.doctorName.isNotEmpty
+                ? 'Dr. ${_doctorService.doctorName}'
+                : 'Doctor',
+            style: const TextStyle(
               color: AppTheme.textSecondary,
               fontSize: AppTheme.fontSM,
             ),
@@ -321,17 +324,21 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
               ),
             ),
             const SizedBox(height: AppTheme.spaceMD),
-            const Text(
-              'Dr. Rajesh Kumar Shrestha',
-              style: TextStyle(
+            Text(
+              _doctorService.doctorName.isNotEmpty
+                  ? 'Dr. ${_doctorService.doctorName}'
+                  : 'Doctor',
+              style: const TextStyle(
                 fontSize: AppTheme.fontXL,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textPrimary,
               ),
             ),
-            const Text(
-              'Ophthalmologist',
-              style: TextStyle(color: AppTheme.textSecondary),
+            Text(
+              _doctorService.doctorSpecialization.isNotEmpty
+                  ? _doctorService.doctorSpecialization
+                  : 'Ophthalmologist',
+              style: const TextStyle(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: AppTheme.spaceLG),
             ListTile(
@@ -374,23 +381,37 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         ),
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        title: const Text(
+          'Logout',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        content: const Text(
+          'Are you sure you want to logout from your account?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/login',
-                (route) => false,
-              );
+              await DoctorApiService.deleteDoctorToken();
+              if (mounted) {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/login',
+                  (route) => false,
+                );
+              }
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.error,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+              ),
+            ),
             child: const Text('Logout'),
           ),
         ],

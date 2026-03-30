@@ -305,6 +305,77 @@ class ConsultationDetail(Resource):
         except Exception as e:
             return {'message': f'Failed to fetch: {str(e)}'}, 500
 
+    @consultation_ns.doc(security='Bearer')
+    @consultation_ns.expect(update_consultation_model)
+    @doctor_token_required
+    def put(self, current_doctor, consultation_id):
+        """Update consultation status (doctor)"""
+        try:
+            consultation = Consultation.query.get(consultation_id)
+
+            if not consultation:
+                return {'message': 'Consultation not found'}, 404
+
+            if consultation.doctor_id != current_doctor.id:
+                return {'message': 'Not authorized'}, 403
+
+            data = request.get_json() or {}
+            status = data.get('status')
+
+            if not status:
+                return {'message': 'Status is required'}, 400
+
+            if status not in ['scheduled', 'rejected', 'cancelled', 'in_progress', 'completed']:
+                return {'message': 'Invalid status'}, 400
+
+            if consultation.status == 'completed':
+                return {'message': 'Completed consultation cannot be modified'}, 400
+
+            if status == 'scheduled' and not consultation.scheduled_at:
+                consultation.scheduled_at = datetime.utcnow() + timedelta(minutes=30)
+
+            consultation.status = status
+
+            if status == 'in_progress':
+                consultation.started_at = consultation.started_at or datetime.utcnow()
+
+            if status == 'completed':
+                consultation.ended_at = consultation.ended_at or datetime.utcnow()
+
+            # Notify patient about doctor decision for pending requests
+            if status in ['scheduled', 'rejected']:
+                if status == 'scheduled':
+                    scheduled_label = consultation.scheduled_at.strftime('%B %d, %Y at %I:%M %p') if consultation.scheduled_at else 'soon'
+                    notification = Notification.create_consultation_scheduled(
+                        patient_id=consultation.patient_id,
+                        consultation_id=consultation.id,
+                        doctor_name=current_doctor.name,
+                        scheduled_date=scheduled_label,
+                    )
+                else:
+                    notification = Notification(
+                        recipient_type='user',
+                        recipient_id=consultation.patient_id,
+                        notification_type='consultation_rejected',
+                        title='Consultation Rejected',
+                        message=f'Your consultation request with {current_doctor.name} was rejected.',
+                        related_type='consultation',
+                        related_id=consultation.id,
+                        priority='normal',
+                    )
+                db.session.add(notification)
+
+            db.session.commit()
+
+            return {
+                'message': 'Consultation updated successfully',
+                'consultation': consultation.to_dict(),
+            }, 200
+
+        except Exception as e:
+            db.session.rollback()
+            return {'message': f'Update failed: {str(e)}'}, 500
+
 
 @consultation_ns.route('/<int:consultation_id>/schedule')
 class ScheduleConsultation(Resource):

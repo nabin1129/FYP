@@ -40,11 +40,10 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         });
       }
     } catch (e) {
-      // Fallback to synchronous data
       if (mounted) {
         setState(() {
-          _analytics = _doctorService.getAnalytics();
-          _recentPatients = _doctorService.getAllPatients().take(5).toList();
+          _analytics = DoctorAnalytics.empty();
+          _recentPatients = [];
           _isLoading = false;
         });
       }
@@ -70,10 +69,14 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
             _buildWelcomeHeader(),
             const SizedBox(height: AppTheme.spaceLG),
             _buildStatCards(),
-            const SizedBox(height: AppTheme.spaceLG),
-            _buildChartsSection(),
-            const SizedBox(height: AppTheme.spaceLG),
-            _buildTestStatistics(),
+            if (_analytics.healthTrend.isNotEmpty) ...[
+              const SizedBox(height: AppTheme.spaceLG),
+              _buildChartsSection(),
+            ],
+            if (_analytics.testStats.isNotEmpty) ...[
+              const SizedBox(height: AppTheme.spaceLG),
+              _buildTestStatistics(),
+            ],
             const SizedBox(height: AppTheme.spaceLG),
             _buildRecentPatients(),
             const SizedBox(height: 100),
@@ -110,9 +113,9 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Welcome Back, Doctor!',
-                  style: TextStyle(
+                Text(
+                  'Welcome Back, ${_doctorService.doctorName}!',
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: AppTheme.fontXXL,
                     fontWeight: FontWeight.bold,
@@ -280,7 +283,10 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         if (isFullScreen) ...[
           const Text(
             'Monthly average health scores of your patients',
-            style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary),
+            style: TextStyle(
+              fontSize: AppTheme.fontBody,
+              color: AppTheme.textSecondary,
+            ),
           ),
           const SizedBox(height: AppTheme.spaceLG),
         ],
@@ -447,7 +453,10 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         if (isFullScreen) ...[
           const Text(
             'Distribution of patients by health status',
-            style: TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textSecondary),
+            style: TextStyle(
+              fontSize: AppTheme.fontBody,
+              color: AppTheme.textSecondary,
+            ),
           ),
           const SizedBox(height: AppTheme.spaceLG),
         ],
@@ -499,13 +508,18 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         if (isFullScreen)
           _buildDistributionDetails(distribution)
         else
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildLegendItem('Good', AppTheme.success),
-              _buildLegendItem('Attention', AppTheme.warning),
-              _buildLegendItem('Critical', AppTheme.error),
-            ],
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildLegendItem('Good', AppTheme.success),
+                const SizedBox(width: 8),
+                _buildLegendItem('Attention', AppTheme.warning),
+                const SizedBox(width: 8),
+                _buildLegendItem('Critical', AppTheme.error),
+              ],
+            ),
           ),
       ],
     );
@@ -570,7 +584,10 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(fontSize: AppTheme.fontBody, color: AppTheme.textPrimary),
+            style: const TextStyle(
+              fontSize: AppTheme.fontBody,
+              color: AppTheme.textPrimary,
+            ),
           ),
         ),
         Text(
@@ -584,7 +601,10 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         const SizedBox(width: AppTheme.spaceSM),
         Text(
           '($percentage%)',
-          style: const TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSecondary),
+          style: const TextStyle(
+            fontSize: AppTheme.fontSM,
+            color: AppTheme.textSecondary,
+          ),
         ),
       ],
     );
@@ -665,7 +685,10 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(fontSize: AppTheme.fontXS, color: AppTheme.textSecondary),
+          style: const TextStyle(
+            fontSize: AppTheme.fontXS,
+            color: AppTheme.textSecondary,
+          ),
         ),
       ],
     );
@@ -814,7 +837,9 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         border: isLast
             ? null
             : Border(
-                bottom: BorderSide(color: AppTheme.textLight.withValues(alpha: 0.2)),
+                bottom: BorderSide(
+                  color: AppTheme.textLight.withValues(alpha: 0.2),
+                ),
               ),
       ),
       child: Row(
@@ -970,7 +995,10 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: AppTheme.spaceSM),
           Text(
             label,
-            style: const TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSecondary),
+            style: const TextStyle(
+              fontSize: AppTheme.fontSM,
+              color: AppTheme.textSecondary,
+            ),
           ),
           const SizedBox(height: 4),
           Text(

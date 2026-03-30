@@ -276,7 +276,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         icon: Icons.notifications_outlined,
                         iconColor: AppTheme.warning,
                         title: "Notifications",
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.pushNamed(context, '/notifications');
+                        },
                       ),
                     ],
                   ),

@@ -59,6 +59,11 @@ link_patient_model = doctor_ns.model('LinkPatient', {
     'notes': fields.String(description='Initial notes'),
 })
 
+change_password_model = doctor_ns.model('DoctorChangePassword', {
+    'current_password': fields.String(required=True, description='Current password'),
+    'new_password': fields.String(required=True, description='New password (min 8 chars, upper+lower+digit+special)'),
+})
+
 
 # ==========================
 # HELPER FUNCTIONS
@@ -202,10 +207,11 @@ class DoctorLogin(Resource):
             db.session.commit()
             
             token = generate_doctor_token(doctor.id)
-            
+
             return {
                 'message': 'Login successful',
                 'token': token,
+                'force_password_change': doctor.force_password_change,
                 'doctor': doctor.to_dict()
             }, 200
             
@@ -296,6 +302,83 @@ class DoctorAvailability(Resource):
         except Exception as e:
             db.session.rollback()
             return {'message': f'Update failed: {str(e)}'}, 500
+
+
+# ==========================
+# CHANGE PASSWORD
+# ==========================
+
+import re as _re
+_STRONG_PASSWORD = _re.compile(
+    r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
+)
+
+@doctor_ns.route('/change-password')
+class DoctorChangePassword(Resource):
+    """Doctor password change — required on first login for admin-created accounts"""
+
+    @doctor_ns.doc(security='Bearer')
+    @doctor_ns.expect(change_password_model)
+    @doctor_token_required
+    def post(self, current_doctor):
+        """Change doctor password"""
+        try:
+            data = request.get_json()
+            current_pw = data.get('current_password', '')
+            new_pw = data.get('new_password', '')
+
+            if not check_password_hash(current_doctor.password_hash, current_pw):
+                return {'message': 'Current password is incorrect'}, 400
+
+            if not _STRONG_PASSWORD.match(new_pw):
+                return {
+                    'message': 'New password must be at least 8 characters and include '
+                               'uppercase, lowercase, digit and special character (@$!%*?&)'
+                }, 400
+
+            if current_pw == new_pw:
+                return {'message': 'New password must differ from current password'}, 400
+
+            current_doctor.password_hash = generate_password_hash(new_pw)
+            current_doctor.force_password_change = False
+            db.session.commit()
+
+            return {'message': 'Password changed successfully'}, 200
+
+        except Exception as e:
+            db.session.rollback()
+            return {'message': f'Password change failed: {str(e)}'}, 500
+
+
+# ==========================
+# ALL APP USERS (for doctor dashboard — name + id only, no test data)
+# ==========================
+
+@doctor_ns.route('/all-users')
+class DoctorAllUsers(Resource):
+    """Doctor sees all registered app users (name + id only).
+    Test data is only visible after the user explicitly shares it."""
+
+    @doctor_ns.doc(security='Bearer')
+    @doctor_token_required
+    def get(self, current_doctor):
+        """List all registered users (minimal info)"""
+        try:
+            users = User.query.order_by(User.created_at.desc()).all()
+            return {
+                'users': [
+                    {
+                        'id': u.id,
+                        'name': u.name or 'Unknown',
+                        'email': u.email,
+                        'created_at': u.created_at.isoformat() if u.created_at else None,
+                    }
+                    for u in users
+                ],
+                'total': len(users),
+            }, 200
+        except Exception as e:
+            return {'message': f'Failed to fetch users: {str(e)}'}, 500
 
 
 # ==========================
@@ -651,6 +734,7 @@ class AdminDoctorCreate(Resource):
                 is_verified=True,   # Admin-created doctors are pre-verified
                 is_active=data.get('is_active', True),
                 is_available=data.get('is_available', True),
+                force_password_change=True,  # Must change password on first login
             )
 
             db.session.add(doctor)

@@ -126,7 +126,7 @@ class Consultation(db.Model):
                 'email': patient.email,
                 'age': patient.age if hasattr(patient, 'age') else None,
             },
-            'type': self._format_type(),
+            'type': self.consultation_type,  # raw value: 'video_call' or 'chat'
             'status': self.status,
             'scheduled_at': self.scheduled_at.isoformat() if self.scheduled_at else None,
             'duration_minutes': self.duration_minutes,

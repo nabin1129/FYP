@@ -3,6 +3,7 @@ import '../../config/app_theme.dart';
 import '../../services/doctor_service.dart';
 import '../../models/doctor/patient_model.dart';
 import 'patient_detail_page.dart';
+import 'doctor_all_users_page.dart';
 
 /// Doctor Patients Page - Patient List with Search and Filter
 class DoctorPatientsPage extends StatefulWidget {
@@ -116,6 +117,39 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
       color: AppTheme.surface,
       child: Column(
         children: [
+          // Header with Title and All Users Button
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'My Patients',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const DoctorAllUsersPage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.people, size: 18),
+                label: const Text('All Users'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.spaceSM,
+                    vertical: AppTheme.spaceSM,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spaceMD),
           // Search Bar
           TextField(
             controller: _searchController,
@@ -203,7 +237,9 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
       ),
       checkmarkColor: chipColor,
       side: BorderSide(
-        color: isSelected ? chipColor : AppTheme.textLight.withValues(alpha: 0.3),
+        color: isSelected
+            ? chipColor
+            : AppTheme.textLight.withValues(alpha: 0.3),
       ),
     );
   }

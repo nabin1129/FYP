@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/admin/admin_doctor_model.dart';
 import '../models/admin/admin_user_model.dart';
+import 'api_service.dart';
 
 /// Admin Service — fully API-driven, fetches real data from backend.
 /// Singleton pattern consistent with other services.
@@ -14,6 +15,7 @@ class AdminService {
   List<AdminDoctor> _doctors = [];
   List<AdminUser> _users = [];
   Map<String, dynamic> _stats = {};
+  Map<String, dynamic> _analytics = {};
   bool _loaded = false;
   bool _loading = false;
 
@@ -22,6 +24,17 @@ class AdminService {
   // ========================================
 
   bool get isLoaded => _loaded;
+
+  Future<Map<String, String>> _adminHeaders() async {
+    final token = await ApiService.getAdminToken();
+    if (token == null || token.isEmpty) {
+      throw 'Admin session expired. Please login again.';
+    }
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+  }
 
   /// Fetch all admin data from backend in parallel.
   Future<void> loadAll() async {
@@ -43,9 +56,10 @@ class AdminService {
 
   Future<void> _fetchUsers() async {
     try {
+      final headers = await _adminHeaders();
       final res = await http.get(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.adminUsersEndpoint}'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
       );
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -59,9 +73,10 @@ class AdminService {
 
   Future<void> _fetchDoctors() async {
     try {
+      final headers = await _adminHeaders();
       final res = await http.get(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.adminDoctorsEndpoint}'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
       );
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -75,9 +90,10 @@ class AdminService {
 
   Future<void> _fetchStats() async {
     try {
+      final headers = await _adminHeaders();
       final res = await http.get(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.adminStatsEndpoint}'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
       );
       if (res.statusCode == 200) {
         _stats = jsonDecode(res.body) as Map<String, dynamic>;
@@ -99,6 +115,13 @@ class AdminService {
   double get avgRating {
     if (_doctors.isEmpty) return 0.0;
     return _doctors.fold(0.0, (sum, d) => sum + d.rating) / _doctors.length;
+  }
+
+  Map<String, dynamic> get analytics => _analytics;
+
+  Future<Map<String, dynamic>> loadAnalytics({int days = 30}) async {
+    _analytics = await getAnalyticsOverview(days: days);
+    return _analytics;
   }
 
   // ========================================
@@ -126,9 +149,10 @@ class AdminService {
 
   /// Create a doctor via the backend API.
   Future<AdminDoctor> addDoctor(AdminDoctor doctor) async {
+    final headers = await _adminHeaders();
     final res = await http.post(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.adminCreateDoctorEndpoint}'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: jsonEncode({
         'name': doctor.name,
         'email': doctor.email,
@@ -173,11 +197,12 @@ class AdminService {
     if (updated.password.isNotEmpty && updated.password.length >= 6) {
       body['password'] = updated.password;
     }
+    final headers = await _adminHeaders();
     final res = await http.put(
       Uri.parse(
         '${ApiConfig.baseUrl}${ApiConfig.adminDoctorUpdateEndpoint(backendId)}',
       ),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: jsonEncode(body),
     );
     final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -194,11 +219,12 @@ class AdminService {
 
   /// Delete a doctor via the backend API.
   Future<void> deleteDoctor(int backendId) async {
+    final headers = await _adminHeaders();
     final res = await http.delete(
       Uri.parse(
         '${ApiConfig.baseUrl}${ApiConfig.adminDoctorUpdateEndpoint(backendId)}',
       ),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
     );
     if (res.statusCode == 200) {
       _doctors.removeWhere((d) => d.backendId == backendId);
@@ -212,11 +238,12 @@ class AdminService {
   /// Toggle doctor active status via API.
   Future<void> toggleDoctorStatus(int backendId) async {
     final doc = _doctors.firstWhere((d) => d.backendId == backendId);
+    final headers = await _adminHeaders();
     final res = await http.put(
       Uri.parse(
         '${ApiConfig.baseUrl}${ApiConfig.adminDoctorUpdateEndpoint(backendId)}',
       ),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: jsonEncode({'is_active': !doc.isActive}),
     );
     if (res.statusCode == 200) {
@@ -246,11 +273,12 @@ class AdminService {
 
   /// Update a user via the backend API.
   Future<AdminUser> getUserDetail(int backendId) async {
+    final headers = await _adminHeaders();
     final res = await http.get(
       Uri.parse(
         '${ApiConfig.baseUrl}${ApiConfig.adminUserDetailEndpoint(backendId)}',
       ),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
     );
 
     final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -266,11 +294,12 @@ class AdminService {
     int backendId,
     Map<String, dynamic> fields,
   ) async {
+    final headers = await _adminHeaders();
     final res = await http.put(
       Uri.parse(
         '${ApiConfig.baseUrl}${ApiConfig.adminUserDetailEndpoint(backendId)}',
       ),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: jsonEncode(fields),
     );
     final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -285,11 +314,12 @@ class AdminService {
 
   /// Delete a user via the backend API.
   Future<void> deleteUser(int backendId) async {
+    final headers = await _adminHeaders();
     final res = await http.delete(
       Uri.parse(
         '${ApiConfig.baseUrl}${ApiConfig.adminUserDetailEndpoint(backendId)}',
       ),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
     );
     if (res.statusCode == 200) {
       _users.removeWhere((u) => u.backendId == backendId);
@@ -305,10 +335,8 @@ class AdminService {
       '${ApiConfig.baseUrl}${ApiConfig.adminAnalyticsOverviewEndpoint}?days=$days',
     );
 
-    final res = await http.get(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-    );
+    final headers = await _adminHeaders();
+    final res = await http.get(uri, headers: headers);
     final data = jsonDecode(res.body) as Map<String, dynamic>;
 
     if (res.statusCode == 200) {
@@ -339,9 +367,10 @@ class AdminService {
       if (scheduledFor != null) 'scheduled_for': scheduledFor,
     };
 
+    final headers = await _adminHeaders();
     final res = await http.post(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.adminReminderCreateEndpoint}'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: jsonEncode(payload),
     );
 
@@ -352,5 +381,30 @@ class AdminService {
     }
 
     throw data['message'] as String? ?? 'Failed to create reminder';
+  }
+
+  Future<Map<String, dynamic>> fetchUserReport({
+    required int userId,
+    int days = 30,
+  }) async {
+    final headers = await _adminHeaders();
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}${ApiConfig.adminUserReportEndpoint(userId)}?days=$days',
+    );
+    final res = await http.get(uri, headers: headers);
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
+    if (res.statusCode == 200) return data['report'] as Map<String, dynamic>;
+    throw data['message'] as String? ?? 'Failed to fetch report';
+  }
+
+  Future<http.Response> downloadUserReportPdf({
+    required int userId,
+    int days = 30,
+  }) async {
+    final headers = await _adminHeaders();
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}${ApiConfig.adminUserReportPdfEndpoint(userId)}?days=$days',
+    );
+    return http.get(uri, headers: headers);
   }
 }

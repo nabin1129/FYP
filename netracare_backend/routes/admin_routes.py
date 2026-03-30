@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from db_model import db, User
 from db_model import EyeTrackingTest, VisualAcuityTest, ColourVisionTest, BlinkFatigueTest, PupilReflexTest
 from models.doctor import Doctor
-from auth_utils import generate_admin_token
+from auth_utils import generate_admin_token, admin_token_required
 from config import ADMIN_EMAIL, ADMIN_PASSWORD
 
 admin_ns = Namespace('admin', description='Admin management operations')
@@ -87,7 +87,9 @@ class AdminLogin(Resource):
 
 @admin_ns.route('/stats')
 class AdminStats(Resource):
-    def get(self):
+    @admin_ns.doc(security='Bearer')
+    @admin_token_required
+    def get(self, current_admin=None):
         """Get admin dashboard statistics."""
         try:
             total_users = User.query.count()
@@ -106,7 +108,9 @@ class AdminStats(Resource):
 
 @admin_ns.route('/analytics/overview')
 class AdminAnalyticsOverview(Resource):
-    def get(self):
+    @admin_ns.doc(security='Bearer')
+    @admin_token_required
+    def get(self, current_admin=None):
         """Get protected admin analytics: usage, demographics, and condition indicators."""
         try:
             days = request.args.get('days', default=30, type=int)
@@ -137,6 +141,7 @@ class AdminAnalyticsOverview(Resource):
 
             usage = {
                 'window_days': days,
+                'eye_tracking_tests': EyeTrackingTest.query.filter(EyeTrackingTest.created_at >= cutoff).count(),
                 'visual_acuity_tests': VisualAcuityTest.query.filter(VisualAcuityTest.created_at >= cutoff).count(),
                 'colour_vision_tests': ColourVisionTest.query.filter(ColourVisionTest.created_at >= cutoff).count(),
                 'blink_fatigue_tests': BlinkFatigueTest.query.filter(BlinkFatigueTest.created_at >= cutoff).count(),
@@ -174,7 +179,9 @@ class AdminAnalyticsOverview(Resource):
 
 @admin_ns.route('/users')
 class AdminUserList(Resource):
-    def get(self):
+    @admin_ns.doc(security='Bearer')
+    @admin_token_required
+    def get(self, current_admin=None):
         """List all registered users."""
         try:
             users = User.query.order_by(User.created_at.desc()).all()
@@ -188,7 +195,9 @@ class AdminUserList(Resource):
 
 @admin_ns.route('/users/<int:user_id>')
 class AdminUserDetail(Resource):
-    def get(self, user_id):
+    @admin_ns.doc(security='Bearer')
+    @admin_token_required
+    def get(self, current_admin, user_id):
         """Get single user details."""
         user = User.query.get(user_id)
         if not user:
@@ -196,7 +205,9 @@ class AdminUserDetail(Resource):
         return {'user': _user_to_admin_dict(user, include_history=True)}, 200
 
     @admin_ns.expect(user_update_model)
-    def put(self, user_id):
+    @admin_ns.doc(security='Bearer')
+    @admin_token_required
+    def put(self, current_admin, user_id):
         """Update user details from admin panel."""
         try:
             user = User.query.get(user_id)
@@ -224,7 +235,9 @@ class AdminUserDetail(Resource):
             db.session.rollback()
             return {'message': f'Update failed: {str(e)}'}, 500
 
-    def delete(self, user_id):
+    @admin_ns.doc(security='Bearer')
+    @admin_token_required
+    def delete(self, current_admin, user_id):
         """Delete a user from admin panel."""
         try:
             user = User.query.get(user_id)
@@ -244,7 +257,9 @@ class AdminUserDetail(Resource):
 
 @admin_ns.route('/doctors')
 class AdminDoctorList(Resource):
-    def get(self):
+    @admin_ns.doc(security='Bearer')
+    @admin_token_required
+    def get(self, current_admin=None):
         """List all doctors with admin-level details."""
         try:
             doctors = Doctor.query.order_by(Doctor.created_at.desc()).all()
@@ -258,7 +273,9 @@ class AdminDoctorList(Resource):
 
 @admin_ns.route('/doctors/<int:doctor_id>')
 class AdminDoctorDetail(Resource):
-    def get(self, doctor_id):
+    @admin_ns.doc(security='Bearer')
+    @admin_token_required
+    def get(self, current_admin, doctor_id):
         """Get single doctor full details."""
         doctor = Doctor.query.get(doctor_id)
         if not doctor:

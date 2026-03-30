@@ -41,12 +41,20 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
 
     if (widget.consultationId != null) {
       try {
-        final messages = await DoctorApiService.getConsultationMessages(
-          widget.consultationId!,
+        final messages = await DoctorApiService.getDoctorConsultationMessages(
+          consultationId: widget.consultationId!.toString(),
         );
         if (mounted) {
           setState(() {
-            _messages = messages;
+            _messages = messages.map((m) {
+              final isDoctor = m['sender_type'] == 'doctor';
+              return ChatMessage(
+                id: m['id'].toString(),
+                sender: isDoctor ? MessageSender.doctor : MessageSender.user,
+                message: m['message'] ?? '',
+                time: _formatTime(m['created_at']),
+              );
+            }).toList();
             _isLoading = false;
           });
         }
@@ -65,6 +73,18 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
       });
     }
     _scrollToBottom();
+  }
+
+  String _formatTime(String? dateTimeStr) {
+    if (dateTimeStr == null) return _getCurrentTime();
+    try {
+      final dt = DateTime.parse(dateTimeStr);
+      final hour = dt.hour > 12 ? dt.hour - 12 : dt.hour;
+      final period = dt.hour >= 12 ? 'PM' : 'AM';
+      return '$hour:${dt.minute.toString().padLeft(2, '0')} $period';
+    } catch (e) {
+      return _getCurrentTime();
+    }
   }
 
   void _scrollToBottom() {
@@ -90,11 +110,19 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
     // If we have a consultationId, send via API
     if (widget.consultationId != null) {
       try {
-        final newMessage = await DoctorApiService.sendMessage(
-          consultationId: widget.consultationId!,
-          content: messageText,
+        final response = await DoctorApiService.sendDoctorMessage(
+          consultationId: widget.consultationId!.toString(),
+          message: messageText,
         );
-        if (newMessage != null && mounted) {
+
+        if (mounted) {
+          final isDoctor = response['sender_type'] == 'doctor';
+          final newMessage = ChatMessage(
+            id: response['id'].toString(),
+            sender: isDoctor ? MessageSender.doctor : MessageSender.user,
+            message: response['message'] ?? '',
+            time: _formatTime(response['created_at']),
+          );
           setState(() {
             _messages.add(newMessage);
             _isSending = false;
@@ -105,13 +133,21 @@ class _DoctorChatPageState extends State<DoctorChatPage> {
         }
       } catch (e) {
         // Fall through to local handling
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to send message: $e'),
+              backgroundColor: AppTheme.error,
+            ),
+          );
+        }
       }
     }
 
     // Fallback: Add message locally
     final newMessage = ChatMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      sender: MessageSender.user,
+      sender: MessageSender.doctor,
       message: messageText,
       time: _getCurrentTime(),
     );

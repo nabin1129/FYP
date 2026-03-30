@@ -120,6 +120,10 @@ class ApiConfig {
       '/api/doctors/admin/$doctorId';
   static String adminDoctorDetailEndpoint(int doctorId) =>
       '/api/admin/doctors/$doctorId';
+  static String adminUserReportEndpoint(int userId) =>
+      '/api/ai-report/admin/users/$userId/report';
+  static String adminUserReportPdfEndpoint(int userId) =>
+      '/api/ai-report/admin/users/$userId/report-pdf';
 
   // ========================================
   // AI Report

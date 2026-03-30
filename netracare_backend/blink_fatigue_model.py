@@ -1,88 +1,98 @@
 """
 Blink and Eye Fatigue Detection Model
-CNN-based drowsiness detection using eye images
+MobileNetV2 transfer-learning based drowsiness detection using eye images.
+
+Two-phase training:
+  Phase 1 — frozen MobileNetV2 base, train new head only (fast convergence).
+  Phase 2 — unfreeze top layers of base for fine-tuning (higher accuracy).
 """
 
 import os
 import numpy as np
-from pathlib import Path
-from typing import Tuple, Dict
+from typing import Dict
 import cv2
 from tensorflow import keras
 from tensorflow.keras import layers
+from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+import tensorflow as tf
 
 
 class BlinkFatigueModel:
-    """CNN model for detecting drowsiness/fatigue from eye images"""
+    """MobileNetV2-based transfer learning model for drowsiness/fatigue detection."""
     DROWSY_LABEL_THRESHOLD = 0.6
-    
+
+    # MobileNetV2 native input size — better ImageNet feature reuse
+    IMG_HEIGHT = 224
+    IMG_WIDTH = 224
+
+    # Number of top MobileNetV2 layers to unfreeze in phase 2
+    UNFREEZE_LAYERS = 30
+
     def __init__(self, model_path: str = None):
-        """
-        Initialize the blink fatigue model
-        
-        Args:
-            model_path: Path to saved model file (.keras or .h5)
-        """
         self.model = None
-        self.img_height = 145
-        self.img_width = 145
+        # Keep legacy attributes for compatibility with prediction/preprocessing code
+        self.img_height = self.IMG_HEIGHT
+        self.img_width = self.IMG_WIDTH
         self.class_names = ['drowsy', 'notdrowsy']
-        
+
         if model_path and os.path.exists(model_path):
             self.load_model(model_path)
         else:
             self.model = self._build_model()
-    
+
+    # ------------------------------------------------------------------
+    # Model construction
+    # ------------------------------------------------------------------
+
     def _build_model(self) -> keras.Model:
-        """
-        Build CNN architecture based on Kaggle implementation
-        Enhanced architecture for better drowsiness detection
-        """
-        model = keras.Sequential([
-            # First convolutional block
-            layers.Conv2D(32, (3, 3), activation='relu', 
-                         input_shape=(self.img_height, self.img_width, 3)),
-            layers.MaxPooling2D((2, 2)),
-            layers.BatchNormalization(),
-            
-            # Second convolutional block
-            layers.Conv2D(64, (3, 3), activation='relu'),
-            layers.MaxPooling2D((2, 2)),
-            layers.BatchNormalization(),
-            
-            # Third convolutional block
-            layers.Conv2D(128, (3, 3), activation='relu'),
-            layers.MaxPooling2D((2, 2)),
-            layers.BatchNormalization(),
-            
-            # Fourth convolutional block
-            layers.Conv2D(256, (3, 3), activation='relu'),
-            layers.MaxPooling2D((2, 2)),
-            layers.BatchNormalization(),
-            
-            # Flatten and dense layers
-            layers.Flatten(),
-            layers.Dropout(0.5),
-            layers.Dense(512, activation='relu'),
-            layers.Dropout(0.3),
-            layers.Dense(256, activation='relu'),
-            layers.Dropout(0.2),
-            
-            # Output layer - binary classification
-            layers.Dense(2, activation='softmax')
-        ])
-        
-        model.compile(
-            optimizer=keras.optimizers.Adam(learning_rate=0.001),
-            loss='categorical_crossentropy',
-            metrics=['accuracy']
+        """Build MobileNetV2 transfer-learning model."""
+        base = MobileNetV2(
+            input_shape=(self.IMG_HEIGHT, self.IMG_WIDTH, 3),
+            include_top=False,
+            weights='imagenet',
         )
-        
+        base.trainable = False  # freeze for phase-1 training
+
+        inputs = keras.Input(shape=(self.IMG_HEIGHT, self.IMG_WIDTH, 3))
+        # MobileNetV2 expects inputs pre-processed via its own preprocess_input
+        x = tf.keras.applications.mobilenet_v2.preprocess_input(inputs)
+        x = base(x, training=False)
+        x = layers.GlobalAveragePooling2D()(x)
+        x = layers.Dense(256, activation='relu')(x)
+        x = layers.Dropout(0.4)(x)
+        x = layers.Dense(128, activation='relu')(x)
+        x = layers.Dropout(0.2)(x)
+        outputs = layers.Dense(2, activation='softmax')(x)
+
+        model = keras.Model(inputs, outputs)
+        model.compile(
+            optimizer=keras.optimizers.Adam(learning_rate=1e-3),
+            loss='categorical_crossentropy',
+            metrics=['accuracy'],
+        )
         return model
-    
-    def train(self, train_data_path: str, validation_split: float = 0.2, 
+
+    def _unfreeze_top_layers(self) -> None:
+        """Unfreeze the top UNFREEZE_LAYERS of the MobileNetV2 base for fine-tuning."""
+        base = self.model.layers[3]  # MobileNetV2 layer inside the functional model
+        base.trainable = True
+        for layer in base.layers[:-self.UNFREEZE_LAYERS]:
+            layer.trainable = False
+
+        # Use a much lower LR to avoid destroying pre-trained weights
+        self.model.compile(
+            optimizer=keras.optimizers.Adam(learning_rate=1e-5),
+            loss='categorical_crossentropy',
+            metrics=['accuracy'],
+        )
+
+    # ------------------------------------------------------------------
+    # Training
+    # ------------------------------------------------------------------
+
+    def train(self, train_data_path: str, validation_split: float = 0.2,
               epochs: int = 50, batch_size: int = 32) -> Dict:
         """
         Train the CNN model on drowsy/notdrowsy dataset
@@ -98,79 +108,138 @@ class BlinkFatigueModel:
         """
         if not os.path.exists(train_data_path):
             raise FileNotFoundError(f"Training data not found at {train_data_path}")
-        
-        # Data augmentation for better generalization
-        train_datagen = ImageDataGenerator(
-            rescale=1./255,
+
+        # Compute class weights to handle the ~36K drowsy / ~30K notdrowsy imbalance
+        class_counts = {
+            cls: len(os.listdir(os.path.join(train_data_path, cls)))
+            for cls in os.listdir(train_data_path)
+            if os.path.isdir(os.path.join(train_data_path, cls))
+        }
+        total = sum(class_counts.values())
+        n_classes = len(class_counts)
+        # Map class index -> weight (flow_from_directory sorts alphabetically: drowsy=0, notdrowsy=1)
+        sorted_classes = sorted(class_counts.keys())
+        class_weight = {
+            i: total / (n_classes * class_counts[cls])
+            for i, cls in enumerate(sorted_classes)
+        }
+        print(f"Class weights: {class_weight}")
+
+        # IMPORTANT: Both generators MUST share the same ImageDataGenerator instance
+        # with validation_split set — using two separate instances causes the split
+        # to be computed independently and train/val sets can overlap.
+        #
+        # MobileNetV2 preprocess_input is applied inside the model graph, so we
+        # pass raw pixel values (no /255 rescaling) here.
+        datagen = ImageDataGenerator(
             validation_split=validation_split,
-            rotation_range=15,
-            width_shift_range=0.1,
-            height_shift_range=0.1,
+            rotation_range=20,
+            width_shift_range=0.15,
+            height_shift_range=0.15,
             horizontal_flip=True,
-            zoom_range=0.1,
-            brightness_range=[0.8, 1.2]
+            zoom_range=0.15,
+            shear_range=0.1,
+            brightness_range=[0.7, 1.3],
+            channel_shift_range=20.0,
+            fill_mode='nearest',
         )
-        
-        # Training data generator
-        train_generator = train_datagen.flow_from_directory(
+
+        train_generator = datagen.flow_from_directory(
             train_data_path,
-            target_size=(self.img_height, self.img_width),
+            target_size=(self.IMG_HEIGHT, self.IMG_WIDTH),
             batch_size=batch_size,
             class_mode='categorical',
             subset='training',
-            shuffle=True
+            shuffle=True,
+            seed=42,
         )
-        
-        # Validation data generator
-        validation_generator = train_datagen.flow_from_directory(
+
+        # Validation generator from the SAME datagen instance — no augmentation
+        # applied to val images because subset='validation' bypasses transforms.
+        validation_generator = datagen.flow_from_directory(
             train_data_path,
-            target_size=(self.img_height, self.img_width),
+            target_size=(self.IMG_HEIGHT, self.IMG_WIDTH),
             batch_size=batch_size,
             class_mode='categorical',
             subset='validation',
-            shuffle=True
+            shuffle=False,
+            seed=42,
         )
-        
-        # Callbacks for better training
-        callbacks = [
+
+        model_dir = os.path.join(os.path.dirname(__file__), 'models')
+        os.makedirs(model_dir, exist_ok=True)
+        best_ckpt = os.path.join(model_dir, 'best_blink_fatigue.keras')
+
+        base_callbacks = [
             EarlyStopping(
                 monitor='val_accuracy',
-                patience=10,
+                patience=8,
                 restore_best_weights=True,
-                verbose=1
+                verbose=1,
+            ),
+            ModelCheckpoint(
+                filepath=best_ckpt,
+                monitor='val_accuracy',
+                save_best_only=True,
+                verbose=1,
             ),
             ReduceLROnPlateau(
                 monitor='val_loss',
                 factor=0.5,
-                patience=5,
+                patience=4,
                 min_lr=1e-7,
-                verbose=1
-            )
+                verbose=1,
+            ),
         ]
-        
-        # Train the model
-        history = self.model.fit(
+
+        # ── Phase 1: train head only (frozen base) ──────────────────────
+        phase1_epochs = min(epochs, 15)
+        print(f"\n[Phase 1] Training new head ({phase1_epochs} epochs, frozen MobileNetV2 base)…")
+        h1 = self.model.fit(
             train_generator,
             validation_data=validation_generator,
-            epochs=epochs,
-            callbacks=callbacks,
-            verbose=1
+            epochs=phase1_epochs,
+            callbacks=base_callbacks,
+            class_weight=class_weight,
+            verbose=1,
         )
-        
-        # Evaluate on validation set
+
+        # ── Phase 2: fine-tune top layers of base ───────────────────────
+        remaining = epochs - phase1_epochs
+        all_acc = list(h1.history['accuracy'])
+        all_val_acc = list(h1.history['val_accuracy'])
+        all_loss = list(h1.history['loss'])
+        all_val_loss = list(h1.history['val_loss'])
+
+        if remaining > 0:
+            print(f"\n[Phase 2] Fine-tuning top {self.UNFREEZE_LAYERS} MobileNetV2 layers ({remaining} epochs)…")
+            self._unfreeze_top_layers()
+            h2 = self.model.fit(
+                train_generator,
+                validation_data=validation_generator,
+                epochs=remaining,
+                callbacks=base_callbacks,
+                class_weight=class_weight,
+                verbose=1,
+            )
+            all_acc += list(h2.history['accuracy'])
+            all_val_acc += list(h2.history['val_accuracy'])
+            all_loss += list(h2.history['loss'])
+            all_val_loss += list(h2.history['val_loss'])
+
         val_loss, val_accuracy = self.model.evaluate(validation_generator, verbose=0)
-        
+
         return {
             'final_val_accuracy': float(val_accuracy),
             'final_val_loss': float(val_loss),
-            'epochs_trained': len(history.history['accuracy']),
-            'best_val_accuracy': float(max(history.history['val_accuracy'])),
+            'epochs_trained': len(all_acc),
+            'best_val_accuracy': float(max(all_val_acc)),
             'history': {
-                'accuracy': [float(x) for x in history.history['accuracy']],
-                'val_accuracy': [float(x) for x in history.history['val_accuracy']],
-                'loss': [float(x) for x in history.history['loss']],
-                'val_loss': [float(x) for x in history.history['val_loss']]
-            }
+                'accuracy': [float(x) for x in all_acc],
+                'val_accuracy': [float(x) for x in all_val_acc],
+                'loss': [float(x) for x in all_loss],
+                'val_loss': [float(x) for x in all_val_loss],
+            },
         }
     
     def save_model(self, save_path: str) -> None:
@@ -233,13 +302,14 @@ class BlinkFatigueModel:
         
         # Resize to model input size
         img = cv2.resize(img, (self.img_width, self.img_height))
-        
-        # Normalize pixel values
-        img = img.astype('float32') / 255.0
-        
+
+        # MobileNetV2 preprocess_input is applied inside the model graph,
+        # so pass raw float32 pixel values in [0, 255] (no /255 rescaling).
+        img = img.astype('float32')
+
         # Add batch dimension
         img = np.expand_dims(img, axis=0)
-        
+
         return img
     
     def predict(self, image_input) -> Dict:

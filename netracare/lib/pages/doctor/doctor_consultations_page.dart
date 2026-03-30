@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../services/doctor_service.dart';
+import '../../services/doctor_api_service.dart';
 import '../../models/doctor/doctor_analytics_model.dart';
 import 'doctor_chat_page.dart';
 
@@ -79,24 +80,21 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: _loadDataAsync,
-      child: Column(
-        children: [
-          _buildHeader(),
-          _buildTabBar(),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildRequestsList(_pendingRequests, 'pending'),
-                _buildRequestsList(_acceptedRequests, 'accepted'),
-                _buildRequestsList(_completedRequests, 'history'),
-              ],
-            ),
+    return Column(
+      children: [
+        _buildHeader(),
+        _buildTabBar(),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildRequestsList(_pendingRequests, 'pending'),
+              _buildRequestsList(_acceptedRequests, 'accepted'),
+              _buildRequestsList(_completedRequests, 'history'),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -129,6 +127,12 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
               AppTheme.textSecondary,
             ),
           ),
+          const SizedBox(width: AppTheme.spaceSM),
+          IconButton(
+            icon: const Icon(Icons.refresh, color: AppTheme.primary),
+            tooltip: 'Refresh',
+            onPressed: _loadDataAsync,
+          ),
         ],
       ),
     );
@@ -154,7 +158,10 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
               color: color,
             ),
           ),
-          Text(label, style: TextStyle(fontSize: AppTheme.fontSM, color: color)),
+          Text(
+            label,
+            style: TextStyle(fontSize: AppTheme.fontSM, color: color),
+          ),
         ],
       ),
     );
@@ -169,7 +176,10 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
         unselectedLabelColor: AppTheme.textSecondary,
         indicatorColor: AppTheme.primary,
         indicatorWeight: 2,
-        labelStyle: const TextStyle(fontSize: AppTheme.fontSM, fontWeight: FontWeight.w600),
+        labelStyle: const TextStyle(
+          fontSize: AppTheme.fontSM,
+          fontWeight: FontWeight.w600,
+        ),
         tabs: [
           Tab(
             child: Row(
@@ -215,6 +225,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
     return RefreshIndicator(
       onRefresh: _loadDataAsync,
       child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(AppTheme.spaceMD),
         itemCount: requests.length,
         itemBuilder: (context, index) {
@@ -242,15 +253,42 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
         icon = Icons.history;
     }
 
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    // Use a scrollable list so RefreshIndicator pull-to-refresh works even when empty
+    return RefreshIndicator(
+      onRefresh: _loadDataAsync,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          Icon(icon, size: 64, color: AppTheme.textLight.withValues(alpha: 0.5)),
-          const SizedBox(height: AppTheme.spaceMD),
-          Text(
-            message,
-            style: const TextStyle(fontSize: AppTheme.fontLG, color: AppTheme.textSecondary),
+          SizedBox(
+            height: 300,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    icon,
+                    size: 64,
+                    color: AppTheme.textLight.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(height: AppTheme.spaceMD),
+                  Text(
+                    message,
+                    style: const TextStyle(
+                      fontSize: AppTheme.fontLG,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceSM),
+                  Text(
+                    'Pull down to refresh',
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSM,
+                      color: AppTheme.textLight.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -545,7 +583,10 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
             const SizedBox(height: AppTheme.spaceMD),
             const Text(
               'The patient will be notified and can start the consultation.',
-              style: TextStyle(fontSize: AppTheme.fontSM, color: AppTheme.textSecondary),
+              style: TextStyle(
+                fontSize: AppTheme.fontSM,
+                color: AppTheme.textSecondary,
+              ),
             ),
           ],
         ),
@@ -555,19 +596,33 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              _doctorService.acceptRequest(
-                request.id,
-                'Scheduled for consultation',
-              );
+            onPressed: () async {
               Navigator.pop(context);
-              _loadDataAsync();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Consultation request accepted'),
-                  backgroundColor: AppTheme.success,
-                ),
-              );
+
+              try {
+                await DoctorApiService.acceptConsultation(
+                  consultationId: request.id,
+                );
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Consultation request accepted'),
+                      backgroundColor: AppTheme.success,
+                    ),
+                  );
+                  _loadDataAsync();
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: AppTheme.error,
+                    ),
+                  );
+                }
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.success),
             child: const Text('Accept'),
@@ -594,13 +649,33 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              _doctorService.rejectRequest(request.id);
+            onPressed: () async {
               Navigator.pop(context);
-              _loadDataAsync();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Consultation request declined')),
-              );
+
+              try {
+                await DoctorApiService.rejectConsultation(
+                  consultationId: request.id,
+                );
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Consultation request declined'),
+                      backgroundColor: AppTheme.warning,
+                    ),
+                  );
+                  _loadDataAsync();
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: AppTheme.error,
+                    ),
+                  );
+                }
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
             child: const Text('Decline'),

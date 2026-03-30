@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
 import '../../models/admin/admin_user_model.dart';
 import '../../services/admin_service.dart';
+import 'admin_user_report_page.dart';
 
 /// Admin Users Page — Page 2: Monitor and manage users/patients
 class AdminUsersPage extends StatefulWidget {
@@ -287,17 +288,39 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
 
                 // Actions row
                 const SizedBox(height: AppTheme.spaceSM),
-                Row(
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text(
-                      'ID: ${user.id}',
-                      style: const TextStyle(
-                        fontSize: AppTheme.fontXS,
-                        color: AppTheme.textLight,
-                        fontFamily: 'monospace',
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Text(
+                        'ID: ${user.id}',
+                        style: const TextStyle(
+                          fontSize: AppTheme.fontXS,
+                          color: AppTheme.textLight,
+                          fontFamily: 'monospace',
+                        ),
                       ),
                     ),
-                    const Spacer(),
+                    TextButton.icon(
+                      onPressed: () => _openReport(user),
+                      icon: const Icon(Icons.description_outlined, size: 14),
+                      label: const Text(
+                        'AI Report',
+                        style: TextStyle(fontSize: AppTheme.fontSM),
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.primary,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
                     TextButton.icon(
                       onPressed: () => _showUserDetail(user),
                       icon: const Icon(Icons.visibility_outlined, size: 14),
@@ -315,7 +338,6 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     ),
-                    const SizedBox(width: 4),
                     TextButton.icon(
                       onPressed: () => _showEditUser(user),
                       icon: const Icon(Icons.edit_outlined, size: 14),
@@ -333,7 +355,6 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     ),
-                    const SizedBox(width: 4),
                     TextButton.icon(
                       onPressed: () => _confirmDeleteUser(user),
                       icon: const Icon(Icons.delete_outline, size: 14),
@@ -442,6 +463,13 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
           _showSnack('${user.name} updated');
         },
       ),
+    );
+  }
+
+  void _openReport(AdminUser user) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => AdminUserReportPage(user: user)),
     );
   }
 

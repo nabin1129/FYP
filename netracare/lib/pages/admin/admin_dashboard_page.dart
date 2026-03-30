@@ -3,6 +3,8 @@ import '../../config/app_theme.dart';
 import '../../services/admin_service.dart';
 import 'admin_users_page.dart';
 import 'admin_doctors_page.dart';
+import 'admin_analytics_page.dart';
+import 'admin_notifications_page.dart';
 
 /// Admin Dashboard — Page 1: Overview with stats & quick navigation
 class AdminDashboardPage extends StatefulWidget {
@@ -366,6 +368,32 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 color: AppTheme.success,
                 bgColor: AppTheme.categoryGreenBg,
                 onTap: () => _goToDoctors(),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppTheme.spaceSM),
+        Row(
+          children: [
+            Expanded(
+              child: _buildNavCard(
+                title: 'Analytics',
+                subtitle: 'Usage & demographics',
+                icon: Icons.insights_outlined,
+                color: AppTheme.primary,
+                bgColor: AppTheme.categoryIndigoBg,
+                onTap: () => _goToAnalytics(),
+              ),
+            ),
+            const SizedBox(width: AppTheme.spaceSM),
+            Expanded(
+              child: _buildNavCard(
+                title: 'Notifications',
+                subtitle: 'Reminders & alerts',
+                icon: Icons.notifications_outlined,
+                color: AppTheme.warning,
+                bgColor: AppTheme.warningBg,
+                onTap: () => _goToNotifications(),
               ),
             ),
           ],
@@ -776,6 +804,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         ],
       ),
     );
+  }
+
+  void _goToAnalytics() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AdminAnalyticsPage()),
+    ).then((_) => _loadData());
+  }
+
+  void _goToNotifications() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AdminNotificationsPage()),
+    ).then((_) => _loadData());
   }
 
   void _goToUsers() {

@@ -14,6 +14,9 @@ import 'package:netracare/pages/results_report_page.dart';
 import 'package:netracare/pages/forgot_password_page.dart';
 import 'package:netracare/pages/doctor/doctor_dashboard_page.dart';
 import 'package:netracare/pages/admin/admin_dashboard_page.dart';
+import 'package:netracare/pages/admin/admin_analytics_page.dart';
+import 'package:netracare/pages/admin/admin_notifications_page.dart';
+import 'package:netracare/pages/notifications_page.dart';
 import 'package:netracare/services/api_service.dart';
 
 void main() async {
@@ -49,6 +52,9 @@ class NetraCareApp extends StatelessWidget {
         "/dashboard": (_) => const DashboardPage(),
         "/doctor-dashboard": (_) => const DoctorDashboardPage(),
         "/admin/dashboard": (_) => const AdminDashboardPage(),
+        "/admin/analytics": (_) => const AdminAnalyticsPage(),
+        "/admin/notifications": (_) => const AdminNotificationsPage(),
+        "/notifications": (_) => const NotificationsPage(),
         "/profile": (_) => const ProfilePage(),
         "/visual-acuity": (_) => const VisualAcuityPage(),
         "/eye-tracking": (_) => const EyeTrackingPage(),

@@ -12,7 +12,7 @@ from flask import request, jsonify, send_file
 from flask_restx import Namespace, Resource, fields
 from sqlalchemy import desc
 
-from auth_utils import token_required
+from auth_utils import token_required, admin_token_required
 from config import GEMINI_API_KEY
 from db_model import (
     db, User, VisualAcuityTest, ColourVisionTest,
@@ -186,6 +186,71 @@ def analyze_trends(tests_by_type):
         else:
             trends["blink_fatigue"] = "stable"
     return trends
+
+
+def _assemble_report(user, time_range_days: int):
+    """Shared report assembly for user/admin paths."""
+    if time_range_days <= 0:
+        raise ValueError("time_range_days must be > 0")
+
+    cutoff_date = datetime.utcnow() - timedelta(days=time_range_days)
+
+    tests_by_type = {
+        "visual_acuity": VisualAcuityTest.query.filter(
+            VisualAcuityTest.user_id == user.id,
+            VisualAcuityTest.created_at >= cutoff_date,
+        ).order_by(desc(VisualAcuityTest.created_at)).all(),
+        "colour_vision": ColourVisionTest.query.filter(
+            ColourVisionTest.user_id == user.id,
+            ColourVisionTest.created_at >= cutoff_date,
+        ).order_by(desc(ColourVisionTest.created_at)).all(),
+        "blink_fatigue": BlinkFatigueTest.query.filter(
+            BlinkFatigueTest.user_id == user.id,
+            BlinkFatigueTest.created_at >= cutoff_date,
+        ).order_by(desc(BlinkFatigueTest.created_at)).all(),
+        "pupil_reflex": PupilReflexTest.query.filter(
+            PupilReflexTest.user_id == user.id,
+            PupilReflexTest.created_at >= cutoff_date,
+        ).order_by(desc(PupilReflexTest.created_at)).all(),
+    }
+
+    scores, findings = {}, {}
+    for fn, key in [
+        (calculate_visual_acuity_score, "visual_acuity"),
+        (calculate_colour_vision_score, "colour_vision"),
+        (calculate_blink_fatigue_score, "blink_fatigue"),
+        (calculate_pupil_reflex_score, "pupil_reflex"),
+    ]:
+        score, finding = fn(tests_by_type[key])
+        if score is not None:
+            scores[key] = score
+            findings[key] = finding
+
+    if not scores:
+        raise ValueError("No tests available to generate report")
+
+    overall_score = sum(scores.values()) / len(scores)
+    trends = analyze_trends(tests_by_type)
+    ai_text = call_gemini_for_report(
+        user, scores, findings, trends, tests_by_type, overall_score
+    )
+
+    report = {
+        "report_id": f"R-{user.id}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+        "user_id": user.id,
+        "user_name": user.name or "Patient",
+        "generation_date": datetime.utcnow().isoformat(),
+        "overall_score": round(overall_score, 2),
+        "scores": scores,
+        "findings": findings,
+        "trends": trends,
+        "ai_report_text": ai_text,
+        "test_counts": {k: len(v) for k, v in tests_by_type.items()},
+        "gemini_used": GEMINI_AVAILABLE,
+        "time_range_days": time_range_days,
+    }
+
+    return report, ai_text, overall_score, scores
 
 
 # Gemini report generation
@@ -488,64 +553,12 @@ class GenerateReport(Resource):
         try:
             data = request.get_json() or {}
             time_range_days = data.get("time_range_days", 30)
-            cutoff_date = datetime.utcnow() - timedelta(days=time_range_days)
 
-            tests_by_type = {
-                "visual_acuity": VisualAcuityTest.query.filter(
-                    VisualAcuityTest.user_id == current_user.id,
-                    VisualAcuityTest.created_at >= cutoff_date,
-                ).order_by(desc(VisualAcuityTest.created_at)).all(),
-                "colour_vision": ColourVisionTest.query.filter(
-                    ColourVisionTest.user_id == current_user.id,
-                    ColourVisionTest.created_at >= cutoff_date,
-                ).order_by(desc(ColourVisionTest.created_at)).all(),
-                "blink_fatigue": BlinkFatigueTest.query.filter(
-                    BlinkFatigueTest.user_id == current_user.id,
-                    BlinkFatigueTest.created_at >= cutoff_date,
-                ).order_by(desc(BlinkFatigueTest.created_at)).all(),
-                "pupil_reflex": PupilReflexTest.query.filter(
-                    PupilReflexTest.user_id == current_user.id,
-                    PupilReflexTest.created_at >= cutoff_date,
-                ).order_by(desc(PupilReflexTest.created_at)).all(),
-            }
-
-            scores, findings = {}, {}
-            for fn, key in [
-                (calculate_visual_acuity_score, "visual_acuity"),
-                (calculate_colour_vision_score, "colour_vision"),
-                (calculate_blink_fatigue_score, "blink_fatigue"),
-                (calculate_pupil_reflex_score, "pupil_reflex"),
-            ]:
-                score, finding = fn(tests_by_type[key])
-                if score is not None:
-                    scores[key] = score
-                    findings[key] = finding
-
-            if not scores:
-                return {"message": "No tests available. Please complete at least one eye test."}, 400
-
-            overall_score = sum(scores.values()) / len(scores)
-            trends = analyze_trends(tests_by_type)
-            ai_text = call_gemini_for_report(
-                current_user, scores, findings, trends, tests_by_type, overall_score
-            )
-
-            report = {
-                "report_id": f"R-{current_user.id}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
-                "user_id": current_user.id,
-                "user_name": current_user.name or "Patient",
-                "generation_date": datetime.utcnow().isoformat(),
-                "overall_score": round(overall_score, 2),
-                "scores": scores,
-                "findings": findings,
-                "trends": trends,
-                "ai_report_text": ai_text,
-                "test_counts": {k: len(v) for k, v in tests_by_type.items()},
-                "gemini_used": GEMINI_AVAILABLE,
-            }
+            report, _, _, _ = _assemble_report(current_user, time_range_days)
 
             return {"message": "Report generated successfully", "report": report}, 200
-
+        except ValueError as e:
+            return {"message": str(e)}, 400
         except Exception as e:
             return {"message": f"Failed to generate report: {str(e)}"}, 500
 
@@ -559,46 +572,9 @@ class GenerateReportPDF(Resource):
         try:
             data = request.get_json() or {}
             time_range_days = data.get("time_range_days", 30)
-            cutoff_date = datetime.utcnow() - timedelta(days=time_range_days)
 
-            tests_by_type = {
-                "visual_acuity": VisualAcuityTest.query.filter(
-                    VisualAcuityTest.user_id == current_user.id,
-                    VisualAcuityTest.created_at >= cutoff_date,
-                ).order_by(desc(VisualAcuityTest.created_at)).all(),
-                "colour_vision": ColourVisionTest.query.filter(
-                    ColourVisionTest.user_id == current_user.id,
-                    ColourVisionTest.created_at >= cutoff_date,
-                ).order_by(desc(ColourVisionTest.created_at)).all(),
-                "blink_fatigue": BlinkFatigueTest.query.filter(
-                    BlinkFatigueTest.user_id == current_user.id,
-                    BlinkFatigueTest.created_at >= cutoff_date,
-                ).order_by(desc(BlinkFatigueTest.created_at)).all(),
-                "pupil_reflex": PupilReflexTest.query.filter(
-                    PupilReflexTest.user_id == current_user.id,
-                    PupilReflexTest.created_at >= cutoff_date,
-                ).order_by(desc(PupilReflexTest.created_at)).all(),
-            }
-
-            scores, findings = {}, {}
-            for fn, key in [
-                (calculate_visual_acuity_score, "visual_acuity"),
-                (calculate_colour_vision_score, "colour_vision"),
-                (calculate_blink_fatigue_score, "blink_fatigue"),
-                (calculate_pupil_reflex_score, "pupil_reflex"),
-            ]:
-                score, finding = fn(tests_by_type[key])
-                if score is not None:
-                    scores[key] = score
-                    findings[key] = finding
-
-            if not scores:
-                return {"message": "No tests available to generate report."}, 400
-
-            overall_score = sum(scores.values()) / len(scores)
-            trends = analyze_trends(tests_by_type)
-            ai_text = call_gemini_for_report(
-                current_user, scores, findings, trends, tests_by_type, overall_score
+            _, ai_text, overall_score, scores = _assemble_report(
+                current_user, time_range_days
             )
 
             generation_date = datetime.utcnow().strftime("%B %d, %Y %H:%M UTC")
@@ -615,9 +591,64 @@ class GenerateReportPDF(Resource):
                 as_attachment=True,
                 download_name=filename,
             )
-
+        except ValueError as e:
+            return {"message": str(e)}, 400
         except Exception as e:
             return {"message": f"Failed to generate PDF: {str(e)}"}, 500
+
+
+@ai_report_ns.route("/admin/users/<int:user_id>/report")
+class AdminUserReport(Resource):
+    @ai_report_ns.doc(security="Bearer")
+    @admin_token_required
+    def get(self, current_admin, user_id):
+        """Admin: generate AI report JSON for a specific user."""
+        user = User.query.get(user_id)
+        if not user:
+            return {"message": "User not found"}, 404
+
+        try:
+            time_range_days = request.args.get("days", default=30, type=int)
+            report, _, _, _ = _assemble_report(user, time_range_days)
+            return {"message": "Report generated successfully", "report": report}, 200
+        except ValueError as e:
+            return {"message": str(e)}, 400
+        except Exception as e:
+            return {"message": f"Failed to generate admin report: {str(e)}"}, 500
+
+
+@ai_report_ns.route("/admin/users/<int:user_id>/report-pdf")
+class AdminUserReportPDF(Resource):
+    @ai_report_ns.doc(security="Bearer")
+    @admin_token_required
+    def get(self, current_admin, user_id):
+        """Admin: generate AI report PDF for a specific user."""
+        user = User.query.get(user_id)
+        if not user:
+            return {"message": "User not found"}, 404
+
+        try:
+            time_range_days = request.args.get("days", default=30, type=int)
+            _, ai_text, overall_score, scores = _assemble_report(user, time_range_days)
+
+            generation_date = datetime.utcnow().strftime("%B %d, %Y %H:%M UTC")
+            pdf_buffer = generate_pdf_from_report(
+                user, ai_text, overall_score, scores, generation_date
+            )
+
+            filename = f"netracare_report_{user.id}_{datetime.utcnow().strftime('%Y%m%d')}.pdf"
+            mimetype = "application/pdf" if PDF_BACKEND else "text/plain"
+
+            return send_file(
+                pdf_buffer,
+                mimetype=mimetype,
+                as_attachment=True,
+                download_name=filename,
+            )
+        except ValueError as e:
+            return {"message": str(e)}, 400
+        except Exception as e:
+            return {"message": f"Failed to generate admin report PDF: {str(e)}"}, 500
 
 
 @ai_report_ns.route("/insights")

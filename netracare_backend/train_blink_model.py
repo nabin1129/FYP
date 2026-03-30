@@ -7,6 +7,7 @@ import os
 import sys
 from pathlib import Path
 from blink_fatigue_model import BlinkFatigueModel
+from plot import plot_train_test_time
 
 def main():
     """Train the blink fatigue detection model"""
@@ -58,15 +59,18 @@ def main():
     model.model.summary()
     
     # Training configuration
+    # Phase 1 (frozen base):  first 15 epochs — fast head convergence
+    # Phase 2 (fine-tune top 30 MobileNetV2 layers): remaining 35 epochs
     EPOCHS = 50
-    BATCH_SIZE = 32
+    BATCH_SIZE = 64       # larger batch → more stable gradient estimates
     VALIDATION_SPLIT = 0.2
-    
+
     print(f"\n🎯 Training Configuration:")
-    print(f"  - Epochs: {EPOCHS}")
-    print(f"  - Batch Size: {BATCH_SIZE}")
-    print(f"  - Validation Split: {VALIDATION_SPLIT * 100}%")
-    print(f"  - Image Size: {model.img_height}x{model.img_width}")
+    print(f"  - Total Epochs : {EPOCHS} (Phase 1: 15, Phase 2: {EPOCHS - 15})")
+    print(f"  - Batch Size   : {BATCH_SIZE}")
+    print(f"  - Validation   : {VALIDATION_SPLIT * 100:.0f}%")
+    print(f"  - Image Size   : {model.img_height}x{model.img_width}")
+    print(f"  - Backbone     : MobileNetV2 (ImageNet pre-trained)")
     
     # Start training
     print(f"\n🚀 Starting training...")
@@ -95,6 +99,10 @@ def main():
         
         print(f"\n✅ Model saved successfully!")
         print(f"\n🎉 Training complete! Model is ready for predictions.")
+
+        # Plot training vs validation accuracy and loss
+        plot_save_path = os.path.join(os.path.dirname(__file__), 'assets', 'training_curves.png')
+        plot_train_test_time(history['history'], save_path=plot_save_path)
         
     except Exception as e:
         print(f"\n❌ Training failed: {str(e)}")
@@ -103,3 +111,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
