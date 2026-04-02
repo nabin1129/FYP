@@ -1,0 +1,10 @@
+export 'presentation/pages/add_clinical_note_page.dart';
+export 'presentation/pages/add_medical_record_page.dart';
+export 'presentation/pages/doctor_all_users_page.dart';
+export 'presentation/pages/doctor_change_password_page.dart';
+export 'presentation/pages/doctor_chat_page.dart';
+export 'presentation/pages/doctor_consultations_page.dart';
+export 'presentation/pages/doctor_dashboard_page.dart';
+export 'presentation/pages/doctor_home_page.dart';
+export 'presentation/pages/doctor_patients_page.dart';
+export 'presentation/pages/patient_detail_page.dart';

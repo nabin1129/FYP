@@ -4,9 +4,6 @@ Handles system notifications for users and doctors
 """
 from datetime import datetime
 import json
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from db_model import db
 
 

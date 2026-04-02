@@ -7,15 +7,11 @@ from flask_restx import Namespace, Resource, fields
 from datetime import datetime, timedelta
 from sqlalchemy import desc, or_
 
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
 from db_model import db, User
 from models.doctor import Doctor, DoctorPatient
 from models.consultation import Consultation, ConsultationMessage
 from models.notification import Notification
-from auth_utils import token_required
+from core.security import token_required
 from routes.doctor_routes import doctor_token_required
 
 # Create namespace
@@ -77,7 +73,7 @@ class BookConsultation(Resource):
                 return {'message': 'Doctor ID is required'}, 400
             
             # Check doctor exists and is available
-            doctor = Doctor.query.get(doctor_id)
+            doctor = db.session.get(Doctor, doctor_id)
             if not doctor:
                 return {'message': 'Doctor not found'}, 404
             
@@ -289,7 +285,7 @@ class ConsultationDetail(Resource):
     def get(self, current_user, consultation_id):
         """Get consultation details"""
         try:
-            consultation = Consultation.query.get(consultation_id)
+            consultation = db.session.get(Consultation, consultation_id)
             
             if not consultation:
                 return {'message': 'Consultation not found'}, 404
@@ -311,7 +307,7 @@ class ConsultationDetail(Resource):
     def put(self, current_doctor, consultation_id):
         """Update consultation status (doctor)"""
         try:
-            consultation = Consultation.query.get(consultation_id)
+            consultation = db.session.get(Consultation, consultation_id)
 
             if not consultation:
                 return {'message': 'Consultation not found'}, 404
@@ -387,7 +383,7 @@ class ScheduleConsultation(Resource):
     def post(self, current_doctor, consultation_id):
         """Schedule a pending consultation"""
         try:
-            consultation = Consultation.query.get(consultation_id)
+            consultation = db.session.get(Consultation, consultation_id)
             
             if not consultation:
                 return {'message': 'Consultation not found'}, 404
@@ -443,7 +439,7 @@ class StartConsultation(Resource):
     def post(self, current_doctor, consultation_id):
         """Start a scheduled consultation"""
         try:
-            consultation = Consultation.query.get(consultation_id)
+            consultation = db.session.get(Consultation, consultation_id)
             
             if not consultation:
                 return {'message': 'Consultation not found'}, 404
@@ -479,7 +475,7 @@ class CompleteConsultation(Resource):
     def post(self, current_doctor, consultation_id):
         """Complete a consultation with notes and diagnosis"""
         try:
-            consultation = Consultation.query.get(consultation_id)
+            consultation = db.session.get(Consultation, consultation_id)
             
             if not consultation:
                 return {'message': 'Consultation not found'}, 404
@@ -538,7 +534,7 @@ class CancelConsultation(Resource):
     def post(self, current_user, consultation_id):
         """Cancel a consultation (by patient)"""
         try:
-            consultation = Consultation.query.get(consultation_id)
+            consultation = db.session.get(Consultation, consultation_id)
             
             if not consultation:
                 return {'message': 'Consultation not found'}, 404
@@ -572,7 +568,7 @@ class ConsultationMessages(Resource):
     def get(self, current_user, consultation_id):
         """Get consultation messages"""
         try:
-            consultation = Consultation.query.get(consultation_id)
+            consultation = db.session.get(Consultation, consultation_id)
             
             if not consultation:
                 return {'message': 'Consultation not found'}, 404
@@ -605,7 +601,7 @@ class ConsultationMessages(Resource):
     def post(self, current_user, consultation_id):
         """Send a message (patient)"""
         try:
-            consultation = Consultation.query.get(consultation_id)
+            consultation = db.session.get(Consultation, consultation_id)
             
             if not consultation:
                 return {'message': 'Consultation not found'}, 404
@@ -661,7 +657,7 @@ class DoctorConsultationMessages(Resource):
     def get(self, current_doctor, consultation_id):
         """Get consultation messages (doctor)"""
         try:
-            consultation = Consultation.query.get(consultation_id)
+            consultation = db.session.get(Consultation, consultation_id)
             
             if not consultation:
                 return {'message': 'Consultation not found'}, 404
@@ -694,7 +690,7 @@ class DoctorConsultationMessages(Resource):
     def post(self, current_doctor, consultation_id):
         """Send a message (doctor)"""
         try:
-            consultation = Consultation.query.get(consultation_id)
+            consultation = db.session.get(Consultation, consultation_id)
             
             if not consultation:
                 return {'message': 'Consultation not found'}, 404
@@ -751,7 +747,7 @@ class ShareTestResult(Resource):
     def post(self, current_user, consultation_id):
         """Share a test result with doctor"""
         try:
-            consultation = Consultation.query.get(consultation_id)
+            consultation = db.session.get(Consultation, consultation_id)
             
             if not consultation:
                 return {'message': 'Consultation not found'}, 404
@@ -804,3 +800,4 @@ class ShareTestResult(Resource):
         except Exception as e:
             db.session.rollback()
             return {'message': f'Share failed: {str(e)}'}, 500
+

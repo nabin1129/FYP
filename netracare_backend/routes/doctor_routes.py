@@ -8,14 +8,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import jwt
 
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
 from db_model import db, User
 from models.doctor import Doctor, DoctorPatient
-from auth_utils import token_required
-from config import Config
+from core.security import token_required
+from core.config import BaseConfig
 
 # Create namespace
 doctor_ns = Namespace('doctors', description='Doctor management operations')
@@ -76,7 +72,7 @@ def generate_doctor_token(doctor_id: int) -> str:
         'type': 'doctor',
         'exp': datetime.utcnow() + timedelta(days=7)
     }
-    return jwt.encode(payload, Config.SECRET_KEY, algorithm='HS256')
+    return jwt.encode(payload, BaseConfig.SECRET_KEY, algorithm='HS256')
 
 
 def doctor_token_required(f):
@@ -98,13 +94,13 @@ def doctor_token_required(f):
             return {'message': 'Token is missing'}, 401
         
         try:
-            payload = jwt.decode(token, Config.SECRET_KEY, algorithms=['HS256'])
+            payload = jwt.decode(token, BaseConfig.SECRET_KEY, algorithms=['HS256'])
             
             # Check if it's a doctor token
             if payload.get('type') != 'doctor':
                 return {'message': 'Invalid token type'}, 401
             
-            doctor = Doctor.query.get(payload['doctor_id'])
+            doctor = db.session.get(Doctor, payload['doctor_id'])
             if not doctor:
                 return {'message': 'Doctor not found'}, 401
             
@@ -451,7 +447,7 @@ class DoctorDetail(Resource):
     
     def get(self, doctor_id):
         """Get doctor details by ID"""
-        doctor = Doctor.query.get(doctor_id)
+        doctor = db.session.get(Doctor, doctor_id)
         
         if not doctor:
             return {'message': 'Doctor not found'}, 404
@@ -515,7 +511,7 @@ class DoctorPatients(Resource):
                 return {'message': 'Patient ID is required'}, 400
             
             # Check if patient exists
-            patient = User.query.get(patient_id)
+            patient = db.session.get(User, patient_id)
             if not patient:
                 return {'message': 'Patient not found'}, 404
             
@@ -762,7 +758,7 @@ class AdminDoctorManage(Resource):
         """Admin update a doctor profile."""
         try:
             data = request.get_json()
-            doctor = Doctor.query.get(doctor_id)
+            doctor = db.session.get(Doctor, doctor_id)
             if not doctor:
                 return {'message': 'Doctor not found'}, 404
 
@@ -796,7 +792,7 @@ class AdminDoctorManage(Resource):
     def delete(self, doctor_id):
         """Admin delete a doctor."""
         try:
-            doctor = Doctor.query.get(doctor_id)
+            doctor = db.session.get(Doctor, doctor_id)
             if not doctor:
                 return {'message': 'Doctor not found'}, 404
 
@@ -808,3 +804,4 @@ class AdminDoctorManage(Resource):
         except Exception as e:
             db.session.rollback()
             return {'message': f'Delete failed: {str(e)}'}, 500
+

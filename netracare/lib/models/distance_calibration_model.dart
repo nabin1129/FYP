@@ -1,4 +1,4 @@
-﻿// Distance Calibration Model
+// Distance Calibration Model
 // Stores baseline measurements for arm-length distance enforcement
 // Author: NetraCare Team
 // Date: January 26, 2026
@@ -64,8 +64,8 @@ class DistanceCalibrationData {
       calibratedAt: DateTime.parse(json['calibrated_at'] as String),
       referenceDistance: (json['reference_distance'] as num).toDouble(),
       baselineIpdPixels: (json['baseline_ipd_pixels'] as num).toDouble(),
-      baselineFaceWidthPixels:
-          (json['baseline_face_width_pixels'] as num).toDouble(),
+      baselineFaceWidthPixels: (json['baseline_face_width_pixels'] as num)
+          .toDouble(),
       focalLength: (json['focal_length'] as num).toDouble(),
       realWorldIpd: (json['real_world_ipd'] as num?)?.toDouble() ?? 6.3,
       toleranceCm: (json['tolerance_cm'] as num?)?.toDouble() ?? 3.0,

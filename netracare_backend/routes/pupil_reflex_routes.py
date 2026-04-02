@@ -10,7 +10,7 @@ import os
 import uuid
 import cv2
 import numpy as np
-from auth_utils import token_required
+from core.security import token_required
 from db_model import db, User, PupilReflexTest
 
 # Create namespace
@@ -754,4 +754,5 @@ class GetSingleTest(Resource):
         except Exception as e:
             db.session.rollback()
             return {'message': f'Failed to delete test: {str(e)}'}, 500
+
 

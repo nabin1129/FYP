@@ -1,4 +1,4 @@
-﻿"""
+"""
 AI Report Generation Routes
 Uses Google Generative AI (Gemini) for comprehensive eye health report generation
 and ReportLab/FPDF for PDF creation.
@@ -12,8 +12,8 @@ from flask import request, jsonify, send_file
 from flask_restx import Namespace, Resource, fields
 from sqlalchemy import desc
 
-from auth_utils import token_required, admin_token_required
-from config import GEMINI_API_KEY
+from core.security import token_required, admin_token_required
+from core.config import BaseConfig
 from db_model import (
     db, User, VisualAcuityTest, ColourVisionTest,
     BlinkFatigueTest, PupilReflexTest,
@@ -21,28 +21,28 @@ from db_model import (
 
 # Gemini client setup
 try:
-    import google.generativeai as genai
-    genai.configure(api_key=GEMINI_API_KEY)
+    import google.generativeai as genai  # type: ignore[import-not-found]
+    genai.configure(api_key=BaseConfig.GEMINI_API_KEY)
     _gemini_model = genai.GenerativeModel("gemini-1.5-flash")
-    GEMINI_AVAILABLE = bool(GEMINI_API_KEY)
+    GEMINI_AVAILABLE = bool(BaseConfig.GEMINI_API_KEY)
 except Exception:
     _gemini_model = None
     GEMINI_AVAILABLE = False
 
 # PDF library - prefer reportlab, fall back to fpdf2
 try:
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.units import cm
-    from reportlab.lib import colors
-    from reportlab.platypus import (
+    from reportlab.lib.pagesizes import A4  # type: ignore[import-not-found]
+    from reportlab.lib.units import cm  # type: ignore[import-not-found]
+    from reportlab.lib import colors  # type: ignore[import-not-found]
+    from reportlab.platypus import (  # type: ignore[import-not-found]
         SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable,
     )
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle  # type: ignore[import-not-found]
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT  # type: ignore[import-not-found]
     PDF_BACKEND = "reportlab"
 except ImportError:
     try:
-        from fpdf import FPDF
+        from fpdf import FPDF  # type: ignore[import-not-found]
         PDF_BACKEND = "fpdf"
     except ImportError:
         PDF_BACKEND = None
@@ -603,7 +603,7 @@ class AdminUserReport(Resource):
     @admin_token_required
     def get(self, current_admin, user_id):
         """Admin: generate AI report JSON for a specific user."""
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             return {"message": "User not found"}, 404
 
@@ -623,7 +623,7 @@ class AdminUserReportPDF(Resource):
     @admin_token_required
     def get(self, current_admin, user_id):
         """Admin: generate AI report PDF for a specific user."""
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             return {"message": "User not found"}, 404
 
@@ -699,3 +699,131 @@ class GetInsights(Resource):
 
         except Exception as e:
             return {"message": f"Failed to get insights: {str(e)}"}, 500
+
+
+# ---------------------------------------------------------------------------
+# SEND REPORT TO DOCTOR
+# ---------------------------------------------------------------------------
+
+send_to_doctor_model = ai_report_ns.model("SendReportToDoctor", {
+    "doctor_id": fields.Integer(required=True, description="Doctor ID to send report to"),
+    "time_range_days": fields.Integer(description="Days of history to include (default 30)"),
+    "message": fields.String(description="Optional personal message to the doctor"),
+})
+
+
+@ai_report_ns.route("/send-to-doctor")
+class SendReportToDoctor(Resource):
+    @ai_report_ns.doc(security="Bearer")
+    @ai_report_ns.expect(send_to_doctor_model)
+    @token_required
+    def post(self, current_user):
+        """Generate an AI report and send it to a linked doctor via notification."""
+        try:
+            from models.doctor import Doctor, DoctorPatient
+            from models.notification import Notification
+
+            data = request.get_json() or {}
+            doctor_id = data.get("doctor_id")
+            time_range_days = data.get("time_range_days", 30)
+            personal_message = (data.get("message") or "").strip()
+
+            if not doctor_id:
+                return {"message": "doctor_id is required"}, 400
+
+            # Verify the doctor exists and is active
+            doctor = db.session.get(Doctor, doctor_id)
+            if not doctor or not doctor.is_active:
+                return {"message": "Doctor not found or inactive"}, 404
+
+            # Generate the report
+            try:
+                report, ai_text, overall_score, scores = _assemble_report(
+                    current_user, time_range_days
+                )
+            except ValueError as e:
+                return {"message": str(e)}, 400
+
+            # Build a compact summary to embed in the notification
+            score_lines = ", ".join(
+                f"{k.replace('_', ' ').title()}: {v:.0f}/100"
+                for k, v in scores.items()
+                if isinstance(v, (int, float))
+            )
+            patient_name = current_user.name or "Patient"
+            notif_title = f"Eye Health Report from {patient_name}"
+            notif_body = (
+                f"{patient_name} has shared their AI-generated eye health report with you.\n"
+                f"Overall score: {overall_score:.1f}/100\n"
+                f"{score_lines}"
+            )
+            if personal_message:
+                notif_body += f"\n\nMessage: {personal_message}"
+
+            notification = Notification(
+                recipient_type="doctor",
+                recipient_id=doctor_id,
+                notification_type="report_shared",
+                title=notif_title,
+                message=notif_body,
+                related_type="ai_report",
+                related_id=current_user.id,
+                priority="normal",
+            )
+            # Store the full report JSON in action_data so the doctor can view it
+            notification.set_action_data({
+                "report": report,
+                "patient_id": current_user.id,
+                "patient_name": patient_name,
+            })
+            db.session.add(notification)
+            db.session.commit()
+
+            return {
+                "message": f"Report successfully sent to Dr. {doctor.name}",
+                "doctor": {
+                    "id": doctor.id,
+                    "name": doctor.name,
+                    "specialization": doctor.specialization,
+                },
+                "report_summary": {
+                    "overall_score": round(overall_score, 2),
+                    "scores": scores,
+                    "generation_date": report["generation_date"],
+                },
+            }, 200
+
+        except Exception as e:
+            db.session.rollback()
+            return {"message": f"Failed to send report: {str(e)}"}, 500
+
+
+@ai_report_ns.route("/my-doctors")
+class MyDoctors(Resource):
+    @ai_report_ns.doc(security="Bearer")
+    @token_required
+    def get(self, current_user):
+        """Get list of doctors linked to the current patient."""
+        try:
+            from models.doctor import Doctor, DoctorPatient
+
+            links = DoctorPatient.query.filter_by(
+                patient_id=current_user.id
+            ).all()
+
+            doctors = []
+            for link in links:
+                doc = db.session.get(Doctor, link.doctor_id)
+                if doc and doc.is_active:
+                    doctors.append({
+                        "id": doc.id,
+                        "name": doc.name,
+                        "specialization": doc.specialization or "Ophthalmology",
+                        "working_place": doc.working_place or "",
+                        "is_available": doc.is_available,
+                    })
+
+            return {"doctors": doctors, "total": len(doctors)}, 200
+
+        except Exception as e:
+            return {"message": f"Failed to fetch doctors: {str(e)}"}, 500

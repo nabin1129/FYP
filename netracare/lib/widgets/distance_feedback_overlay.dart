@@ -1,4 +1,4 @@
-﻿// Distance Feedback Overlay Widget
+// Distance Feedback Overlay Widget
 // Provides real-time visual feedback for distance positioning
 // Author: NetraCare Team
 // Date: January 26, 2026
@@ -72,7 +72,9 @@ class _DistanceFeedbackOverlayState extends State<DistanceFeedbackOverlay>
       right: 0,
       child: Center(
         child: AnimatedBuilder(
-          animation: shouldPulse ? _pulseAnimation : const AlwaysStoppedAnimation(1.0),
+          animation: shouldPulse
+              ? _pulseAnimation
+              : const AlwaysStoppedAnimation(1.0),
           builder: (context, child) {
             return Transform.scale(
               scale: shouldPulse ? _pulseAnimation.value : 1.0,
@@ -163,11 +165,7 @@ class _DistanceFeedbackOverlayState extends State<DistanceFeedbackOverlay>
         break;
     }
 
-    return Icon(
-      icon,
-      color: Colors.white,
-      size: 32,
-    );
+    return Icon(icon, color: Colors.white, size: 32);
   }
 }
 
@@ -263,10 +261,7 @@ class DistanceStatusBar extends StatelessWidget {
   /// Current distance validation result
   final DistanceValidationResult? validationResult;
 
-  const DistanceStatusBar({
-    super.key,
-    required this.validationResult,
-  });
+  const DistanceStatusBar({super.key, required this.validationResult});
 
   @override
   Widget build(BuildContext context) {
@@ -298,8 +293,4 @@ class DistanceStatusBar extends StatelessWidget {
 }
 
 /// Overlay position enum
-enum OverlayPosition {
-  top,
-  bottom,
-  center,
-}
+enum OverlayPosition { top, bottom, center }

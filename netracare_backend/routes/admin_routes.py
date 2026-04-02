@@ -8,15 +8,11 @@ from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
 from datetime import datetime, timedelta
 
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
 from db_model import db, User
 from db_model import EyeTrackingTest, VisualAcuityTest, ColourVisionTest, BlinkFatigueTest, PupilReflexTest
 from models.doctor import Doctor
-from auth_utils import generate_admin_token, admin_token_required
-from config import ADMIN_EMAIL, ADMIN_PASSWORD
+from core.security import generate_admin_token, admin_token_required
+from core.config import BaseConfig
 
 admin_ns = Namespace('admin', description='Admin management operations')
 
@@ -56,24 +52,24 @@ class AdminLogin(Resource):
             if not email or not password:
                 return {'message': 'Email and password are required'}, 400
 
-            if email != ADMIN_EMAIL:
+            if email != BaseConfig.ADMIN_EMAIL:
                 return {'message': 'Invalid admin credentials'}, 401
 
             is_valid = False
-            if ADMIN_PASSWORD.startswith('pbkdf2:'):
-                is_valid = check_password_hash(ADMIN_PASSWORD, password)
+            if BaseConfig.ADMIN_PASSWORD.startswith('pbkdf2:'):
+                is_valid = check_password_hash(BaseConfig.ADMIN_PASSWORD, password)
             else:
-                is_valid = password == ADMIN_PASSWORD
+                is_valid = password == BaseConfig.ADMIN_PASSWORD
 
             if not is_valid:
                 return {'message': 'Invalid admin credentials'}, 401
 
-            token = generate_admin_token(ADMIN_EMAIL)
+            token = generate_admin_token(BaseConfig.ADMIN_EMAIL)
             return {
                 'message': 'Admin login successful',
                 'token': token,
                 'admin': {
-                    'email': ADMIN_EMAIL,
+                    'email': BaseConfig.ADMIN_EMAIL,
                     'role': 'admin',
                 }
             }, 200
@@ -199,7 +195,7 @@ class AdminUserDetail(Resource):
     @admin_token_required
     def get(self, current_admin, user_id):
         """Get single user details."""
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             return {'message': 'User not found'}, 404
         return {'user': _user_to_admin_dict(user, include_history=True)}, 200
@@ -210,7 +206,7 @@ class AdminUserDetail(Resource):
     def put(self, current_admin, user_id):
         """Update user details from admin panel."""
         try:
-            user = User.query.get(user_id)
+            user = db.session.get(User, user_id)
             if not user:
                 return {'message': 'User not found'}, 404
 
@@ -240,7 +236,7 @@ class AdminUserDetail(Resource):
     def delete(self, current_admin, user_id):
         """Delete a user from admin panel."""
         try:
-            user = User.query.get(user_id)
+            user = db.session.get(User, user_id)
             if not user:
                 return {'message': 'User not found'}, 404
             db.session.delete(user)
@@ -277,7 +273,7 @@ class AdminDoctorDetail(Resource):
     @admin_token_required
     def get(self, current_admin, doctor_id):
         """Get single doctor full details."""
-        doctor = Doctor.query.get(doctor_id)
+        doctor = db.session.get(Doctor, doctor_id)
         if not doctor:
             return {'message': 'Doctor not found'}, 404
         return {'doctor': _doctor_to_admin_dict(doctor)}, 200
@@ -413,3 +409,4 @@ def _doctor_to_admin_dict(doctor: Doctor) -> dict:
         'total_consultations': doctor.total_consultations or 0,
         'created_at': doctor.created_at.isoformat() if doctor.created_at else None,
     }
+

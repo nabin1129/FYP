@@ -4,9 +4,6 @@ Handles doctor profiles, specializations, and patient relationships
 """
 from datetime import datetime
 import json
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from db_model import db
 
 
@@ -186,7 +183,80 @@ class DoctorPatient(db.Model):
     
     def get_patient_summary(self) -> dict:
         """Get patient summary for doctor dashboard"""
+        from db_model import (
+            db, VisualAcuityTest, ColourVisionTest,
+            BlinkFatigueTest, PupilReflexTest, EyeTrackingTest,
+        )
         patient = self.patient
+        pid = self.patient_id
+
+        # Compute a real health score from the latest tests
+        scores = []
+        latest_test_date = None
+
+        va = VisualAcuityTest.query.filter_by(user_id=pid).order_by(
+            VisualAcuityTest.created_at.desc()).first()
+        if va:
+            score = round((va.correct_answers / va.total_questions) * 100) if va.total_questions else 0
+            scores.append(score)
+            if va.created_at:
+                latest_test_date = va.created_at
+
+        cv = ColourVisionTest.query.filter_by(user_id=pid).order_by(
+            ColourVisionTest.created_at.desc()).first()
+        if cv:
+            scores.append(cv.score or 0)
+            if cv.created_at and (latest_test_date is None or cv.created_at > latest_test_date):
+                latest_test_date = cv.created_at
+
+        bf = BlinkFatigueTest.query.filter_by(user_id=pid).order_by(
+            BlinkFatigueTest.created_at.desc()).first()
+        if bf:
+            alertness = round((1 - bf.drowsy_probability) * 100) if bf.drowsy_probability is not None else 100
+            scores.append(alertness)
+            if bf.created_at and (latest_test_date is None or bf.created_at > latest_test_date):
+                latest_test_date = bf.created_at
+
+        pr = PupilReflexTest.query.filter_by(user_id=pid).order_by(
+            PupilReflexTest.created_at.desc()).first()
+        if pr:
+            pr_score = 100
+            if pr.nystagmus_detected:
+                pr_score -= 20
+            if pr.reaction_time and pr.reaction_time > 0.4:
+                pr_score -= 15
+            scores.append(max(pr_score, 0))
+            if pr.created_at and (latest_test_date is None or pr.created_at > latest_test_date):
+                latest_test_date = pr.created_at
+
+        et = EyeTrackingTest.query.filter_by(user_id=pid).order_by(
+            EyeTrackingTest.created_at.desc()).first()
+        if et and et.overall_performance_score is not None:
+            scores.append(round(et.overall_performance_score))
+            if et.created_at and (latest_test_date is None or et.created_at > latest_test_date):
+                latest_test_date = et.created_at
+
+        computed_score = (sum(scores) // len(scores)) if scores else 0
+
+        # Derive health_status from score
+        if computed_score >= 75:
+            computed_status = 'good'
+        elif computed_score >= 50:
+            computed_status = 'attention'
+        else:
+            computed_status = 'critical'
+
+        # Persist computed values back to the link row so they are consistent
+        try:
+            if computed_score != self.health_score or latest_test_date != self.last_test_date:
+                self.health_score = computed_score
+                self.health_status = computed_status
+                if latest_test_date:
+                    self.last_test_date = latest_test_date
+                db.session.commit()
+        except Exception:
+            db.session.rollback()
+
         return {
             'id': str(self.patient_id),
             'name': patient.name if hasattr(patient, 'name') else 'Unknown',
@@ -194,9 +264,11 @@ class DoctorPatient(db.Model):
             'age': patient.age if hasattr(patient, 'age') else None,
             'sex': patient.sex if hasattr(patient, 'sex') else None,
             'phone': patient.phone if hasattr(patient, 'phone') else None,
-            'healthScore': self.health_score,
+            'healthScore': computed_score,
             'trend': self.trend,
-            'status': self.health_status,
-            'lastTestDate': self.last_test_date.isoformat() if self.last_test_date else None,
+            'status': computed_status,
+            'lastTestDate': latest_test_date.isoformat() if latest_test_date else (
+                self.last_test_date.isoformat() if self.last_test_date else None
+            ),
             'profileImageUrl': patient.profile_image_url if hasattr(patient, 'profile_image_url') else None,
         }

@@ -67,7 +67,10 @@ class ProfileFormField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppTheme.categoryBlue, width: 2),
+              borderSide: const BorderSide(
+                color: AppTheme.categoryBlue,
+                width: 2,
+              ),
             ),
             filled: readOnly,
             fillColor: readOnly ? AppTheme.surfaceMuted : null,

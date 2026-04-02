@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 from db_model import db
 from models.distance_calibration import DistanceCalibration
-from auth_utils import token_required
+from core.security import token_required
 
 # Create namespace
 calibration_ns = Namespace('calibration', description='Distance calibration operations')
@@ -136,3 +136,4 @@ class CalibrationHistory(Resource):
             
         except Exception as e:
             return {'message': f'Failed to get history: {str(e)}'}, 500
+

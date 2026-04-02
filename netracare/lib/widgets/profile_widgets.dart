@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import '../models/user_model.dart';
 
@@ -102,7 +102,10 @@ class GradientProfileCard extends StatelessWidget {
                 ),
                 child: const Text(
                   'Edit Profile',
-                  style: TextStyle(fontSize: AppTheme.fontBody, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: AppTheme.fontBody,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
@@ -191,7 +194,11 @@ class SettingsTile extends StatelessWidget {
               ),
 
               // Chevron
-              Icon(Icons.chevron_right, color: AppTheme.textSecondary, size: 22),
+              Icon(
+                Icons.chevron_right,
+                color: AppTheme.textSecondary,
+                size: 22,
+              ),
             ],
           ),
         ),

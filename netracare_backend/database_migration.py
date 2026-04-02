@@ -1,4 +1,4 @@
-"""
+﻿"""
 Comprehensive Database Migration Script
 ========================================
 
@@ -122,7 +122,7 @@ class DatabaseMigration:
                         cursor.execute(sql)
                         conn.commit()
                         added.append(column_name)
-                        self.log(f"✓ Added column: {column_name} ({column_type})", 'SUCCESS')
+                        self.log(f"[OK] Added column: {column_name} ({column_type})", 'SUCCESS')
                     except sqlite3.OperationalError as e:
                         self.log(f"Failed to add column '{column_name}': {e}", 'ERROR')
                         conn.rollback()
@@ -157,14 +157,14 @@ class DatabaseMigration:
         print("=" * 70)
         
         if added:
-            self.log(f"✓ Successfully added {len(added)} new column(s):", 'SUCCESS')
+            self.log(f"[OK] Successfully added {len(added)} new column(s):", 'SUCCESS')
             for col in added:
-                print(f"  • {col}")
+                print(f"  - {col}")
         
         if skipped:
-            self.log(f"⊘ Skipped {len(skipped)} existing column(s):", 'WARNING')
+            self.log(f"[SKIP] Skipped {len(skipped)} existing column(s):", 'WARNING')
             for col in skipped:
-                print(f"  • {col}")
+                print(f"  - {col}")
         
         if not added and not skipped:
             self.log("No changes were needed", 'INFO')
@@ -172,12 +172,12 @@ class DatabaseMigration:
         print("\n" + "-" * 70)
         self.log(f"Final user table structure: {len(final_columns)} columns", 'INFO')
         for col_name, col_type in final_columns.items():
-            print(f"  • {col_name:<25} {col_type}")
+            print(f"  - {col_name:<25} {col_type}")
         
         print("=" * 70)
         
         if added:
-            self.log("✓ Migration completed successfully!", 'SUCCESS')
+            self.log("[OK] Migration completed successfully!", 'SUCCESS')
             self.log("You can now restart your Flask server.", 'INFO')
         else:
             self.log("No migration was needed. Schema is up to date.", 'INFO')

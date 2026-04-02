@@ -10,8 +10,8 @@ import jwt
 from functools import wraps
 
 from db_model import db, User
-from auth_utils import token_required
-from config import Config
+from core.security import token_required
+from core.config import BaseConfig
 
 # Create namespace
 auth_ns = Namespace('auth', description='Authentication operations')
@@ -109,7 +109,7 @@ class Login(Resource):
             token = jwt.encode({
                 'user_id': user.id,
                 'exp': datetime.utcnow() + timedelta(days=7)
-            }, Config.SECRET_KEY, algorithm='HS256')
+            }, BaseConfig.SECRET_KEY, algorithm='HS256')
             
             return {
                 'message': 'Login successful',
@@ -221,3 +221,4 @@ class TestHistory(Resource):
             
         except Exception as e:
             return {'message': f'Failed to get test history: {str(e)}'}, 500
+

@@ -7,13 +7,9 @@ from flask_restx import Namespace, Resource, fields
 from datetime import datetime
 from sqlalchemy import desc
 
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
 from db_model import db
 from models.notification import Notification
-from auth_utils import token_required, admin_token_required
+from core.security import token_required, admin_token_required
 from routes.doctor_routes import doctor_token_required
 
 # Create namespace
@@ -104,7 +100,7 @@ class MarkUserNotificationRead(Resource):
     def post(self, current_user, notification_id):
         """Mark a notification as read"""
         try:
-            notification = Notification.query.get(notification_id)
+            notification = db.session.get(Notification, notification_id)
             
             if not notification:
                 return {'message': 'Notification not found'}, 404
@@ -223,7 +219,7 @@ class MarkDoctorNotificationRead(Resource):
     def post(self, current_doctor, notification_id):
         """Mark a notification as read"""
         try:
-            notification = Notification.query.get(notification_id)
+            notification = db.session.get(Notification, notification_id)
             
             if not notification:
                 return {'message': 'Notification not found'}, 404
@@ -282,7 +278,7 @@ class DeleteUserNotification(Resource):
     def delete(self, current_user, notification_id):
         """Delete a notification"""
         try:
-            notification = Notification.query.get(notification_id)
+            notification = db.session.get(Notification, notification_id)
             
             if not notification:
                 return {'message': 'Notification not found'}, 404
@@ -309,7 +305,7 @@ class DeleteDoctorNotification(Resource):
     def delete(self, current_doctor, notification_id):
         """Delete a notification"""
         try:
-            notification = Notification.query.get(notification_id)
+            notification = db.session.get(Notification, notification_id)
             
             if not notification:
                 return {'message': 'Notification not found'}, 404
@@ -471,3 +467,4 @@ class CreateDoctorReminder(Resource):
         except Exception as e:
             db.session.rollback()
             return {'message': f'Failed to create reminder: {str(e)}'}, 500
+

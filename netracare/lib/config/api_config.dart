@@ -131,4 +131,7 @@ class ApiConfig {
   static const String aiReportGenerateEndpoint = '/api/ai-report/generate';
   static const String aiReportPdfEndpoint = '/api/ai-report/generate-pdf';
   static const String aiReportInsightsEndpoint = '/api/ai-report/insights';
+  static const String aiReportSendToDoctorEndpoint =
+      '/api/ai-report/send-to-doctor';
+  static const String aiReportMyDoctorsEndpoint = '/api/ai-report/my-doctors';
 }
