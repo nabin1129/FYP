@@ -27,7 +27,7 @@ from features.chat.rest_routes import chat_ns
 
 # Import models to ensure tables are discovered
 from models.doctor import Doctor, DoctorPatient
-from models.consultation import Consultation, ConsultationMessage
+from models.consultation import Consultation, ConsultationMessage, DoctorSlot
 from models.notification import Notification
 
 

@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/api_config.dart';
 import '../models/consultation/consultation_model.dart';
 import '../models/consultation/doctor_model.dart';
+import '../models/consultation/doctor_slot_model.dart';
 
 /// API Service for Doctor-Patient linking and consultations
 /// Handles real API calls to the backend
@@ -420,6 +421,7 @@ class DoctorApiService {
     String consultationType = 'video_call',
     String? reason,
     String? preferredDatetime,
+    int? doctorSlotId,
   }) async {
     try {
       final token = await getToken();
@@ -437,6 +439,7 @@ class DoctorApiService {
           'reason': reason,
           if (preferredDatetime != null)
             'preferred_datetime': preferredDatetime,
+          if (doctorSlotId != null) 'doctor_slot_id': doctorSlotId,
         }),
       );
 
@@ -451,6 +454,146 @@ class DoctorApiService {
       throw Exception(error['message'] ?? 'Booking failed');
     } catch (e) {
       rethrow;
+    }
+  }
+
+  /// Get available doctor assigned physical slots for patient booking
+  static Future<List<DoctorSlot>> getAvailableDoctorSlots({
+    required int doctorId,
+  }) async {
+    final token = await getToken();
+    if (token == null) {
+      throw Exception('Please login');
+    }
+
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}${ApiConfig.availableDoctorSlotsEndpoint}?doctor_id=$doctorId',
+    );
+
+    final response = await http.get(uri, headers: _getHeaders(token));
+    if (response.statusCode != 200) {
+      final error = jsonDecode(response.body);
+      throw Exception(error['message'] ?? 'Failed to fetch slots');
+    }
+
+    final data = jsonDecode(response.body);
+    return (data['slots'] as List)
+        .map((slot) => DoctorSlot.fromJson(slot as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Get doctor's managed physical slots
+  static Future<List<DoctorSlot>> getDoctorSlots({
+    bool includePast = false,
+  }) async {
+    final token = await getDoctorToken();
+    if (token == null) {
+      throw Exception('Please login as a doctor');
+    }
+
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}${ApiConfig.doctorSlotsEndpoint}?include_past=${includePast.toString()}',
+    );
+    final response = await http.get(uri, headers: _getHeaders(token));
+
+    if (response.statusCode != 200) {
+      final error = jsonDecode(response.body);
+      throw Exception(error['message'] ?? 'Failed to fetch doctor slots');
+    }
+
+    final data = jsonDecode(response.body);
+    return (data['slots'] as List)
+        .map((slot) => DoctorSlot.fromJson(slot as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Create doctor-assigned physical slot
+  static Future<DoctorSlot> createDoctorSlot({
+    required DateTime slotStartAtUtc,
+    int durationMinutes = 30,
+    String? location,
+    double? slotFee,
+    bool isActive = true,
+  }) async {
+    final token = await getDoctorToken();
+    if (token == null) {
+      throw Exception('Please login as a doctor');
+    }
+
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.doctorSlotsEndpoint}'),
+      headers: _getHeaders(token),
+      body: jsonEncode({
+        'slot_start_at': slotStartAtUtc.toUtc().toIso8601String(),
+        'duration_minutes': durationMinutes,
+        'location': location,
+        'slot_fee': slotFee,
+        'is_active': isActive,
+      }),
+    );
+
+    if (response.statusCode != 201) {
+      final error = jsonDecode(response.body);
+      throw Exception(error['message'] ?? 'Failed to create slot');
+    }
+
+    final data = jsonDecode(response.body);
+    return DoctorSlot.fromJson(data['slot'] as Map<String, dynamic>);
+  }
+
+  /// Update doctor-assigned slot
+  static Future<DoctorSlot> updateDoctorSlot({
+    required int slotId,
+    DateTime? slotStartAtUtc,
+    int? durationMinutes,
+    String? location,
+    double? slotFee,
+    bool? isActive,
+  }) async {
+    final token = await getDoctorToken();
+    if (token == null) {
+      throw Exception('Please login as a doctor');
+    }
+
+    final payload = <String, dynamic>{
+      if (slotStartAtUtc != null)
+        'slot_start_at': slotStartAtUtc.toUtc().toIso8601String(),
+      if (durationMinutes != null) 'duration_minutes': durationMinutes,
+      if (location != null) 'location': location,
+      if (slotFee != null) 'slot_fee': slotFee,
+      if (isActive != null) 'is_active': isActive,
+    };
+
+    final response = await http.put(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.doctorSlotDetailEndpoint(slotId)}'),
+      headers: _getHeaders(token),
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode != 200) {
+      final error = jsonDecode(response.body);
+      throw Exception(error['message'] ?? 'Failed to update slot');
+    }
+
+    final data = jsonDecode(response.body);
+    return DoctorSlot.fromJson(data['slot'] as Map<String, dynamic>);
+  }
+
+  /// Delete doctor-assigned slot
+  static Future<void> deleteDoctorSlot(int slotId) async {
+    final token = await getDoctorToken();
+    if (token == null) {
+      throw Exception('Please login as a doctor');
+    }
+
+    final response = await http.delete(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.doctorSlotDetailEndpoint(slotId)}'),
+      headers: _getHeaders(token),
+    );
+
+    if (response.statusCode != 200) {
+      final error = jsonDecode(response.body);
+      throw Exception(error['message'] ?? 'Failed to delete slot');
     }
   }
 

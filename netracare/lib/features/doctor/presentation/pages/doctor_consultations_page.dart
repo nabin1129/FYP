@@ -4,6 +4,7 @@ import 'package:netracare/services/doctor_service.dart';
 import 'package:netracare/services/doctor_api_service.dart';
 import 'package:netracare/models/doctor/doctor_analytics_model.dart';
 import 'doctor_chat_page.dart';
+import 'doctor_slot_management_page.dart';
 
 /// Doctor Consultation Page - Manage consultation requests and chat
 class DoctorConsultationsPage extends StatefulWidget {
@@ -132,6 +133,18 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
             icon: const Icon(Icons.refresh, color: AppTheme.primary),
             tooltip: 'Refresh',
             onPressed: _loadDataAsync,
+          ),
+          IconButton(
+            icon: const Icon(Icons.calendar_month, color: AppTheme.primary),
+            tooltip: 'Manage assigned slots',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const DoctorSlotManagementPage(),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -342,6 +355,8 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                           Icon(
                             request.requestType == 'video_call'
                                 ? Icons.videocam
+                                : request.requestType == 'physical'
+                                ? Icons.local_hospital_outlined
                                 : Icons.chat_bubble_outline,
                             size: 14,
                             color: AppTheme.textSecondary,
@@ -351,6 +366,8 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                             child: Text(
                               request.requestType == 'video_call'
                                   ? 'Video Call'
+                                  : request.requestType == 'physical'
+                                  ? 'Physical'
                                   : 'Chat',
                               style: const TextStyle(
                                 fontSize: AppTheme.fontSM,
@@ -549,11 +566,17 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
               icon: Icon(
                 request.requestType == 'video_call'
                     ? Icons.videocam
+                    : request.requestType == 'physical'
+                    ? Icons.local_hospital_outlined
                     : Icons.chat,
                 size: 18,
               ),
               label: Text(
-                request.requestType == 'video_call' ? 'Start Call' : 'Chat',
+                request.requestType == 'video_call'
+                    ? 'Start Call'
+                    : request.requestType == 'physical'
+                    ? 'Open Chat'
+                    : 'Chat',
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primary,

@@ -295,7 +295,7 @@ class DoctorCard extends StatelessWidget {
                   onPressed: onVideoCall,
                   icon: const Icon(Icons.videocam, size: 18),
                   label: const Text(
-                    'Request Video',
+                    'Request Booking',
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   style: ElevatedButton.styleFrom(

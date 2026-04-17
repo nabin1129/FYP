@@ -55,6 +55,9 @@ class ApiConfig {
       '/api/consultations/doctor/schedule';
   static const String doctorConsultationsEndpoint =
       '/api/consultations/doctor/history';
+  static const String doctorSlotsEndpoint = '/api/consultations/doctor/slots';
+  static const String availableDoctorSlotsEndpoint =
+      '/api/consultations/slots/available';
 
   // Notifications
   static const String userNotificationsEndpoint = '/api/notifications/user';
@@ -95,6 +98,10 @@ class ApiConfig {
   // Helper method to share test result
   static String shareTestEndpoint(int consultationId) =>
       '/api/consultations/$consultationId/share-test';
+
+  // Helper method for doctor slot details
+  static String doctorSlotDetailEndpoint(int slotId) =>
+      '/api/consultations/doctor/slots/$slotId';
 
   // Helper method to get patient detail for doctor
   static String doctorPatientDetailEndpoint(int patientId) =>

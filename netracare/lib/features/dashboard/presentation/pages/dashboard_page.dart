@@ -588,6 +588,8 @@ class _DashboardPageState extends State<DashboardPage> {
                 child: Icon(
                   nextConsultation!.type == ConsultationType.videoCall
                       ? Icons.videocam
+                      : nextConsultation!.type == ConsultationType.physical
+                      ? Icons.local_hospital_outlined
                       : Icons.chat_bubble_outline,
                   color: AppTheme.primary,
                   size: 20,

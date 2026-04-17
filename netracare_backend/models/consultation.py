@@ -7,6 +7,43 @@ import json
 from db_model import db
 
 
+class DoctorSlot(db.Model):
+    """Doctor-managed physical consultation slots"""
+    __tablename__ = 'doctor_slots'
+
+    id = db.Column(db.Integer, primary_key=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
+    slot_start_at = db.Column(db.DateTime, nullable=False, index=True)
+    duration_minutes = db.Column(db.Integer, default=30)
+    location = db.Column(db.String(255))
+    slot_fee = db.Column(db.Float)
+    is_active = db.Column(db.Boolean, default=True)
+    is_booked = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('doctor_id', 'slot_start_at', name='unique_doctor_slot_start'),
+    )
+
+    doctor = db.relationship('Doctor', backref=db.backref('slots', lazy='dynamic'))
+
+    def to_dict(self) -> dict:
+        """Convert slot to dictionary"""
+        return {
+            'id': self.id,
+            'doctor_id': self.doctor_id,
+            'slot_start_at': self.slot_start_at.isoformat() if self.slot_start_at else None,
+            'duration_minutes': self.duration_minutes,
+            'location': self.location,
+            'slot_fee': self.slot_fee,
+            'is_active': self.is_active,
+            'is_booked': self.is_booked,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
 class Consultation(db.Model):
     """Consultation booking and history"""
     __tablename__ = 'consultations'
@@ -16,9 +53,10 @@ class Consultation(db.Model):
     # Participants
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
     patient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    doctor_slot_id = db.Column(db.Integer, db.ForeignKey('doctor_slots.id'))
     
     # Consultation Details
-    consultation_type = db.Column(db.String(20), default='video_call')  # video_call, chat
+    consultation_type = db.Column(db.String(20), default='video_call')  # video_call, chat, physical
     status = db.Column(db.String(20), default='pending')  # pending, scheduled, in_progress, completed, cancelled
     
     # Scheduling
@@ -57,6 +95,7 @@ class Consultation(db.Model):
     # Relationships
     doctor = db.relationship('Doctor', back_populates='consultations')
     patient = db.relationship('User', backref=db.backref('consultations', lazy='dynamic'))
+    doctor_slot = db.relationship('DoctorSlot', backref=db.backref('consultations', lazy='dynamic'))
     messages = db.relationship('ConsultationMessage', back_populates='consultation', lazy='dynamic', cascade='all, delete-orphan')
     
     def get_shared_test_ids(self) -> list:
@@ -73,8 +112,10 @@ class Consultation(db.Model):
             'id': str(self.id),
             'doctor_id': self.doctor_id,
             'patient_id': self.patient_id,
+            'doctor_slot_id': self.doctor_slot_id,
             'doctorName': self.doctor.name if self.doctor else 'Unknown',
             'type': self._format_type(),
+            'consultation_type': self.consultation_type,
             'status': self.status,
             'date': self._format_date(),
             'scheduled_at': self.scheduled_at.isoformat() if self.scheduled_at else None,
@@ -100,7 +141,11 @@ class Consultation(db.Model):
     
     def _format_type(self) -> str:
         """Format consultation type for display"""
-        return 'Video Call' if self.consultation_type == 'video_call' else 'Chat'
+        if self.consultation_type == 'video_call':
+            return 'Video Call'
+        if self.consultation_type == 'physical':
+            return 'Physical'
+        return 'Chat'
     
     def _format_date(self) -> str:
         """Format date for display"""
@@ -124,6 +169,7 @@ class Consultation(db.Model):
                 'age': patient.age if hasattr(patient, 'age') else None,
             },
             'type': self.consultation_type,  # raw value: 'video_call' or 'chat'
+            'doctor_slot_id': self.doctor_slot_id,
             'status': self.status,
             'scheduled_at': self.scheduled_at.isoformat() if self.scheduled_at else None,
             'duration_minutes': self.duration_minutes,

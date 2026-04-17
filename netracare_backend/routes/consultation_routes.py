@@ -9,8 +9,14 @@ from sqlalchemy import desc, or_
 
 from db_model import db, User
 from models.doctor import Doctor, DoctorPatient
-from models.consultation import Consultation, ConsultationMessage
+from models.consultation import Consultation, ConsultationMessage, DoctorSlot
 from models.notification import Notification
+from services.consultation_booking_service import (
+    get_available_slot_for_booking,
+    is_future_utc,
+    normalize_consultation_type,
+    parse_iso_datetime_utc,
+)
 from core.security import token_required
 from routes.doctor_routes import doctor_token_required
 
@@ -24,9 +30,10 @@ consultation_ns = Namespace('consultations', description='Consultation managemen
 
 book_consultation_model = consultation_ns.model('BookConsultation', {
     'doctor_id': fields.Integer(required=True, description='Doctor ID'),
-    'consultation_type': fields.String(description='video_call or chat'),
+    'consultation_type': fields.String(description='video_call, chat or physical'),
     'reason': fields.String(description='Reason for consultation'),
     'preferred_datetime': fields.String(description='Preferred date/time ISO format'),
+    'doctor_slot_id': fields.Integer(description='Doctor slot ID (required for physical)'),
 })
 
 schedule_consultation_model = consultation_ns.model('ScheduleConsultation', {
@@ -51,10 +58,51 @@ send_message_model = consultation_ns.model('SendMessage', {
     'test_id': fields.Integer(description='Test ID if sharing result'),
 })
 
+doctor_slot_model = consultation_ns.model('DoctorSlot', {
+    'slot_start_at': fields.String(required=True, description='Slot start datetime in ISO UTC format'),
+    'duration_minutes': fields.Integer(description='Slot duration in minutes'),
+    'location': fields.String(description='Physical consultation location'),
+    'slot_fee': fields.Float(description='Optional slot specific fee'),
+    'is_active': fields.Boolean(description='Whether slot is active'),
+})
+
 
 # ==========================
 # PATIENT CONSULTATION ROUTES
 # ==========================
+
+@consultation_ns.route('/slots/available')
+class PatientAvailableSlots(Resource):
+    """Patient endpoint to discover doctor assigned physical slots"""
+
+    @consultation_ns.doc(security='Bearer')
+    @token_required
+    def get(self, current_user):
+        """Get doctor's available physical slots"""
+        try:
+            doctor_id = request.args.get('doctor_id', type=int)
+            if not doctor_id:
+                return {'message': 'doctor_id is required'}, 400
+
+            doctor = db.session.get(Doctor, doctor_id)
+            if not doctor:
+                return {'message': 'Doctor not found'}, 404
+
+            now = datetime.utcnow()
+            slots = DoctorSlot.query.filter(
+                DoctorSlot.doctor_id == doctor_id,
+                DoctorSlot.is_active.is_(True),
+                DoctorSlot.is_booked.is_(False),
+                DoctorSlot.slot_start_at >= now,
+            ).order_by(DoctorSlot.slot_start_at.asc()).all()
+
+            return {
+                'slots': [s.to_dict() for s in slots],
+                'total': len(slots),
+            }, 200
+
+        except Exception as e:
+            return {'message': f'Failed to fetch slots: {str(e)}'}, 500
 
 @consultation_ns.route('/book')
 class BookConsultation(Resource):
@@ -66,7 +114,7 @@ class BookConsultation(Resource):
     def post(self, current_user):
         """Book a new consultation with a doctor"""
         try:
-            data = request.get_json()
+            data = request.get_json() or {}
             doctor_id = data.get('doctor_id')
             
             if not doctor_id:
@@ -79,28 +127,77 @@ class BookConsultation(Resource):
             
             if not doctor.is_available:
                 return {'message': 'Doctor is not currently available'}, 400
+
+            consultation_type = normalize_consultation_type(
+                data.get('consultation_type')
+            )
+            consultation_status = 'pending'
+            scheduled_at = None
+            duration_minutes = 30
+            fee = doctor.consultation_fee
+            doctor_slot_id = None
+
+            if consultation_type == 'physical':
+                slot_id = data.get('doctor_slot_id')
+                if not slot_id:
+                    return {'message': 'doctor_slot_id is required for physical consultation'}, 400
+
+                slot = get_available_slot_for_booking(int(slot_id), doctor_id)
+                if not slot:
+                    return {'message': 'Selected slot is not available'}, 409
+
+                doctor_slot_id = slot.id
+                scheduled_at = slot.slot_start_at
+                duration_minutes = slot.duration_minutes
+                fee = slot.slot_fee if slot.slot_fee is not None else doctor.consultation_fee
+                consultation_status = 'scheduled'
+                slot.is_booked = True
+
+            preferred_datetime = data.get('preferred_datetime')
+            if preferred_datetime and consultation_type != 'physical':
+                try:
+                    preferred_at = parse_iso_datetime_utc(preferred_datetime)
+                    if is_future_utc(preferred_at):
+                        scheduled_at = preferred_at
+                except ValueError:
+                    return {'message': 'Invalid preferred_datetime format'}, 400
             
             # Create consultation
             consultation = Consultation(
                 doctor_id=doctor_id,
                 patient_id=current_user.id,
-                consultation_type=data.get('consultation_type', 'video_call'),
-                status='pending',
+                doctor_slot_id=doctor_slot_id,
+                consultation_type=consultation_type,
+                status=consultation_status,
+                scheduled_at=scheduled_at,
+                duration_minutes=duration_minutes,
                 reason=data.get('reason'),
                 patient_notes=data.get('reason'),
-                fee=doctor.consultation_fee,
+                fee=fee,
             )
             
             db.session.add(consultation)
             
             # Create notification for doctor
             patient_name = current_user.name if hasattr(current_user, 'name') else 'A patient'
-            notification = Notification.create_consultation_request(
-                doctor_id=doctor_id,
-                patient_id=current_user.id,
-                consultation_id=consultation.id,
-                patient_name=patient_name
-            )
+            if consultation_type == 'physical':
+                notification = Notification(
+                    recipient_type='doctor',
+                    recipient_id=doctor_id,
+                    notification_type='consultation_scheduled',
+                    title='New Physical Consultation Booking',
+                    message=f'{patient_name} booked your physical slot for {scheduled_at.strftime("%B %d, %Y at %I:%M %p")}.',
+                    related_type='consultation',
+                    related_id=consultation.id,
+                    priority='high',
+                )
+            else:
+                notification = Notification.create_consultation_request(
+                    doctor_id=doctor_id,
+                    patient_id=current_user.id,
+                    consultation_id=consultation.id,
+                    patient_name=patient_name
+                )
             db.session.add(notification)
             
             # Link patient to doctor if not already linked
@@ -121,7 +218,9 @@ class BookConsultation(Resource):
             db.session.commit()
             
             return {
-                'message': 'Consultation request submitted',
+                'message': consultation_type == 'physical'
+                    and 'Physical consultation booked successfully'
+                    or 'Consultation request submitted',
                 'consultation': consultation.to_dict()
             }, 201
             
@@ -185,6 +284,145 @@ class PatientUpcomingConsultations(Resource):
 # ==========================
 # DOCTOR CONSULTATION ROUTES
 # ==========================
+
+@consultation_ns.route('/doctor/slots')
+class DoctorSlotList(Resource):
+    """Doctor-managed slot list and creation"""
+
+    @consultation_ns.doc(security='Bearer')
+    @doctor_token_required
+    def get(self, current_doctor):
+        """Get doctor's physical slots"""
+        try:
+            include_past = request.args.get('include_past', 'false').lower() == 'true'
+            query = DoctorSlot.query.filter_by(doctor_id=current_doctor.id)
+
+            if not include_past:
+                query = query.filter(DoctorSlot.slot_start_at >= datetime.utcnow())
+
+            slots = query.order_by(DoctorSlot.slot_start_at.asc()).all()
+
+            return {
+                'slots': [s.to_dict() for s in slots],
+                'total': len(slots),
+            }, 200
+
+        except Exception as e:
+            return {'message': f'Failed to fetch doctor slots: {str(e)}'}, 500
+
+    @consultation_ns.doc(security='Bearer')
+    @consultation_ns.expect(doctor_slot_model)
+    @doctor_token_required
+    def post(self, current_doctor):
+        """Create a doctor physical slot"""
+        try:
+            data = request.get_json() or {}
+            slot_start_at_raw = data.get('slot_start_at')
+
+            if not slot_start_at_raw:
+                return {'message': 'slot_start_at is required'}, 400
+
+            try:
+                slot_start_at = parse_iso_datetime_utc(slot_start_at_raw)
+            except ValueError:
+                return {'message': 'Invalid slot_start_at format'}, 400
+
+            if not is_future_utc(slot_start_at):
+                return {'message': 'slot_start_at must be in the future (UTC)'}, 400
+
+            slot = DoctorSlot(
+                doctor_id=current_doctor.id,
+                slot_start_at=slot_start_at,
+                duration_minutes=data.get('duration_minutes', 30),
+                location=data.get('location') or current_doctor.working_place,
+                slot_fee=data.get('slot_fee'),
+                is_active=data.get('is_active', True),
+            )
+            db.session.add(slot)
+            db.session.commit()
+
+            return {
+                'message': 'Doctor slot created',
+                'slot': slot.to_dict(),
+            }, 201
+
+        except Exception as e:
+            db.session.rollback()
+            return {'message': f'Failed to create slot: {str(e)}'}, 500
+
+
+@consultation_ns.route('/doctor/slots/<int:slot_id>')
+class DoctorSlotDetail(Resource):
+    """Doctor slot update/deactivation"""
+
+    @consultation_ns.doc(security='Bearer')
+    @consultation_ns.expect(doctor_slot_model)
+    @doctor_token_required
+    def put(self, current_doctor, slot_id):
+        """Update doctor slot metadata"""
+        try:
+            slot = db.session.get(DoctorSlot, slot_id)
+            if not slot:
+                return {'message': 'Slot not found'}, 404
+
+            if slot.doctor_id != current_doctor.id:
+                return {'message': 'Not authorized'}, 403
+
+            data = request.get_json() or {}
+
+            if slot.is_booked and ('slot_start_at' in data or 'duration_minutes' in data):
+                return {'message': 'Booked slot time cannot be changed'}, 409
+
+            if 'slot_start_at' in data and data['slot_start_at']:
+                try:
+                    slot_start_at = parse_iso_datetime_utc(data['slot_start_at'])
+                except ValueError:
+                    return {'message': 'Invalid slot_start_at format'}, 400
+                if not is_future_utc(slot_start_at):
+                    return {'message': 'slot_start_at must be in the future (UTC)'}, 400
+                slot.slot_start_at = slot_start_at
+
+            if 'duration_minutes' in data:
+                slot.duration_minutes = data['duration_minutes']
+            if 'location' in data:
+                slot.location = data['location']
+            if 'slot_fee' in data:
+                slot.slot_fee = data['slot_fee']
+            if 'is_active' in data:
+                slot.is_active = data['is_active']
+
+            db.session.commit()
+            return {
+                'message': 'Slot updated',
+                'slot': slot.to_dict(),
+            }, 200
+
+        except Exception as e:
+            db.session.rollback()
+            return {'message': f'Failed to update slot: {str(e)}'}, 500
+
+    @consultation_ns.doc(security='Bearer')
+    @doctor_token_required
+    def delete(self, current_doctor, slot_id):
+        """Delete an unbooked doctor slot"""
+        try:
+            slot = db.session.get(DoctorSlot, slot_id)
+            if not slot:
+                return {'message': 'Slot not found'}, 404
+
+            if slot.doctor_id != current_doctor.id:
+                return {'message': 'Not authorized'}, 403
+
+            if slot.is_booked:
+                return {'message': 'Booked slot cannot be deleted'}, 409
+
+            db.session.delete(slot)
+            db.session.commit()
+            return {'message': 'Slot deleted'}, 200
+
+        except Exception as e:
+            db.session.rollback()
+            return {'message': f'Failed to delete slot: {str(e)}'}, 500
 
 @consultation_ns.route('/doctor/pending')
 class DoctorPendingConsultations(Resource):
@@ -393,6 +631,9 @@ class ScheduleConsultation(Resource):
             
             if consultation.status != 'pending':
                 return {'message': 'Consultation is not pending'}, 400
+
+            if consultation.consultation_type == 'physical':
+                return {'message': 'Physical consultations are scheduled from doctor slots'}, 409
             
             data = request.get_json()
             
@@ -400,9 +641,12 @@ class ScheduleConsultation(Resource):
                 return {'message': 'Scheduled datetime is required'}, 400
             
             try:
-                scheduled_at = datetime.fromisoformat(data['scheduled_at'].replace('Z', '+00:00'))
+                scheduled_at = parse_iso_datetime_utc(data['scheduled_at'])
             except ValueError:
                 return {'message': 'Invalid datetime format'}, 400
+
+            if not is_future_utc(scheduled_at):
+                return {'message': 'Scheduled datetime must be in the future (UTC)'}, 400
             
             consultation.scheduled_at = scheduled_at
             consultation.duration_minutes = data.get('duration_minutes', 30)

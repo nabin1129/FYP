@@ -135,14 +135,20 @@ class ConsultationService {
     required int doctorId,
     required ConsultationType type,
     String? reason,
+    int? doctorSlotId,
   }) async {
     try {
+      final consultationType = switch (type) {
+        ConsultationType.videoCall => 'video_call',
+        ConsultationType.physical => 'physical',
+        ConsultationType.chat => 'chat',
+      };
+
       final consultation = await DoctorApiService.bookConsultation(
         doctorId: doctorId,
-        consultationType: type == ConsultationType.videoCall
-            ? 'video_call'
-            : 'chat',
+        consultationType: consultationType,
         reason: reason,
+        doctorSlotId: doctorSlotId,
       );
 
       if (consultation != null) {

@@ -77,6 +77,8 @@ class ConsultationHistoryCard extends StatelessWidget {
               Icon(
                 consultation.type == ConsultationType.videoCall
                     ? Icons.videocam
+                    : consultation.type == ConsultationType.physical
+                    ? Icons.local_hospital_outlined
                     : Icons.chat_bubble_outline,
                 size: 16,
                 color: AppTheme.textLight,
