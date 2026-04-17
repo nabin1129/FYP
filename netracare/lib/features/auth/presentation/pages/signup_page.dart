@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:netracare/config/app_theme.dart';
@@ -17,11 +19,13 @@ class _SignupPageState extends State<SignupPage> {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
   final ageController = TextEditingController();
   String? selectedSex;
 
   bool isLoading = false;
   bool obscurePassword = true;
+  bool obscureConfirmPassword = true;
 
   bool isStrongPassword(String password) {
     final regex = RegExp(
@@ -30,18 +34,35 @@ class _SignupPageState extends State<SignupPage> {
     return regex.hasMatch(password);
   }
 
+  static bool _isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com$');
+    return emailRegex.hasMatch(email);
+  }
+
+  static bool _isValidFullName(String value) {
+    final nameRegex = RegExp(r'^[A-Za-z]+(?: [A-Za-z]+){1,3}$');
+    return nameRegex.hasMatch(value.trim());
+  }
+
   Future<void> _signup() async {
     if (!_formKey.currentState!.validate()) return;
 
     final password = passwordController.text;
 
     if (!isStrongPassword(password)) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.',
+            'Password must contain:\n'
+            '• At least 8 characters\n'
+            '• Uppercase letter (A-Z)\n'
+            '• Lowercase letter (a-z)\n'
+            '• Number (0-9)\n'
+            '• Special character (@\$!%*?&)',
           ),
           backgroundColor: AppTheme.error,
+          duration: Duration(seconds: 4),
         ),
       );
       return;
@@ -52,13 +73,13 @@ class _SignupPageState extends State<SignupPage> {
     try {
       await ApiService.signup(
         name: nameController.text.trim(),
-        email: emailController.text.trim(),
+        email: emailController.text.trim().toLowerCase(),
         password: password,
         age: ageController.text.isNotEmpty
             ? int.tryParse(ageController.text)
             : null,
         sex: selectedSex,
-      );
+      ).timeout(const Duration(seconds: 10));
 
       if (!mounted) return;
 
@@ -67,10 +88,23 @@ class _SignupPageState extends State<SignupPage> {
         MaterialPageRoute(builder: (_) => const DashboardPage()),
         (route) => false,
       );
+    } on TimeoutException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Request timed out. Please check your internet connection.',
+          ),
+          backgroundColor: AppTheme.error,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: AppTheme.error),
+        SnackBar(
+          content: Text(e.toString().replaceAll('Exception: ', '')),
+          backgroundColor: AppTheme.error,
+        ),
       );
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -82,6 +116,7 @@ class _SignupPageState extends State<SignupPage> {
     nameController.dispose();
     emailController.dispose();
     passwordController.dispose();
+    confirmPasswordController.dispose();
     ageController.dispose();
     super.dispose();
   }
@@ -111,8 +146,14 @@ class _SignupPageState extends State<SignupPage> {
                 controller: nameController,
                 label: 'Full Name',
                 icon: Icons.person,
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Name is required' : null,
+                validator: (v) {
+                  final name = v?.trim() ?? '';
+                  if (name.isEmpty) return 'Name is required';
+                  if (!_isValidFullName(name)) {
+                    return 'Enter 2 to 4 words with single spaces only';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               _inputField(
@@ -120,9 +161,14 @@ class _SignupPageState extends State<SignupPage> {
                 label: 'Email',
                 icon: Icons.email,
                 keyboardType: TextInputType.emailAddress,
-                validator: (v) => v == null || !v.contains('@')
-                    ? 'Valid email required'
-                    : null,
+                validator: (v) {
+                  final email = v?.trim() ?? '';
+                  if (email.isEmpty) return 'Email is required';
+                  if (!_isValidEmail(email)) {
+                    return 'Please enter a valid .com email';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               _inputField(
@@ -140,10 +186,37 @@ class _SignupPageState extends State<SignupPage> {
                     });
                   },
                 ),
-                validator: (v) =>
-                    v == null || v.length < 8 ? 'Minimum 8 characters' : null,
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Password is required';
+                  if (v.length < 8) return 'Minimum 8 characters';
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
+              _inputField(
+                controller: confirmPasswordController,
+                label: 'Confirm Password',
+                icon: Icons.lock,
+                obscureText: obscureConfirmPassword,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    obscureConfirmPassword
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      obscureConfirmPassword = !obscureConfirmPassword;
+                    });
+                  },
+                ),
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Please confirm password';
+                  if (v != passwordController.text)
+                    return 'Passwords do not match';
+                  return null;
+                },
+              ),
               _inputField(
                 controller: ageController,
                 label: 'Age (optional)',

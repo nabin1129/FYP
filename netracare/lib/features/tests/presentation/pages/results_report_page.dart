@@ -387,7 +387,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     String getLatestFatigue() {
       if (_blinkFatigueTests.isEmpty) return 'Not tested';
       final test = _blinkFatigueTests.first;
-      return '${test['classification']} (${test['alertness_percentage']}% alert)';
+      final alertness = _resolveAlertnessPercent(test);
+      return '${test['classification']} (${(alertness ?? 0).round()}% alert)';
     }
 
     pdf.addPage(
@@ -2239,10 +2240,11 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     // Add blink fatigue tests
     for (var test in _blinkFatigueTests) {
       final date = test['date'] ?? test['created_at'] ?? 'Unknown date';
+      final alertness = _resolveAlertnessPercent(test);
       allTests.add({
         'title': 'Blink & Fatigue Test',
         'date': date,
-        'score': test['alertness_percentage']?.round() ?? 0,
+        'score': alertness?.round() ?? 0,
         'timestamp': date,
       });
     }

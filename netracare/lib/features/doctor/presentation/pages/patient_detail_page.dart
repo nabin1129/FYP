@@ -888,8 +888,9 @@ class _PatientDetailPageState extends State<PatientDetailPage>
         final alertness = result['alertness_percentage'];
         final parts = <String>[];
         if (classification != null) parts.add(classification.toString());
-        if (bpm != null && (bpm as num) > 0) {
-          parts.add('${(bpm as num).toStringAsFixed(1)} blinks/min');
+        final bpmNum = bpm as num?;
+        if (bpmNum != null && bpmNum > 0) {
+          parts.add('${bpmNum.toStringAsFixed(1)} blinks/min');
         }
         if (alertness != null) parts.add('$alertness% alert');
         return parts.isNotEmpty ? parts.join(' · ') : 'Completed';

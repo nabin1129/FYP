@@ -395,15 +395,14 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
           ),
           ElevatedButton(
             onPressed: () async {
+              final navigator = Navigator.of(context);
               Navigator.pop(context);
               await DoctorApiService.deleteDoctorToken();
-              if (mounted) {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/login',
-                  (route) => false,
-                );
-              }
+              if (!mounted) return;
+              navigator.pushNamedAndRemoveUntil(
+                '/login',
+                (route) => false,
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.error,

@@ -109,3 +109,5 @@ credentials/
 *.key
 *.cert
 config_local.py
+
+.md

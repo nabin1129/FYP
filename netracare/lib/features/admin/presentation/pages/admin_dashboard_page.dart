@@ -1007,14 +1007,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             const SizedBox(height: AppTheme.spaceLG),
             ListTile(
               leading: const Icon(
-                Icons.settings,
-                color: AppTheme.textSecondary,
-              ),
-              title: const Text('Settings'),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: const Icon(
                 Icons.help_outline,
                 color: AppTheme.textSecondary,
               ),

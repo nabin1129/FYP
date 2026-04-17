@@ -334,3 +334,4 @@ class BlinkTestSubmission(Resource):
             db.session.rollback()
             blink_detection_ns.abort(500, f'Failed to save test: {str(e)}')
 
+            

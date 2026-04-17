@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -38,7 +40,6 @@ class _LoginPageState extends State<LoginPage>
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
   static const _rememberEmailKey = 'remember_email';
-  static const _rememberPasswordKey = 'remember_password';
   static const _rememberMeKey = 'remember_me';
 
   @override
@@ -57,14 +58,17 @@ class _LoginPageState extends State<LoginPage>
     final remembered = await _storage.read(key: _rememberMeKey);
     if (remembered == 'true') {
       final email = await _storage.read(key: _rememberEmailKey);
-      final password = await _storage.read(key: _rememberPasswordKey);
       if (mounted) {
         setState(() {
           _rememberMe = true;
           if (email != null) _emailController.text = email;
-          if (password != null) _passwordController.text = password;
         });
       }
+    } else if (mounted) {
+      // Default to 'admin' email field if not remembered
+      setState(() {
+        _emailController.text = 'admin';
+      });
     }
   }
 
@@ -73,17 +77,17 @@ class _LoginPageState extends State<LoginPage>
       await _storage.write(key: _rememberMeKey, value: 'true');
       await _storage.write(
         key: _rememberEmailKey,
-        value: _emailController.text.trim(),
-      );
-      await _storage.write(
-        key: _rememberPasswordKey,
-        value: _passwordController.text,
+        value: _emailController.text.trim().toLowerCase(),
       );
     } else {
       await _storage.delete(key: _rememberMeKey);
       await _storage.delete(key: _rememberEmailKey);
-      await _storage.delete(key: _rememberPasswordKey);
     }
+  }
+
+  static bool _isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com$');
+    return emailRegex.hasMatch(email);
   }
 
   @override
@@ -171,8 +175,15 @@ class _LoginPageState extends State<LoginPage>
               prefixIcon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
-              validator: (v) =>
-                  (v == null || v.isEmpty) ? 'Email is required' : null,
+              validator: (v) {
+                final email = v?.trim() ?? '';
+                if (email.isEmpty) return 'Email is required';
+                if (email.toLowerCase() == 'admin') return null;
+                if (!_isValidEmail(email)) {
+                  return 'Please enter a valid .com email';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: AppTheme.spaceMD),
             AnimatedInputField(
@@ -400,6 +411,7 @@ class _LoginPageState extends State<LoginPage>
 
       await _saveOrClearCredentials();
 
+      // Try admin login first (no validation, original format)
       final isAdmin = await ApiService.adminLogin(email, password);
       if (isAdmin) {
         if (mounted) {
@@ -411,7 +423,11 @@ class _LoginPageState extends State<LoginPage>
         return;
       }
 
-      final isDoctor = await ApiService.doctorLogin(email, password);
+      // Try doctor login with validated email (timeout for user accounts)
+      final isDoctor = await ApiService.doctorLogin(
+        email,
+        password,
+      ).timeout(const Duration(seconds: 10));
       if (isDoctor) {
         final forcePasswordChange =
             await ApiService.getDoctorForcePasswordChange();
@@ -433,16 +449,36 @@ class _LoginPageState extends State<LoginPage>
         return;
       }
 
-      await ApiService.login(email, password);
+      // Validate email for regular user login
+      if (!_isValidEmail(email)) {
+        setState(() => _errorMessage = 'Please enter a valid email format');
+        return;
+      }
+
+      // User login with timeout
+      await ApiService.login(
+        email,
+        password,
+      ).timeout(const Duration(seconds: 10));
       if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const DashboardPage()),
         );
       }
+    } on TimeoutException {
+      if (mounted) {
+        setState(
+          () => _errorMessage =
+              'Request timed out. Check your internet connection.',
+        );
+      }
     } catch (e) {
       if (mounted) {
-        setState(() => _errorMessage = 'Login failed: ${e.toString()}');
+        setState(
+          () => _errorMessage =
+              'Login failed: ${e.toString().replaceAll('Exception: ', '')}',
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

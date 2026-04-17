@@ -8,6 +8,8 @@ class ApiConfig {
   // NOTE: Use 10.0.2.2 on Android emulator to reach host machine
   static const String baseUrl = 'http://10.0.2.2:5000';
 
+  static String get socketUrl => baseUrl;
+
   // API endpoints
   static const String loginEndpoint = '/auth/login';
   static const String signupEndpoint = '/auth/signup';

@@ -19,6 +19,7 @@ dependencies:
 
   # 🌐 HTTP client (Dart 3 compatible)
   http: ^1.2.1
+  socket_io_client: ^3.1.2
 
   # 🔐 Secure storage for JWT / tokens
   flutter_secure_storage: ^8.0.0

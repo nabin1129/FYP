@@ -96,7 +96,7 @@ class _DoctorAllUsersPageState extends State<DoctorAllUsersPage> {
           Icon(
             Icons.error_outline,
             size: 64,
-            color: AppTheme.primary.withOpacity(0.5),
+            color: AppTheme.primary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -134,7 +134,7 @@ class _DoctorAllUsersPageState extends State<DoctorAllUsersPage> {
           Icon(
             Icons.people_outline,
             size: 64,
-            color: AppTheme.primary.withOpacity(0.5),
+            color: AppTheme.primary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -174,7 +174,7 @@ class _DoctorAllUsersPageState extends State<DoctorAllUsersPage> {
                   height: 48,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppTheme.primary.withOpacity(0.2),
+                    color: AppTheme.primary.withValues(alpha: 0.2),
                   ),
                   child: Center(
                     child: Text(

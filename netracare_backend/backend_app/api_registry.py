@@ -23,6 +23,7 @@ from routes.doctor_routes import doctor_ns
 from routes.consultation_routes import consultation_ns
 from routes.notification_routes import notification_ns
 from routes.admin_routes import admin_ns
+from features.chat.rest_routes import chat_ns
 
 # Import models to ensure tables are discovered
 from models.doctor import Doctor, DoctorPatient
@@ -58,5 +59,6 @@ def build_api(app) -> Api:
     api.add_namespace(consultation_ns, path="/api/consultations")
     api.add_namespace(notification_ns, path="/api/notifications")
     api.add_namespace(admin_ns, path="/api/admin")
+    api.add_namespace(chat_ns, path="/api/chat")
 
     return api

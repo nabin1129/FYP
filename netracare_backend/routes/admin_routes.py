@@ -7,6 +7,7 @@ from flask_restx import Namespace, Resource, fields
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
 from datetime import datetime, timedelta
+import logging
 
 from db_model import db, User
 from db_model import EyeTrackingTest, VisualAcuityTest, ColourVisionTest, BlinkFatigueTest, PupilReflexTest
@@ -49,10 +50,14 @@ class AdminLogin(Resource):
             email = (data.get('email') or '').strip()
             password = data.get('password') or ''
 
+            logging.info('[ADMIN] Login attempt received for email=%s', email or '<empty>')
+
             if not email or not password:
+                logging.warning('[ADMIN] Login rejected: missing email or password')
                 return {'message': 'Email and password are required'}, 400
 
             if email != BaseConfig.ADMIN_EMAIL:
+                logging.warning('[ADMIN] Login rejected: invalid admin email=%s', email)
                 return {'message': 'Invalid admin credentials'}, 401
 
             is_valid = False
@@ -62,9 +67,11 @@ class AdminLogin(Resource):
                 is_valid = password == BaseConfig.ADMIN_PASSWORD
 
             if not is_valid:
+                logging.warning('[ADMIN] Login rejected: invalid password for email=%s', email)
                 return {'message': 'Invalid admin credentials'}, 401
 
             token = generate_admin_token(BaseConfig.ADMIN_EMAIL)
+            logging.info('[ADMIN] Login successful for email=%s', BaseConfig.ADMIN_EMAIL)
             return {
                 'message': 'Admin login successful',
                 'token': token,
@@ -74,6 +81,7 @@ class AdminLogin(Resource):
                 }
             }, 200
         except Exception as e:
+            logging.error('[ADMIN] Login failed with exception: %s', str(e))
             return {'message': f'Admin login failed: {str(e)}'}, 500
 
 

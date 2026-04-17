@@ -611,7 +611,8 @@ class ConsultationMessages(Resource):
             
             data = request.get_json()
             
-            if not data.get('content'):
+            content = (data.get('content') or data.get('message') or '').strip()
+            if not content:
                 return {'message': 'Message content is required'}, 400
             
             message = ConsultationMessage(
@@ -619,7 +620,7 @@ class ConsultationMessages(Resource):
                 sender_type='patient',
                 sender_id=current_user.id,
                 message_type=data.get('message_type', 'text'),
-                content=data['content'],
+                content=content,
                 test_type=data.get('test_type'),
                 test_id=data.get('test_id'),
             )
@@ -640,7 +641,8 @@ class ConsultationMessages(Resource):
             
             return {
                 'message': 'Message sent',
-                'data': message.to_dict()
+                'data': message.to_dict(),
+                'chat_message': message.to_dict(),
             }, 201
             
         except Exception as e:
@@ -700,7 +702,8 @@ class DoctorConsultationMessages(Resource):
             
             data = request.get_json()
             
-            if not data.get('content'):
+            content = (data.get('content') or data.get('message') or '').strip()
+            if not content:
                 return {'message': 'Message content is required'}, 400
             
             message = ConsultationMessage(
@@ -708,7 +711,7 @@ class DoctorConsultationMessages(Resource):
                 sender_type='doctor',
                 sender_id=current_doctor.id,
                 message_type=data.get('message_type', 'text'),
-                content=data['content'],
+                content=content,
             )
             
             db.session.add(message)
@@ -726,7 +729,8 @@ class DoctorConsultationMessages(Resource):
             
             return {
                 'message': 'Message sent',
-                'data': message.to_dict()
+                'data': message.to_dict(),
+                'chat_message': message.to_dict(),
             }, 201
             
         except Exception as e:

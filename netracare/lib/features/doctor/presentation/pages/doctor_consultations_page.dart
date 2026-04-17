@@ -597,6 +597,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
           ),
           ElevatedButton(
             onPressed: () async {
+              final messenger = ScaffoldMessenger.of(context);
               Navigator.pop(context);
 
               try {
@@ -604,24 +605,22 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                   consultationId: request.id,
                 );
 
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Consultation request accepted'),
-                      backgroundColor: AppTheme.success,
-                    ),
-                  );
-                  _loadDataAsync();
-                }
+                if (!mounted) return;
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Consultation request accepted'),
+                    backgroundColor: AppTheme.success,
+                  ),
+                );
+                _loadDataAsync();
               } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: $e'),
-                      backgroundColor: AppTheme.error,
-                    ),
-                  );
-                }
+                if (!mounted) return;
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text('Error: $e'),
+                    backgroundColor: AppTheme.error,
+                  ),
+                );
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.success),
@@ -650,6 +649,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
           ),
           ElevatedButton(
             onPressed: () async {
+              final messenger = ScaffoldMessenger.of(context);
               Navigator.pop(context);
 
               try {
@@ -657,24 +657,22 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                   consultationId: request.id,
                 );
 
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Consultation request declined'),
-                      backgroundColor: AppTheme.warning,
-                    ),
-                  );
-                  _loadDataAsync();
-                }
+                if (!mounted) return;
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Consultation request declined'),
+                    backgroundColor: AppTheme.warning,
+                  ),
+                );
+                _loadDataAsync();
               } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: $e'),
-                      backgroundColor: AppTheme.error,
-                    ),
-                  );
-                }
+                if (!mounted) return;
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text('Error: $e'),
+                    backgroundColor: AppTheme.error,
+                  ),
+                );
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),

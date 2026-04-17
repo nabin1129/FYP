@@ -176,12 +176,14 @@ class DoctorApiService {
           '${ApiConfig.baseUrl}/api/consultations/$consultationId/messages',
         ),
         headers: _getHeaders(token),
-        body: jsonEncode({'message': message}),
+        body: jsonEncode({'content': message}),
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['message'] ?? {};
+        return Map<String, dynamic>.from(
+          data['data'] ?? data['chat_message'] ?? {},
+        );
       }
 
       final error = jsonDecode(response.body);
@@ -239,12 +241,14 @@ class DoctorApiService {
           '${ApiConfig.baseUrl}/api/consultations/$consultationId/doctor/messages',
         ),
         headers: _getHeaders(token),
-        body: jsonEncode({'message': message}),
+        body: jsonEncode({'content': message}),
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['message'] ?? {};
+        return Map<String, dynamic>.from(
+          data['data'] ?? data['chat_message'] ?? {},
+        );
       }
 
       final error = jsonDecode(response.body);

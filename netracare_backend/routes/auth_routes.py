@@ -7,7 +7,9 @@ from flask_restx import Namespace, Resource, fields
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import jwt
+import re
 from functools import wraps
+from sqlalchemy.exc import IntegrityError
 
 from db_model import db, User
 from core.security import token_required
@@ -43,6 +45,37 @@ profile_update_model = auth_ns.model('ProfileUpdate', {
 })
 
 
+# Helper Functions for Validation
+def validate_email_format(email: str) -> bool:
+    """Validate email format using regex"""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com$'
+    return re.match(pattern, email) is not None
+
+
+def validate_full_name(name: str) -> bool:
+    """Validate full name with 2 to 4 words and single spaces only."""
+    pattern = r'^[A-Za-z]+(?: [A-Za-z]+){1,3}$'
+    return re.match(pattern, name) is not None
+
+
+def validate_password_strength(password: str) -> tuple:
+    """
+    Validate password strength.
+    Returns (is_valid, error_message)
+    """
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters"
+    if not re.search(r'[a-z]', password):
+        return False, "Password must contain a lowercase letter"
+    if not re.search(r'[A-Z]', password):
+        return False, "Password must contain an uppercase letter"
+    if not re.search(r'\d', password):
+        return False, "Password must contain a number"
+    if not re.search(r'[@$!%*?&]', password):
+        return False, "Password must contain a special character (@$!%*?&)"
+    return True, ""
+
+
 @auth_ns.route('/register')
 class Register(Resource):
     """User registration endpoint"""
@@ -53,23 +86,57 @@ class Register(Resource):
         try:
             data = request.get_json()
             
-            # Validate input
-            if not data.get('username') or not data.get('email') or not data.get('password'):
-                return {'message': 'Username, email and password are required'}, 400
+            # Normalize and validate input
+            email = data.get('email', '').strip().lower()
+            password = data.get('password', '').strip()
+            name = data.get('full_name', '') or data.get('username', '')
+            name = name.strip() if name else ''
             
-            # Check if user exists
-            if User.query.filter_by(email=data['email']).first():
-                return {'message': 'Email already exists'}, 400
+            # Validate all required fields
+            if not email or not password or not name:
+                return {
+                    'message': 'Name, email and password are required'
+                }, 400
             
-            # Create new user (adapting to existing User model schema)
+            # Validate input lengths
+            if len(email) > 254:
+                return {'message': 'Email too long (max 254 characters)'}, 400
+            if len(password) > 128:
+                return {'message': 'Password too long (max 128 characters)'}, 400
+            if len(name) > 100:
+                return {'message': 'Name too long (max 100 characters)'}, 400
+
+            if not validate_full_name(name):
+                return {
+                    'message': 'Name must contain 2 to 4 words with single spaces only'
+                }, 400
+            
+            # Validate email format
+            if not validate_email_format(email):
+                return {'message': 'Email must be a valid .com address'}, 400
+            
+            # Validate password strength
+            is_strong, error_msg = validate_password_strength(password)
+            if not is_strong:
+                return {'message': error_msg}, 400
+            
+            # Check if user exists (case-insensitive)
+            if User.query.filter_by(email=email).first():
+                return {'message': 'Email already registered'}, 409
+            
+            # Create new user
             user = User(
-                name=data.get('full_name') or data['username'],  # Use 'name' field instead of 'username'
-                email=data['email'],
-                password_hash=generate_password_hash(data['password'])
+                name=name,
+                email=email,
+                password_hash=generate_password_hash(password)
             )
             
             db.session.add(user)
-            db.session.commit()
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+                return {'message': 'Email already registered'}, 409
             
             return {
                 'message': 'User registered successfully',
@@ -83,7 +150,10 @@ class Register(Resource):
             
         except Exception as e:
             db.session.rollback()
-            return {'message': f'Registration failed: {str(e)}'}, 500
+            # Log the full error server-side, return generic message to client
+            return {
+                'message': 'Registration failed. Please try again.'
+            }, 500
 
 
 @auth_ns.route('/login')
@@ -96,14 +166,31 @@ class Login(Resource):
         try:
             data = request.get_json()
             
-            if not data.get('email') or not data.get('password'):
-                return {'message': 'Email and password are required'}, 400
+            # Normalize email
+            email = data.get('email', '').strip().lower()
+            password = data.get('password', '')
+            
+            # Validate required fields
+            if not email or not password:
+                return {
+                    'message': 'Email and password are required'
+                }, 400
+            
+            # Validate input length
+            if len(email) > 254 or len(password) > 128:
+                return {'message': 'Invalid input'}, 400
+
+            if not validate_email_format(email):
+                return {'message': 'Email must be a valid .com address'}, 400
             
             # Find user
-            user = User.query.filter_by(email=data['email']).first()
+            user = User.query.filter_by(email=email).first()
             
-            if not user or not check_password_hash(user.password_hash, data['password']):
-                return {'message': 'Invalid email or password'}, 401
+            # Check password (whether user exists or not)
+            if not user or not check_password_hash(user.password_hash, password):
+                return {
+                    'message': 'Invalid email or password'
+                }, 401
             
             # Generate JWT token
             token = jwt.encode({
@@ -122,7 +209,9 @@ class Login(Resource):
             }, 200
             
         except Exception as e:
-            return {'message': f'Login failed: {str(e)}'}, 500
+            return {
+                'message': 'Login failed. Please try again.'
+            }, 500
 
 
 @auth_ns.route('/profile')

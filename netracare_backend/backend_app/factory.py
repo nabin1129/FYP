@@ -6,6 +6,7 @@ from flask import Flask
 
 from core.settings import apply_app_config, apply_cors
 from core.extensions import init_extensions
+from core.socketio_ext import init_socketio
 from backend_app.api_registry import build_api
 from backend_app.web_routes import register_web_routes
 from backend_app.migration import ensure_user_schema_migrated
@@ -19,6 +20,7 @@ def create_app() -> Flask:
     apply_cors(app)
     apply_app_config(app)
     init_extensions(app)
+    init_socketio(app)
 
     build_api(app)
     app.register_blueprint(distance_bp)
