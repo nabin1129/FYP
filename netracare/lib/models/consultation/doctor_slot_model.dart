@@ -2,9 +2,7 @@ class DoctorSlot {
   final int id;
   final int doctorId;
   final DateTime slotStartAt;
-  final int durationMinutes;
   final String? location;
-  final double? slotFee;
   final bool isActive;
   final bool isBooked;
 
@@ -12,9 +10,7 @@ class DoctorSlot {
     required this.id,
     required this.doctorId,
     required this.slotStartAt,
-    required this.durationMinutes,
     this.location,
-    this.slotFee,
     required this.isActive,
     required this.isBooked,
   });
@@ -24,9 +20,7 @@ class DoctorSlot {
       id: (json['id'] as num?)?.toInt() ?? 0,
       doctorId: (json['doctor_id'] as num?)?.toInt() ?? 0,
       slotStartAt: DateTime.parse(json['slot_start_at'] as String),
-      durationMinutes: (json['duration_minutes'] as num?)?.toInt() ?? 30,
       location: json['location'] as String?,
-      slotFee: (json['slot_fee'] as num?)?.toDouble(),
       isActive: json['is_active'] as bool? ?? true,
       isBooked: json['is_booked'] as bool? ?? false,
     );

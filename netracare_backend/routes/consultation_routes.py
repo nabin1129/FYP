@@ -30,7 +30,7 @@ consultation_ns = Namespace('consultations', description='Consultation managemen
 
 book_consultation_model = consultation_ns.model('BookConsultation', {
     'doctor_id': fields.Integer(required=True, description='Doctor ID'),
-    'consultation_type': fields.String(description='video_call, chat or physical'),
+    'consultation_type': fields.String(description='chat or physical'),
     'reason': fields.String(description='Reason for consultation'),
     'preferred_datetime': fields.String(description='Preferred date/time ISO format'),
     'doctor_slot_id': fields.Integer(description='Doctor slot ID (required for physical)'),
@@ -38,8 +38,6 @@ book_consultation_model = consultation_ns.model('BookConsultation', {
 
 schedule_consultation_model = consultation_ns.model('ScheduleConsultation', {
     'scheduled_at': fields.String(required=True, description='Scheduled datetime ISO format'),
-    'duration_minutes': fields.Integer(description='Duration in minutes'),
-    'fee': fields.Float(description='Consultation fee'),
 })
 
 update_consultation_model = consultation_ns.model('UpdateConsultation', {
@@ -60,9 +58,7 @@ send_message_model = consultation_ns.model('SendMessage', {
 
 doctor_slot_model = consultation_ns.model('DoctorSlot', {
     'slot_start_at': fields.String(required=True, description='Slot start datetime in ISO UTC format'),
-    'duration_minutes': fields.Integer(description='Slot duration in minutes'),
     'location': fields.String(description='Physical consultation location'),
-    'slot_fee': fields.Float(description='Optional slot specific fee'),
     'is_active': fields.Boolean(description='Whether slot is active'),
 })
 
@@ -133,8 +129,6 @@ class BookConsultation(Resource):
             )
             consultation_status = 'pending'
             scheduled_at = None
-            duration_minutes = 30
-            fee = doctor.consultation_fee
             doctor_slot_id = None
 
             if consultation_type == 'physical':
@@ -148,8 +142,6 @@ class BookConsultation(Resource):
 
                 doctor_slot_id = slot.id
                 scheduled_at = slot.slot_start_at
-                duration_minutes = slot.duration_minutes
-                fee = slot.slot_fee if slot.slot_fee is not None else doctor.consultation_fee
                 consultation_status = 'scheduled'
                 slot.is_booked = True
 
@@ -170,10 +162,8 @@ class BookConsultation(Resource):
                 consultation_type=consultation_type,
                 status=consultation_status,
                 scheduled_at=scheduled_at,
-                duration_minutes=duration_minutes,
                 reason=data.get('reason'),
                 patient_notes=data.get('reason'),
-                fee=fee,
             )
             
             db.session.add(consultation)
@@ -333,9 +323,7 @@ class DoctorSlotList(Resource):
             slot = DoctorSlot(
                 doctor_id=current_doctor.id,
                 slot_start_at=slot_start_at,
-                duration_minutes=data.get('duration_minutes', 30),
                 location=data.get('location') or current_doctor.working_place,
-                slot_fee=data.get('slot_fee'),
                 is_active=data.get('is_active', True),
             )
             db.session.add(slot)
@@ -370,7 +358,7 @@ class DoctorSlotDetail(Resource):
 
             data = request.get_json() or {}
 
-            if slot.is_booked and ('slot_start_at' in data or 'duration_minutes' in data):
+            if slot.is_booked and 'slot_start_at' in data:
                 return {'message': 'Booked slot time cannot be changed'}, 409
 
             if 'slot_start_at' in data and data['slot_start_at']:
@@ -382,12 +370,8 @@ class DoctorSlotDetail(Resource):
                     return {'message': 'slot_start_at must be in the future (UTC)'}, 400
                 slot.slot_start_at = slot_start_at
 
-            if 'duration_minutes' in data:
-                slot.duration_minutes = data['duration_minutes']
             if 'location' in data:
                 slot.location = data['location']
-            if 'slot_fee' in data:
-                slot.slot_fee = data['slot_fee']
             if 'is_active' in data:
                 slot.is_active = data['is_active']
 
@@ -649,8 +633,6 @@ class ScheduleConsultation(Resource):
                 return {'message': 'Scheduled datetime must be in the future (UTC)'}, 400
             
             consultation.scheduled_at = scheduled_at
-            consultation.duration_minutes = data.get('duration_minutes', 30)
-            consultation.fee = data.get('fee', current_doctor.consultation_fee)
             consultation.status = 'scheduled'
             
             # Create notification for patient

@@ -139,7 +139,6 @@ class ConsultationService {
   }) async {
     try {
       final consultationType = switch (type) {
-        ConsultationType.videoCall => 'video_call',
         ConsultationType.physical => 'physical',
         ConsultationType.chat => 'chat',
       };
@@ -179,7 +178,6 @@ class ConsultationService {
       date: preferredDate ?? 'Requested on ${_formatCurrentDate()}',
       type: type,
       status: ConsultationStatus.pending,
-      duration: 'Not scheduled',
       notes: 'Awaiting doctor approval and schedule confirmation.',
     );
 
@@ -206,7 +204,6 @@ class ConsultationService {
       date: scheduledDate,
       type: consultation.type,
       status: ConsultationStatus.scheduled,
-      duration: '30 min',
       notes: 'Consultation confirmed and scheduled.',
     );
 
@@ -231,7 +228,6 @@ class ConsultationService {
             date: consultation.date,
             type: consultation.type,
             status: ConsultationStatus.cancelled,
-            duration: consultation.duration,
             notes: '${consultation.notes}\nCancelled by patient.',
           );
         }
@@ -257,7 +253,6 @@ class ConsultationService {
       date: consultation.date,
       type: consultation.type,
       status: ConsultationStatus.cancelled,
-      duration: consultation.duration,
       notes: '${consultation.notes}\nCancelled by patient.',
     );
 

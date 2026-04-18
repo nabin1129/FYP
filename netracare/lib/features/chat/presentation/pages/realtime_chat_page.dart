@@ -18,6 +18,7 @@ class RealtimeChatPage extends StatefulWidget {
     this.doctorId,
     this.patientId,
     this.avatarUrl,
+    this.onMarkCompleted,
   });
 
   final String title;
@@ -27,6 +28,7 @@ class RealtimeChatPage extends StatefulWidget {
   final int? doctorId;
   final int? patientId;
   final String? avatarUrl;
+  final Future<void> Function(BuildContext context)? onMarkCompleted;
 
   @override
   State<RealtimeChatPage> createState() => _RealtimeChatPageState();
@@ -246,6 +248,17 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
           ],
         ),
         actions: [
+          if (widget.onMarkCompleted != null)
+            IconButton(
+              icon: const Icon(
+                Icons.check_circle_outline,
+                color: AppTheme.success,
+              ),
+              tooltip: 'Mark Completed',
+              onPressed: () async {
+                await widget.onMarkCompleted!(context);
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.refresh, color: AppTheme.textPrimary),
             onPressed: _chatService.refreshHistory,

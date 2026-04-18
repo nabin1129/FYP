@@ -35,7 +35,7 @@ class NotificationItem extends StatelessWidget {
   IconData get _icon {
     switch (notification.type) {
       case 'consultation_request':
-        return Icons.video_call;
+        return Icons.local_hospital_outlined;
       case 'consultation_scheduled':
         return Icons.calendar_today;
       case 'new_message':

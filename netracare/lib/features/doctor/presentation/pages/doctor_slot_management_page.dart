@@ -50,6 +50,7 @@ class _DoctorSlotManagementPageState extends State<DoctorSlotManagementPage> {
   }
 
   Future<void> _showCreateOrEditDialog({DoctorSlot? slot}) async {
+    final messenger = ScaffoldMessenger.of(context);
     final initialUtc = slot?.slotStartAt.toUtc() ?? DateTime.now().toUtc();
     DateTime selectedDate = DateTime.utc(
       initialUtc.year,
@@ -60,12 +61,8 @@ class _DoctorSlotManagementPageState extends State<DoctorSlotManagementPage> {
       hour: initialUtc.hour,
       minute: initialUtc.minute,
     );
-    final durationController = TextEditingController(
-      text: (slot?.durationMinutes ?? 30).toString(),
-    );
-    final locationController = TextEditingController(text: slot?.location ?? '');
-    final feeController = TextEditingController(
-      text: slot?.slotFee?.toString() ?? '',
+    final locationController = TextEditingController(
+      text: slot?.location ?? '',
     );
     bool isActive = slot?.isActive ?? true;
 
@@ -93,9 +90,7 @@ class _DoctorSlotManagementPageState extends State<DoctorSlotManagementPage> {
                         firstDate: DateTime.now().subtract(
                           const Duration(days: 1),
                         ),
-                        lastDate: DateTime.now().add(
-                          const Duration(days: 365),
-                        ),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
                       );
                       if (picked != null) {
                         setDialogState(() {
@@ -128,24 +123,8 @@ class _DoctorSlotManagementPageState extends State<DoctorSlotManagementPage> {
                     },
                   ),
                   TextField(
-                    controller: durationController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Duration (minutes)',
-                    ),
-                  ),
-                  TextField(
                     controller: locationController,
                     decoration: const InputDecoration(labelText: 'Location'),
-                  ),
-                  TextField(
-                    controller: feeController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: const InputDecoration(
-                      labelText: 'Fee (optional)',
-                    ),
                   ),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
@@ -174,41 +153,23 @@ class _DoctorSlotManagementPageState extends State<DoctorSlotManagementPage> {
                     selectedTime.hour,
                     selectedTime.minute,
                   );
-                  final duration = int.tryParse(durationController.text.trim());
-                  final feeValue = feeController.text.trim().isEmpty
-                      ? null
-                      : double.tryParse(feeController.text.trim());
-
-                  if (duration == null || duration <= 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Duration must be a positive number'),
-                        backgroundColor: AppTheme.warning,
-                      ),
-                    );
-                    return;
-                  }
 
                   try {
                     if (slot == null) {
                       await DoctorApiService.createDoctorSlot(
                         slotStartAtUtc: dt,
-                        durationMinutes: duration,
                         location: locationController.text.trim().isEmpty
                             ? null
                             : locationController.text.trim(),
-                        slotFee: feeValue,
                         isActive: isActive,
                       );
                     } else {
                       await DoctorApiService.updateDoctorSlot(
                         slotId: slot.id,
                         slotStartAtUtc: dt,
-                        durationMinutes: duration,
                         location: locationController.text.trim().isEmpty
                             ? null
                             : locationController.text.trim(),
-                        slotFee: feeValue,
                         isActive: isActive,
                       );
                     }
@@ -217,7 +178,7 @@ class _DoctorSlotManagementPageState extends State<DoctorSlotManagementPage> {
                     Navigator.pop(context, true);
                   } catch (e) {
                     if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       SnackBar(
                         content: Text('Failed to save slot: $e'),
                         backgroundColor: AppTheme.error,
@@ -233,9 +194,10 @@ class _DoctorSlotManagementPageState extends State<DoctorSlotManagementPage> {
       },
     );
 
-    durationController.dispose();
-    locationController.dispose();
-    feeController.dispose();
+    // Dispose after the dialog route is fully removed from the tree.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      locationController.dispose();
+    });
 
     if (result == true) {
       await _loadSlots();
@@ -310,9 +272,11 @@ class _DoctorSlotManagementPageState extends State<DoctorSlotManagementPage> {
                             ? AppTheme.warning
                             : AppTheme.success,
                       ),
-                      title: Text('${slot.displayDate}  ${slot.displayTime} UTC'),
+                      title: Text(
+                        '${slot.displayDate}  ${slot.displayTime} UTC',
+                      ),
                       subtitle: Text(
-                        '${slot.durationMinutes} min${slot.location != null && slot.location!.isNotEmpty ? '  |  ${slot.location}' : ''}${slot.slotFee != null ? '  |  Fee: ${slot.slotFee}' : ''}',
+                        '${slot.location != null && slot.location!.isNotEmpty ? slot.location : 'No location set'}',
                       ),
                       trailing: PopupMenuButton<String>(
                         onSelected: (value) async {

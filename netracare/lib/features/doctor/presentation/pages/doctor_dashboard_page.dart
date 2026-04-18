@@ -4,6 +4,7 @@ import 'package:netracare/services/doctor_api_service.dart';
 import 'package:netracare/services/doctor_service.dart';
 import 'package:netracare/services/notification_service.dart';
 import 'package:netracare/widgets/notification/notification_bell.dart';
+import 'doctor_chat_overview_page.dart';
 import 'doctor_consultations_page.dart';
 import 'doctor_home_page.dart';
 import 'doctor_patients_page.dart';
@@ -79,16 +80,29 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
 
   PreferredSizeWidget _buildAppBar() {
     String title;
-    List<Widget> actions = [];
+    final List<Widget> commonActions = [
+      const NotificationBell(),
+      IconButton(
+        icon: const Icon(Icons.chat_bubble_outline),
+        tooltip: 'Chat',
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const DoctorChatOverviewPage()),
+          );
+        },
+      ),
+    ];
+    List<Widget> actions = List<Widget>.from(commonActions);
 
     switch (_selectedIndex) {
       case 0:
         title = 'Doctor Dashboard';
-        actions = [const NotificationBell()];
         break;
       case 1:
         title = 'Patients';
         actions = [
+          ...commonActions,
           IconButton(
             icon: const Icon(Icons.sort),
             onPressed: () => _showSortOptions(),
@@ -399,10 +413,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
               Navigator.pop(context);
               await DoctorApiService.deleteDoctorToken();
               if (!mounted) return;
-              navigator.pushNamedAndRemoveUntil(
-                '/login',
-                (route) => false,
-              );
+              navigator.pushNamedAndRemoveUntil('/login', (route) => false);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.error,

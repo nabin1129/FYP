@@ -71,13 +71,11 @@ class ConsultationHistoryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppTheme.spaceSM),
-          // Consultation Type and Duration
+          // Consultation Type
           Row(
             children: [
               Icon(
-                consultation.type == ConsultationType.videoCall
-                    ? Icons.videocam
-                    : consultation.type == ConsultationType.physical
+                consultation.type == ConsultationType.physical
                     ? Icons.local_hospital_outlined
                     : Icons.chat_bubble_outline,
                 size: 16,
@@ -87,23 +85,6 @@ class ConsultationHistoryCard extends StatelessWidget {
               Flexible(
                 child: Text(
                   consultation.type.toString(),
-                  style: const TextStyle(
-                    fontSize: AppTheme.fontSM,
-                    color: AppTheme.textSecondary,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: AppTheme.spaceMD),
-              const Icon(
-                Icons.access_time,
-                size: 16,
-                color: AppTheme.textLight,
-              ),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  consultation.duration,
                   style: const TextStyle(
                     fontSize: AppTheme.fontSM,
                     color: AppTheme.textSecondary,

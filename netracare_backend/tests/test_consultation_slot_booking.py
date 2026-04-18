@@ -58,7 +58,6 @@ class ConsultationSlotBookingTestCase(unittest.TestCase):
             first_slot = DoctorSlot(
                 doctor_id=self.doctor_id,
                 slot_start_at=slot_start,
-                duration_minutes=30,
             )
             db.session.add(first_slot)
             db.session.commit()
@@ -66,7 +65,6 @@ class ConsultationSlotBookingTestCase(unittest.TestCase):
             duplicate_slot = DoctorSlot(
                 doctor_id=self.doctor_id,
                 slot_start_at=slot_start,
-                duration_minutes=30,
             )
             db.session.add(duplicate_slot)
 
@@ -79,7 +77,6 @@ class ConsultationSlotBookingTestCase(unittest.TestCase):
             slot = DoctorSlot(
                 doctor_id=self.doctor_id,
                 slot_start_at=datetime(2026, 5, 2, 11, 0, 0),
-                duration_minutes=30,
                 is_active=True,
                 is_booked=False,
             )
@@ -96,7 +93,6 @@ class ConsultationSlotBookingTestCase(unittest.TestCase):
                 consultation_type='physical',
                 status='scheduled',
                 scheduled_at=slot.slot_start_at,
-                duration_minutes=slot.duration_minutes,
                 reason='Physical slot booking',
             )
             slot.is_booked = True
@@ -107,10 +103,9 @@ class ConsultationSlotBookingTestCase(unittest.TestCase):
             self.assertIsNone(second_pick)
 
     def test_consultation_type_normalization_supports_aliases(self):
-        self.assertEqual(normalize_consultation_type('video'), 'video_call')
         self.assertEqual(normalize_consultation_type('in-person'), 'physical')
         self.assertEqual(normalize_consultation_type('CHAT'), 'chat')
-        self.assertEqual(normalize_consultation_type('unknown'), 'video_call')
+        self.assertEqual(normalize_consultation_type('unknown'), 'chat')
 
 
 if __name__ == '__main__':

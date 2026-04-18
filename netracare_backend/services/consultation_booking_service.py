@@ -11,21 +11,19 @@ from datetime import datetime, timezone
 from models.consultation import DoctorSlot
 
 
-VALID_CONSULTATION_TYPES = {'video_call', 'chat', 'physical'}
+VALID_CONSULTATION_TYPES = {'chat', 'physical'}
 
 
 def normalize_consultation_type(raw_type: str | None) -> str:
     """Normalize consultation type to supported values."""
     if not raw_type:
-        return 'video_call'
+        return 'chat'
 
     value = str(raw_type).strip().lower()
-    if value in {'video', 'video call', 'videocall'}:
-        value = 'video_call'
     if value in {'in_person', 'in-person'}:
         value = 'physical'
 
-    return value if value in VALID_CONSULTATION_TYPES else 'video_call'
+    return value if value in VALID_CONSULTATION_TYPES else 'chat'
 
 
 def parse_iso_datetime_utc(value: str) -> datetime:

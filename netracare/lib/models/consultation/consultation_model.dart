@@ -37,15 +37,12 @@ enum ConsultationStatus {
 
 /// Type of consultation
 enum ConsultationType {
-  videoCall,
   physical,
   chat;
 
   @override
   String toString() {
     switch (this) {
-      case ConsultationType.videoCall:
-        return 'Video Call';
       case ConsultationType.physical:
         return 'Physical';
       case ConsultationType.chat:
@@ -55,11 +52,6 @@ enum ConsultationType {
 
   static ConsultationType fromString(String value) {
     switch (value.toLowerCase()) {
-      case 'video_call':
-      case 'videocall':
-      case 'video call':
-      case 'video':
-        return ConsultationType.videoCall;
       case 'physical':
       case 'in_person':
       case 'in-person':
@@ -68,7 +60,7 @@ enum ConsultationType {
       case 'chat':
         return ConsultationType.chat;
       default:
-        return ConsultationType.videoCall;
+        return ConsultationType.chat;
     }
   }
 }
@@ -80,7 +72,6 @@ class Consultation {
   final String date;
   final ConsultationType type;
   final ConsultationStatus status;
-  final String duration;
   final String notes;
 
   const Consultation({
@@ -89,7 +80,6 @@ class Consultation {
     required this.date,
     required this.type,
     required this.status,
-    required this.duration,
     required this.notes,
   });
 
@@ -113,7 +103,6 @@ class Consultation {
       status: ConsultationStatus.fromString(
         json['status'] as String? ?? 'pending',
       ),
-      duration: json['duration'] as String? ?? 'N/A',
       notes: json['notes'] as String? ?? json['reason'] as String? ?? '',
     );
   }
@@ -124,9 +113,8 @@ class Consultation {
       id: '1',
       doctorName: 'Dr. Rajesh Kumar Shrestha',
       date: 'Feb 28, 2026 — 10:00 AM',
-      type: ConsultationType.videoCall,
+      type: ConsultationType.physical,
       status: ConsultationStatus.scheduled,
-      duration: '30 min',
       notes: 'Follow-up on visual acuity test results.',
     ),
     const Consultation(
@@ -135,16 +123,14 @@ class Consultation {
       date: 'Feb 25, 2026 — 2:00 PM',
       type: ConsultationType.chat,
       status: ConsultationStatus.completed,
-      duration: '15 min',
       notes: 'Discussed colour vision test report. No concerns.',
     ),
     const Consultation(
       id: '3',
       doctorName: 'Dr. Bikash Thapa',
       date: 'Requested on Feb 24, 2026',
-      type: ConsultationType.videoCall,
+      type: ConsultationType.chat,
       status: ConsultationStatus.pending,
-      duration: 'Not scheduled',
       notes: 'Awaiting doctor approval and schedule confirmation.',
     ),
   ];

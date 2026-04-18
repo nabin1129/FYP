@@ -313,6 +313,31 @@ class DoctorApiService {
     }
   }
 
+  /// Mark a consultation as completed
+  static Future<void> completeConsultation({
+    required String consultationId,
+  }) async {
+    try {
+      final token = await getDoctorToken();
+      if (token == null) {
+        throw Exception('Please login as a doctor');
+      }
+
+      final response = await http.put(
+        Uri.parse('${ApiConfig.baseUrl}/api/consultations/$consultationId'),
+        headers: _getHeaders(token),
+        body: jsonEncode({'status': 'completed'}),
+      );
+
+      if (response.statusCode != 200) {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Failed to complete consultation');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   // =========================
   // DOCTOR LIST (FOR PATIENTS)
   // =========================
@@ -418,7 +443,7 @@ class DoctorApiService {
   /// Book a consultation with a doctor
   static Future<Consultation?> bookConsultation({
     required int doctorId,
-    String consultationType = 'video_call',
+    String consultationType = 'chat',
     String? reason,
     String? preferredDatetime,
     int? doctorSlotId,
@@ -510,9 +535,7 @@ class DoctorApiService {
   /// Create doctor-assigned physical slot
   static Future<DoctorSlot> createDoctorSlot({
     required DateTime slotStartAtUtc,
-    int durationMinutes = 30,
     String? location,
-    double? slotFee,
     bool isActive = true,
   }) async {
     final token = await getDoctorToken();
@@ -525,9 +548,7 @@ class DoctorApiService {
       headers: _getHeaders(token),
       body: jsonEncode({
         'slot_start_at': slotStartAtUtc.toUtc().toIso8601String(),
-        'duration_minutes': durationMinutes,
         'location': location,
-        'slot_fee': slotFee,
         'is_active': isActive,
       }),
     );
@@ -545,9 +566,7 @@ class DoctorApiService {
   static Future<DoctorSlot> updateDoctorSlot({
     required int slotId,
     DateTime? slotStartAtUtc,
-    int? durationMinutes,
     String? location,
-    double? slotFee,
     bool? isActive,
   }) async {
     final token = await getDoctorToken();
@@ -558,14 +577,14 @@ class DoctorApiService {
     final payload = <String, dynamic>{
       if (slotStartAtUtc != null)
         'slot_start_at': slotStartAtUtc.toUtc().toIso8601String(),
-      if (durationMinutes != null) 'duration_minutes': durationMinutes,
       if (location != null) 'location': location,
-      if (slotFee != null) 'slot_fee': slotFee,
       if (isActive != null) 'is_active': isActive,
     };
 
     final response = await http.put(
-      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.doctorSlotDetailEndpoint(slotId)}'),
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.doctorSlotDetailEndpoint(slotId)}',
+      ),
       headers: _getHeaders(token),
       body: jsonEncode(payload),
     );
@@ -587,7 +606,9 @@ class DoctorApiService {
     }
 
     final response = await http.delete(
-      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.doctorSlotDetailEndpoint(slotId)}'),
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.doctorSlotDetailEndpoint(slotId)}',
+      ),
       headers: _getHeaders(token),
     );
 

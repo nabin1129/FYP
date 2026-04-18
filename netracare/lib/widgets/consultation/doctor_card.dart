@@ -5,13 +5,13 @@ import 'package:netracare/models/consultation/doctor_model.dart';
 /// Reusable Doctor Card Widget
 class DoctorCard extends StatelessWidget {
   final Doctor doctor;
-  final VoidCallback onVideoCall;
+  final VoidCallback onRequestBooking;
   final VoidCallback onChat;
 
   const DoctorCard({
     super.key,
     required this.doctor,
-    required this.onVideoCall,
+    required this.onRequestBooking,
     required this.onChat,
   });
 
@@ -292,8 +292,8 @@ class DoctorCard extends StatelessWidget {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: onVideoCall,
-                  icon: const Icon(Icons.videocam, size: 18),
+                  onPressed: onRequestBooking,
+                  icon: const Icon(Icons.calendar_month, size: 18),
                   label: const Text(
                     'Request Booking',
                     style: TextStyle(fontWeight: FontWeight.w600),

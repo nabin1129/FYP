@@ -7,11 +7,12 @@ import 'package:netracare/services/consultation_service.dart';
 import 'package:netracare/services/doctor_api_service.dart';
 
 typedef LoadDoctorSlots = Future<List<DoctorSlot>> Function(int doctorId);
-typedef SubmitBooking = Future<void> Function({
-  required int doctorId,
-  required ConsultationType type,
-  int? doctorSlotId,
-});
+typedef SubmitBooking =
+    Future<void> Function({
+      required int doctorId,
+      required ConsultationType type,
+      int? doctorSlotId,
+    });
 
 class BookingRequestDialog extends StatefulWidget {
   final Doctor doctor;
@@ -32,7 +33,7 @@ class BookingRequestDialog extends StatefulWidget {
 }
 
 class _BookingRequestDialogState extends State<BookingRequestDialog> {
-  ConsultationType _selectedType = ConsultationType.videoCall;
+  ConsultationType _selectedType = ConsultationType.physical;
   bool _loadingSlots = false;
   bool _submitting = false;
   List<DoctorSlot> _slots = const [];
@@ -104,7 +105,11 @@ class _BookingRequestDialogState extends State<BookingRequestDialog> {
     try {
       final submitter =
           widget.submitBooking ??
-          ({required int doctorId, required ConsultationType type, int? doctorSlotId}) {
+          ({
+            required int doctorId,
+            required ConsultationType type,
+            int? doctorSlotId,
+          }) {
             final consultationService = ConsultationService();
             return consultationService.bookConsultationAsync(
               doctorId: doctorId,
@@ -188,12 +193,12 @@ class _BookingRequestDialogState extends State<BookingRequestDialog> {
                 ),
                 items: const [
                   DropdownMenuItem(
-                    value: ConsultationType.videoCall,
-                    child: Text('Video Call'),
-                  ),
-                  DropdownMenuItem(
                     value: ConsultationType.physical,
                     child: Text('Physical Consultation'),
+                  ),
+                  DropdownMenuItem(
+                    value: ConsultationType.chat,
+                    child: Text('Chat Consultation'),
                   ),
                 ],
                 onChanged: (value) {
@@ -287,7 +292,7 @@ class _BookingRequestDialogState extends State<BookingRequestDialog> {
                     ),
                   ),
                   child: const Text(
-                    'Video booking requests need doctor approval before scheduling.',
+                    'Chat consultation requests are sent directly to the doctor.',
                     style: TextStyle(color: AppTheme.textSecondary),
                   ),
                 ),

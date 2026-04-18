@@ -8,7 +8,9 @@ import 'doctor_slot_management_page.dart';
 
 /// Doctor Consultation Page - Manage consultation requests and chat
 class DoctorConsultationsPage extends StatefulWidget {
-  const DoctorConsultationsPage({super.key});
+  const DoctorConsultationsPage({super.key, this.initialTabIndex = 0});
+
+  final int initialTabIndex;
 
   @override
   State<DoctorConsultationsPage> createState() =>
@@ -20,15 +22,19 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
   final DoctorService _doctorService = DoctorService();
   late TabController _tabController;
 
-  List<ConsultationRequest> _pendingRequests = [];
-  List<ConsultationRequest> _acceptedRequests = [];
-  List<ConsultationRequest> _completedRequests = [];
+  List<ConsultationRequest> _activeConsultations = [];
+  List<ConsultationRequest> _completedConsultations = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    final safeInitialIndex = widget.initialTabIndex.clamp(0, 1);
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: safeInitialIndex,
+    );
     _loadDataAsync();
   }
 
@@ -43,96 +49,112 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
 
     try {
       final allRequests = await _doctorService.getConsultationRequestsAsync();
-      if (mounted) {
-        _categorizeRequests(allRequests);
-      }
-    } catch (e) {
-      // Fallback to synchronous data
-      if (mounted) {
-        _categorizeRequests(_doctorService.getConsultationRequests());
-      }
+      if (!mounted) return;
+      _categorizeRequests(allRequests);
+    } catch (_) {
+      if (!mounted) return;
+      _categorizeRequests(_doctorService.getConsultationRequests());
     }
   }
 
   void _categorizeRequests(List<ConsultationRequest> allRequests) {
     setState(() {
-      _pendingRequests = allRequests
-          .where((r) => r.status == RequestStatus.pending)
-          .toList();
-      _acceptedRequests = allRequests
+      _activeConsultations = allRequests
           .where((r) => r.status == RequestStatus.accepted)
           .toList();
-      _completedRequests = allRequests
-          .where(
-            (r) =>
-                r.status == RequestStatus.completed ||
-                r.status == RequestStatus.rejected,
-          )
+      _completedConsultations = allRequests
+          .where((r) => r.status == RequestStatus.completed)
           .toList();
       _isLoading = false;
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppTheme.primary),
-      );
+  Future<void> _completeConsultation(ConsultationRequest request) async {
+    final messenger = ScaffoldMessenger.of(context);
+
+    final shouldComplete = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+        ),
+        title: const Text('Complete Consultation'),
+        content: Text(
+          'Mark consultation with ${request.patientName} as completed?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.success),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldComplete != true) {
+      return;
     }
 
-    return Column(
-      children: [
-        _buildHeader(),
-        _buildTabBar(),
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildRequestsList(_pendingRequests, 'pending'),
-              _buildRequestsList(_acceptedRequests, 'accepted'),
-              _buildRequestsList(_completedRequests, 'history'),
-            ],
-          ),
+    try {
+      await DoctorApiService.completeConsultation(consultationId: request.id);
+
+      if (!mounted) return;
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Consultation marked as completed'),
+          backgroundColor: AppTheme.success,
         ),
-      ],
+      );
+      _loadDataAsync();
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.error),
+      );
+    }
+  }
+
+  void _openChat(ConsultationRequest request) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DoctorChatPage(
+          patientId: request.patientId,
+          patientName: request.patientName,
+          consultationId: int.tryParse(request.id),
+        ),
+      ),
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceMD),
-      color: AppTheme.surface,
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildStatBox(
-              'Pending',
-              '${_pendingRequests.length}',
-              AppTheme.warning,
-            ),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(
+        backgroundColor: AppTheme.surface,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Consultations',
+          style: TextStyle(
+            color: AppTheme.textPrimary,
+            fontSize: AppTheme.fontXXL,
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(width: AppTheme.spaceSM),
-          Expanded(
-            child: _buildStatBox(
-              'Active',
-              '${_acceptedRequests.length}',
-              AppTheme.success,
-            ),
-          ),
-          const SizedBox(width: AppTheme.spaceSM),
-          Expanded(
-            child: _buildStatBox(
-              'Completed',
-              '${_completedRequests.length}',
-              AppTheme.textSecondary,
-            ),
-          ),
-          const SizedBox(width: AppTheme.spaceSM),
+        ),
+        actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: AppTheme.primary),
-            tooltip: 'Refresh',
-            onPressed: _loadDataAsync,
+            onPressed: _isLoading ? null : _loadDataAsync,
           ),
           IconButton(
             icon: const Icon(Icons.calendar_month, color: AppTheme.primary),
@@ -147,320 +169,290 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
             },
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildStatBox(String label, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spaceMD,
-        vertical: AppTheme.spaceSM,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: AppTheme.fontTitle,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            height: 1,
+            color: AppTheme.textLight.withValues(alpha: 0.1),
           ),
-          Text(
-            label,
-            style: TextStyle(fontSize: AppTheme.fontSM, color: color),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabBar() {
-    return Container(
-      color: AppTheme.surface,
-      child: TabBar(
-        controller: _tabController,
-        labelColor: AppTheme.primary,
-        unselectedLabelColor: AppTheme.textSecondary,
-        indicatorColor: AppTheme.primary,
-        indicatorWeight: 2,
-        labelStyle: const TextStyle(
-          fontSize: AppTheme.fontSM,
-          fontWeight: FontWeight.w600,
         ),
-        tabs: [
-          Tab(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Pending'),
-                if (_pendingRequests.isNotEmpty) ...[
-                  const SizedBox(width: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.warning,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '${_pendingRequests.length}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: AppTheme.fontXS,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+      ),
+      body: _isLoading
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: AppTheme.primary),
+                  SizedBox(height: AppTheme.spaceMD),
+                  Text(
+                    'Loading consultations...',
+                    style: TextStyle(color: AppTheme.textSecondary),
                   ),
                 ],
+              ),
+            )
+          : Column(
+              children: [
+                Container(
+                  color: AppTheme.surface,
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.spaceMD,
+                    AppTheme.spaceSM,
+                    AppTheme.spaceMD,
+                    AppTheme.spaceMD,
+                  ),
+                  child: const Text(
+                    'Manage active patient chats and review completed consultations.',
+                    style: TextStyle(
+                      fontSize: AppTheme.fontBody,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ),
+                Material(
+                  color: AppTheme.surface,
+                  child: TabBar(
+                    controller: _tabController,
+                    labelColor: AppTheme.primary,
+                    unselectedLabelColor: AppTheme.textSecondary,
+                    indicatorColor: AppTheme.primary,
+                    indicatorWeight: 2,
+                    labelStyle: const TextStyle(
+                      fontSize: AppTheme.fontBody,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    tabs: const [
+                      Tab(text: 'Chat'),
+                      Tab(text: 'History'),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      RefreshIndicator(
+                        onRefresh: _loadDataAsync,
+                        child: _buildConsultationList(
+                          consultations: _activeConsultations,
+                          emptyTitle: 'No active chat consultations',
+                          emptySubtitle:
+                              'Active patient chats will appear here when they are ready.',
+                          emptyIcon: Icons.chat_bubble_outline,
+                          showActions: true,
+                        ),
+                      ),
+                      RefreshIndicator(
+                        onRefresh: _loadDataAsync,
+                        child: _buildConsultationList(
+                          consultations: _completedConsultations,
+                          emptyTitle: 'No consultation history',
+                          emptySubtitle:
+                              'Completed consultations will appear here.',
+                          emptyIcon: Icons.history,
+                          showActions: false,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-          const Tab(text: 'Active'),
-          const Tab(text: 'History'),
-        ],
-      ),
     );
   }
 
-  Widget _buildRequestsList(List<ConsultationRequest> requests, String type) {
-    if (requests.isEmpty) {
-      return _buildEmptyState(type);
-    }
-
-    return RefreshIndicator(
-      onRefresh: _loadDataAsync,
-      child: ListView.builder(
+  Widget _buildConsultationList({
+    required List<ConsultationRequest> consultations,
+    required String emptyTitle,
+    required String emptySubtitle,
+    required IconData emptyIcon,
+    required bool showActions,
+  }) {
+    if (consultations.isEmpty) {
+      return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(AppTheme.spaceMD),
-        itemCount: requests.length,
-        itemBuilder: (context, index) {
-          return _buildRequestCard(requests[index], type);
-        },
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(String type) {
-    String message;
-    IconData icon;
-
-    switch (type) {
-      case 'pending':
-        message = 'No pending consultation requests';
-        icon = Icons.inbox_outlined;
-        break;
-      case 'accepted':
-        message = 'No active consultations';
-        icon = Icons.chat_bubble_outline;
-        break;
-      default:
-        message = 'No consultation history';
-        icon = Icons.history;
-    }
-
-    // Use a scrollable list so RefreshIndicator pull-to-refresh works even when empty
-    return RefreshIndicator(
-      onRefresh: _loadDataAsync,
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
         children: [
           SizedBox(
-            height: 300,
+            height: 360,
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    icon,
-                    size: 64,
-                    color: AppTheme.textLight.withValues(alpha: 0.5),
+                  Container(
+                    padding: const EdgeInsets.all(AppTheme.spaceLG),
+                    decoration: const BoxDecoration(
+                      color: AppTheme.testIconBackground,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(emptyIcon, size: 48, color: AppTheme.primary),
                   ),
                   const SizedBox(height: AppTheme.spaceMD),
                   Text(
-                    message,
+                    emptyTitle,
                     style: const TextStyle(
                       fontSize: AppTheme.fontLG,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppTheme.spaceXS),
+                  Text(
+                    emptySubtitle,
+                    style: const TextStyle(
+                      fontSize: AppTheme.fontBody,
                       color: AppTheme.textSecondary,
                     ),
-                  ),
-                  const SizedBox(height: AppTheme.spaceSM),
-                  Text(
-                    'Pull down to refresh',
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSM,
-                      color: AppTheme.textLight.withValues(alpha: 0.6),
-                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
             ),
           ),
         ],
-      ),
+      );
+    }
+
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(AppTheme.spaceMD),
+      itemCount: consultations.length,
+      itemBuilder: (context, index) {
+        return _buildConsultationCard(
+          consultation: consultations[index],
+          showActions: showActions,
+        );
+      },
     );
   }
 
-  Widget _buildRequestCard(ConsultationRequest request, String type) {
+  Widget _buildConsultationCard({
+    required ConsultationRequest consultation,
+    required bool showActions,
+  }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.spaceSM),
+      margin: const EdgeInsets.only(bottom: AppTheme.spaceMD),
+      padding: const EdgeInsets.all(AppTheme.spaceMD),
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         boxShadow: AppTheme.cardShadow,
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(AppTheme.spaceMD),
-            child: Row(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      consultation.patientName,
+                      style: const TextStyle(
+                        fontSize: AppTheme.fontLG,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spaceXS),
+                    Text(
+                      consultation.requestedAgo,
+                      style: const TextStyle(
+                        fontSize: AppTheme.fontSM,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _buildStatusBadge(consultation.status),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spaceSM),
+          Row(
+            children: [
+              Icon(
+                consultation.requestType == 'physical'
+                    ? Icons.local_hospital_outlined
+                    : Icons.chat_bubble_outline,
+                size: 16,
+                color: AppTheme.textLight,
+              ),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  consultation.requestType == 'physical' ? 'Physical' : 'Chat',
+                  style: const TextStyle(
+                    fontSize: AppTheme.fontSM,
+                    color: AppTheme.textSecondary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          if (consultation.message != null &&
+              consultation.message!.isNotEmpty) ...[
+            const SizedBox(height: AppTheme.spaceSM),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppTheme.spaceSM),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceLight,
+                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+              ),
+              child: Text(
+                consultation.message!,
+                style: const TextStyle(
+                  fontSize: AppTheme.fontSM,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+            ),
+          ],
+          if (showActions) ...[
+            const SizedBox(height: AppTheme.spaceMD),
+            Row(
               children: [
-                // Avatar
-                CircleAvatar(
-                  radius: 26,
-                  backgroundColor: AppTheme.testIconBackground,
-                  child: Text(
-                    request.initials,
-                    style: const TextStyle(
-                      color: AppTheme.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: AppTheme.fontLG,
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _completeConsultation(consultation),
+                    icon: const Icon(Icons.check_circle_outline, size: 18),
+                    label: const Text('Mark Completed'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.success,
+                      side: const BorderSide(color: AppTheme.success),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
                 ),
                 const SizedBox(width: AppTheme.spaceMD),
-                // Patient Info
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        request.patientName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: AppTheme.fontLG,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            request.requestType == 'video_call'
-                                ? Icons.videocam
-                                : request.requestType == 'physical'
-                                ? Icons.local_hospital_outlined
-                                : Icons.chat_bubble_outline,
-                            size: 14,
-                            color: AppTheme.textSecondary,
-                          ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              request.requestType == 'video_call'
-                                  ? 'Video Call'
-                                  : request.requestType == 'physical'
-                                  ? 'Physical'
-                                  : 'Chat',
-                              style: const TextStyle(
-                                fontSize: AppTheme.fontSM,
-                                color: AppTheme.textSecondary,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: AppTheme.spaceSM),
-                          const Icon(
-                            Icons.access_time,
-                            size: 14,
-                            color: AppTheme.textLight,
-                          ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              request.requestedAgo,
-                              style: const TextStyle(
-                                fontSize: AppTheme.fontSM,
-                                color: AppTheme.textLight,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  child: ElevatedButton.icon(
+                    onPressed: () => _openChat(consultation),
+                    icon: const Icon(Icons.chat, size: 18),
+                    label: const Text('Chat'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
                 ),
-                // Status Badge
-                _buildStatusBadge(request.status),
               ],
             ),
-          ),
-          // Message
-          if (request.message != null && request.message!.isNotEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(
-                AppTheme.spaceMD,
-                0,
-                AppTheme.spaceMD,
-                AppTheme.spaceSM,
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(AppTheme.spaceSM),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceLight,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-                ),
-                child: Text(
-                  request.message!,
-                  style: const TextStyle(
-                    fontSize: AppTheme.fontSM,
-                    color: AppTheme.textSecondary,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-            ),
-          // Actions
-          if (type == 'pending')
-            _buildPendingActions(request)
-          else if (type == 'accepted')
-            _buildAcceptedActions(request),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildStatusBadge(RequestStatus status) {
-    Color color;
-    String label;
-
-    switch (status) {
-      case RequestStatus.pending:
-        color = AppTheme.warning;
-        label = 'Pending';
-        break;
-      case RequestStatus.accepted:
-        color = AppTheme.success;
-        label = 'Active';
-        break;
-      case RequestStatus.rejected:
-        color = AppTheme.error;
-        label = 'Rejected';
-        break;
-      case RequestStatus.completed:
-        color = AppTheme.textSecondary;
-        label = 'Completed';
-        break;
-    }
+    final color = _statusColor(status);
+    final label = _statusLabel(status);
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -482,227 +474,29 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
     );
   }
 
-  Widget _buildPendingActions(ConsultationRequest request) {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceMD),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceLight,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(AppTheme.radiusLarge),
-          bottomRight: Radius.circular(AppTheme.radiusLarge),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => _showRejectDialog(request),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.error,
-                side: const BorderSide(color: AppTheme.error),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: const Text('Decline'),
-            ),
-          ),
-          const SizedBox(width: AppTheme.spaceMD),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => _showAcceptDialog(request),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.success,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: const Text('Accept'),
-            ),
-          ),
-        ],
-      ),
-    );
+  Color _statusColor(RequestStatus status) {
+    switch (status) {
+      case RequestStatus.pending:
+        return AppTheme.warning;
+      case RequestStatus.accepted:
+        return AppTheme.success;
+      case RequestStatus.rejected:
+        return AppTheme.error;
+      case RequestStatus.completed:
+        return AppTheme.textSecondary;
+    }
   }
 
-  Widget _buildAcceptedActions(ConsultationRequest request) {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceMD),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceLight,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(AppTheme.radiusLarge),
-          bottomRight: Radius.circular(AppTheme.radiusLarge),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () {
-                // View patient details
-              },
-              icon: const Icon(Icons.person, size: 18),
-              label: const Text('View Patient'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.primary,
-                side: const BorderSide(color: AppTheme.primary),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-          ),
-          const SizedBox(width: AppTheme.spaceMD),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => DoctorChatPage(
-                      patientId: request.patientId,
-                      patientName: request.patientName,
-                      consultationId: int.tryParse(request.id),
-                    ),
-                  ),
-                );
-              },
-              icon: Icon(
-                request.requestType == 'video_call'
-                    ? Icons.videocam
-                    : request.requestType == 'physical'
-                    ? Icons.local_hospital_outlined
-                    : Icons.chat,
-                size: 18,
-              ),
-              label: Text(
-                request.requestType == 'video_call'
-                    ? 'Start Call'
-                    : request.requestType == 'physical'
-                    ? 'Open Chat'
-                    : 'Chat',
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAcceptDialog(ConsultationRequest request) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        ),
-        title: const Text('Accept Consultation'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Accept consultation request from ${request.patientName}?'),
-            const SizedBox(height: AppTheme.spaceMD),
-            const Text(
-              'The patient will be notified and can start the consultation.',
-              style: TextStyle(
-                fontSize: AppTheme.fontSM,
-                color: AppTheme.textSecondary,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final messenger = ScaffoldMessenger.of(context);
-              Navigator.pop(context);
-
-              try {
-                await DoctorApiService.acceptConsultation(
-                  consultationId: request.id,
-                );
-
-                if (!mounted) return;
-                messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Consultation request accepted'),
-                    backgroundColor: AppTheme.success,
-                  ),
-                );
-                _loadDataAsync();
-              } catch (e) {
-                if (!mounted) return;
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text('Error: $e'),
-                    backgroundColor: AppTheme.error,
-                  ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.success),
-            child: const Text('Accept'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showRejectDialog(ConsultationRequest request) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        ),
-        title: const Text('Decline Consultation'),
-        content: Text(
-          'Are you sure you want to decline the consultation request from ${request.patientName}?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final messenger = ScaffoldMessenger.of(context);
-              Navigator.pop(context);
-
-              try {
-                await DoctorApiService.rejectConsultation(
-                  consultationId: request.id,
-                );
-
-                if (!mounted) return;
-                messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Consultation request declined'),
-                    backgroundColor: AppTheme.warning,
-                  ),
-                );
-                _loadDataAsync();
-              } catch (e) {
-                if (!mounted) return;
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text('Error: $e'),
-                    backgroundColor: AppTheme.error,
-                  ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
-            child: const Text('Decline'),
-          ),
-        ],
-      ),
-    );
+  String _statusLabel(RequestStatus status) {
+    switch (status) {
+      case RequestStatus.pending:
+        return 'Pending';
+      case RequestStatus.accepted:
+        return 'Active';
+      case RequestStatus.rejected:
+        return 'Rejected';
+      case RequestStatus.completed:
+        return 'Completed';
+    }
   }
 }

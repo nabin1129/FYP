@@ -44,7 +44,7 @@ class BookConsultationTab extends StatelessWidget {
         final doctor = doctors[index];
         return DoctorCard(
           doctor: doctor,
-          onVideoCall: () => _handleBookConsultation(context, doctor),
+          onRequestBooking: () => _handleBookConsultation(context, doctor),
           onChat: () => _openDoctorChat(context, doctor),
         );
       },
@@ -67,5 +67,4 @@ class BookConsultationTab extends StatelessWidget {
       MaterialPageRoute(builder: (context) => DoctorChatPage(doctor: doctor)),
     );
   }
-
 }

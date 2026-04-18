@@ -14,9 +14,7 @@ class DoctorSlot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
     slot_start_at = db.Column(db.DateTime, nullable=False, index=True)
-    duration_minutes = db.Column(db.Integer, default=30)
     location = db.Column(db.String(255))
-    slot_fee = db.Column(db.Float)
     is_active = db.Column(db.Boolean, default=True)
     is_booked = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -34,9 +32,7 @@ class DoctorSlot(db.Model):
             'id': self.id,
             'doctor_id': self.doctor_id,
             'slot_start_at': self.slot_start_at.isoformat() if self.slot_start_at else None,
-            'duration_minutes': self.duration_minutes,
             'location': self.location,
-            'slot_fee': self.slot_fee,
             'is_active': self.is_active,
             'is_booked': self.is_booked,
             'created_at': self.created_at.isoformat() if self.created_at else None,
@@ -56,7 +52,7 @@ class Consultation(db.Model):
     doctor_slot_id = db.Column(db.Integer, db.ForeignKey('doctor_slots.id'))
     
     # Consultation Details
-    consultation_type = db.Column(db.String(20), default='video_call')  # video_call, chat, physical
+    consultation_type = db.Column(db.String(20), default='chat')  # chat, physical
     status = db.Column(db.String(20), default='pending')  # pending, scheduled, in_progress, completed, cancelled
     
     # Scheduling
@@ -64,7 +60,6 @@ class Consultation(db.Model):
     scheduled_at = db.Column(db.DateTime)
     started_at = db.Column(db.DateTime)
     ended_at = db.Column(db.DateTime)
-    duration_minutes = db.Column(db.Integer, default=30)
     
     # Content
     reason = db.Column(db.Text)
@@ -72,9 +67,8 @@ class Consultation(db.Model):
     doctor_notes = db.Column(db.Text)
     diagnosis = db.Column(db.Text)
     prescription = db.Column(db.Text)
-    
+
     # Payment
-    fee = db.Column(db.Float, default=0.0)
     is_paid = db.Column(db.Boolean, default=False)
     
     # Attachments - Test results shared during consultation
@@ -119,14 +113,12 @@ class Consultation(db.Model):
             'status': self.status,
             'date': self._format_date(),
             'scheduled_at': self.scheduled_at.isoformat() if self.scheduled_at else None,
-            'duration': f"{self.duration_minutes} min" if self.duration_minutes else 'Not scheduled',
             'reason': self.reason,
             'patient_notes': self.patient_notes,
             'doctor_notes': self.doctor_notes,
             'notes': self.doctor_notes or self.patient_notes or '',
             'diagnosis': self.diagnosis,
             'prescription': self.prescription,
-            'fee': self.fee,
             'is_paid': self.is_paid,
             'patient_rating': self.patient_rating,
             'follow_up_required': self.follow_up_required,
@@ -141,8 +133,6 @@ class Consultation(db.Model):
     
     def _format_type(self) -> str:
         """Format consultation type for display"""
-        if self.consultation_type == 'video_call':
-            return 'Video Call'
         if self.consultation_type == 'physical':
             return 'Physical'
         return 'Chat'
@@ -168,11 +158,10 @@ class Consultation(db.Model):
                 'email': patient.email,
                 'age': patient.age if hasattr(patient, 'age') else None,
             },
-            'type': self.consultation_type,  # raw value: 'video_call' or 'chat'
+            'type': self.consultation_type,
             'doctor_slot_id': self.doctor_slot_id,
             'status': self.status,
             'scheduled_at': self.scheduled_at.isoformat() if self.scheduled_at else None,
-            'duration_minutes': self.duration_minutes,
             'reason': self.reason,
             'created_at': self.created_at.isoformat() if self.created_at else None,
         }

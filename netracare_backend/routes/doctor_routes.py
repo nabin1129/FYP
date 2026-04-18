@@ -47,7 +47,6 @@ doctor_update_model = doctor_ns.model('DoctorUpdate', {
     'working_place': fields.String(description='Hospital/Clinic'),
     'address': fields.String(description='Address'),
     'is_available': fields.Boolean(description='Availability status'),
-    'consultation_fee': fields.Float(description='Consultation fee'),
 })
 
 link_patient_model = doctor_ns.model('LinkPatient', {
@@ -241,7 +240,7 @@ class DoctorProfile(Resource):
             
             updateable_fields = [
                 'name', 'phone', 'specialization', 'experience_years',
-                'working_place', 'address', 'is_available', 'consultation_fee',
+                'working_place', 'address', 'is_available',
                 'profile_image_url'
             ]
             

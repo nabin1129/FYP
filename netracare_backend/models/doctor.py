@@ -36,7 +36,6 @@ class Doctor(db.Model):
     # Availability
     is_available = db.Column(db.Boolean, default=True)
     availability_schedule = db.Column(db.Text)  # JSON: {"monday": ["09:00-12:00", "14:00-17:00"], ...}
-    consultation_fee = db.Column(db.Float, default=0.0)
     
     # Statistics
     rating = db.Column(db.Float, default=0.0)
@@ -82,7 +81,6 @@ class Doctor(db.Model):
             'address': self.address,
             'is_available': self.is_available,
             'availability': 'Available Today' if self.is_available else 'Not Available',
-            'consultation_fee': self.consultation_fee,
             'rating': self.rating,
             'total_consultations': self.total_consultations,
             'total_patients': self.total_patients,

@@ -170,6 +170,16 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       actions: [
         const NotificationBell(),
+        IconButton(
+          icon: const Icon(Icons.chat_bubble_outline),
+          tooltip: 'Chat',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const DoctorConsultationPage()),
+            );
+          },
+        ),
         Padding(
           padding: const EdgeInsets.only(right: 16),
           child: GestureDetector(
@@ -586,9 +596,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Icon(
-                  nextConsultation!.type == ConsultationType.videoCall
-                      ? Icons.videocam
-                      : nextConsultation!.type == ConsultationType.physical
+                  nextConsultation!.type == ConsultationType.physical
                       ? Icons.local_hospital_outlined
                       : Icons.chat_bubble_outline,
                   color: AppTheme.primary,
