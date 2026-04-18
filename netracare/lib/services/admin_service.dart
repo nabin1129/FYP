@@ -12,6 +12,49 @@ class AdminService {
   factory AdminService() => _instance;
   AdminService._internal();
 
+  static const Duration _requestTimeout = Duration(seconds: 15);
+
+  static Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) {
+    return http
+        .get(uri, headers: headers)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _post(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return http
+        .post(uri, headers: headers, body: body)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return http
+        .put(uri, headers: headers, body: body)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _delete(
+    Uri uri, {
+    Map<String, String>? headers,
+  }) {
+    return http
+        .delete(uri, headers: headers)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _onTimeout() {
+    throw Exception(
+      'Request timed out. Please check your internet connection and try again.',
+    );
+  }
+
   List<AdminDoctor> _doctors = [];
   List<AdminUser> _users = [];
   Map<String, dynamic> _stats = {};
@@ -57,7 +100,7 @@ class AdminService {
   Future<void> _fetchUsers() async {
     try {
       final headers = await _adminHeaders();
-      final res = await http.get(
+      final res = await _get(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.adminUsersEndpoint}'),
         headers: headers,
       );
@@ -74,7 +117,7 @@ class AdminService {
   Future<void> _fetchDoctors() async {
     try {
       final headers = await _adminHeaders();
-      final res = await http.get(
+      final res = await _get(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.adminDoctorsEndpoint}'),
         headers: headers,
       );
@@ -91,7 +134,7 @@ class AdminService {
   Future<void> _fetchStats() async {
     try {
       final headers = await _adminHeaders();
-      final res = await http.get(
+      final res = await _get(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.adminStatsEndpoint}'),
         headers: headers,
       );
@@ -150,7 +193,7 @@ class AdminService {
   /// Create a doctor via the backend API.
   Future<AdminDoctor> addDoctor(AdminDoctor doctor) async {
     final headers = await _adminHeaders();
-    final res = await http.post(
+    final res = await _post(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.adminCreateDoctorEndpoint}'),
       headers: headers,
       body: jsonEncode({
@@ -198,7 +241,7 @@ class AdminService {
       body['password'] = updated.password;
     }
     final headers = await _adminHeaders();
-    final res = await http.put(
+    final res = await _put(
       Uri.parse(
         '${ApiConfig.baseUrl}${ApiConfig.adminDoctorUpdateEndpoint(backendId)}',
       ),
@@ -220,7 +263,7 @@ class AdminService {
   /// Delete a doctor via the backend API.
   Future<void> deleteDoctor(int backendId) async {
     final headers = await _adminHeaders();
-    final res = await http.delete(
+    final res = await _delete(
       Uri.parse(
         '${ApiConfig.baseUrl}${ApiConfig.adminDoctorUpdateEndpoint(backendId)}',
       ),
@@ -239,7 +282,7 @@ class AdminService {
   Future<void> toggleDoctorStatus(int backendId) async {
     final doc = _doctors.firstWhere((d) => d.backendId == backendId);
     final headers = await _adminHeaders();
-    final res = await http.put(
+    final res = await _put(
       Uri.parse(
         '${ApiConfig.baseUrl}${ApiConfig.adminDoctorUpdateEndpoint(backendId)}',
       ),
@@ -274,7 +317,7 @@ class AdminService {
   /// Update a user via the backend API.
   Future<AdminUser> getUserDetail(int backendId) async {
     final headers = await _adminHeaders();
-    final res = await http.get(
+    final res = await _get(
       Uri.parse(
         '${ApiConfig.baseUrl}${ApiConfig.adminUserDetailEndpoint(backendId)}',
       ),
@@ -295,7 +338,7 @@ class AdminService {
     Map<String, dynamic> fields,
   ) async {
     final headers = await _adminHeaders();
-    final res = await http.put(
+    final res = await _put(
       Uri.parse(
         '${ApiConfig.baseUrl}${ApiConfig.adminUserDetailEndpoint(backendId)}',
       ),
@@ -315,7 +358,7 @@ class AdminService {
   /// Delete a user via the backend API.
   Future<void> deleteUser(int backendId) async {
     final headers = await _adminHeaders();
-    final res = await http.delete(
+    final res = await _delete(
       Uri.parse(
         '${ApiConfig.baseUrl}${ApiConfig.adminUserDetailEndpoint(backendId)}',
       ),
@@ -336,7 +379,7 @@ class AdminService {
     );
 
     final headers = await _adminHeaders();
-    final res = await http.get(uri, headers: headers);
+    final res = await _get(uri, headers: headers);
     final data = jsonDecode(res.body) as Map<String, dynamic>;
 
     if (res.statusCode == 200) {
@@ -368,7 +411,7 @@ class AdminService {
     };
 
     final headers = await _adminHeaders();
-    final res = await http.post(
+    final res = await _post(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.adminReminderCreateEndpoint}'),
       headers: headers,
       body: jsonEncode(payload),
@@ -391,7 +434,7 @@ class AdminService {
     final uri = Uri.parse(
       '${ApiConfig.baseUrl}${ApiConfig.adminUserReportEndpoint(userId)}?days=$days',
     );
-    final res = await http.get(uri, headers: headers);
+    final res = await _get(uri, headers: headers);
     final data = jsonDecode(res.body) as Map<String, dynamic>;
     if (res.statusCode == 200) return data['report'] as Map<String, dynamic>;
     throw data['message'] as String? ?? 'Failed to fetch report';
@@ -405,6 +448,6 @@ class AdminService {
     final uri = Uri.parse(
       '${ApiConfig.baseUrl}${ApiConfig.adminUserReportPdfEndpoint(userId)}?days=$days',
     );
-    return http.get(uri, headers: headers);
+    return _get(uri, headers: headers);
   }
 }

@@ -6,6 +6,20 @@ import 'notification_service.dart';
 
 /// Lightweight admin notification fetcher (read-only).
 class AdminNotificationService {
+  static const Duration _requestTimeout = Duration(seconds: 15);
+
+  static Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) {
+    return http
+        .get(uri, headers: headers)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _onTimeout() {
+    throw Exception(
+      'Request timed out. Please check your internet connection and try again.',
+    );
+  }
+
   static Future<List<AppNotification>> fetchNotifications({
     bool unreadOnly = false,
     String? priority,
@@ -25,10 +39,10 @@ class AdminNotificationService {
     };
 
     final uri = Uri.parse(
-      '${ApiConfig.baseUrl}/api/notifications/admin',
+      '${ApiConfig.baseUrl}${ApiConfig.adminNotificationsEndpoint}',
     ).replace(queryParameters: params);
 
-    final res = await http.get(
+    final res = await _get(
       uri,
       headers: {
         'Content-Type': 'application/json',

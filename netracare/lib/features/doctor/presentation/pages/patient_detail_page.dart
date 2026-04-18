@@ -24,6 +24,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
     with SingleTickerProviderStateMixin {
   final DoctorService _doctorService = DoctorService();
   late TabController _tabController;
+  static const Duration _requestTimeout = Duration(seconds: 15);
 
   Patient? _patient;
   List<MedicalRecord> _medicalRecords = [];
@@ -51,15 +52,22 @@ class _PatientDetailPageState extends State<PatientDetailPage>
       if (token != null) {
         final patientId = int.tryParse(widget.patientId);
         if (patientId != null) {
-          final response = await http.get(
-            Uri.parse(
-              '${ApiConfig.baseUrl}${ApiConfig.doctorPatientDetailEndpoint(patientId)}',
-            ),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          );
+          final response = await http
+              .get(
+                Uri.parse(
+                  '${ApiConfig.baseUrl}${ApiConfig.doctorPatientDetailEndpoint(patientId)}',
+                ),
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer $token',
+                },
+              )
+              .timeout(
+                _requestTimeout,
+                onTimeout: () => throw Exception(
+                  'Request timed out. Please check your internet connection and try again.',
+                ),
+              );
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body) as Map<String, dynamic>;

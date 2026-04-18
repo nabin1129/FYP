@@ -23,6 +23,7 @@ class ResultsReportPage extends StatefulWidget {
 class _ResultsReportPageState extends State<ResultsReportPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  static const Duration _requestTimeout = Duration(seconds: 15);
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -131,14 +132,23 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     });
     try {
       final token = await ApiService.getToken();
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.aiReportGenerateEndpoint}'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({'time_range_days': 30}),
-      );
+      final response = await http
+          .post(
+            Uri.parse(
+              '${ApiConfig.baseUrl}${ApiConfig.aiReportGenerateEndpoint}',
+            ),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode({'time_range_days': 30}),
+          )
+          .timeout(
+            _requestTimeout,
+            onTimeout: () => throw Exception(
+              'Request timed out. Please check your internet connection and try again.',
+            ),
+          );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
@@ -164,14 +174,21 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     setState(() => _isDownloadingAIPDF = true);
     try {
       final token = await ApiService.getToken();
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.aiReportPdfEndpoint}'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({'time_range_days': 30}),
-      );
+      final response = await http
+          .post(
+            Uri.parse('${ApiConfig.baseUrl}${ApiConfig.aiReportPdfEndpoint}'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode({'time_range_days': 30}),
+          )
+          .timeout(
+            _requestTimeout,
+            onTimeout: () => throw Exception(
+              'Request timed out. Please check your internet connection and try again.',
+            ),
+          );
       if (response.statusCode == 200) {
         final Uint8List bytes = response.bodyBytes;
         final dir = await getTemporaryDirectory();
@@ -222,10 +239,19 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     try {
       // 1. Fetch linked doctors
       final token = await ApiService.getToken();
-      final doctorsRes = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.aiReportMyDoctorsEndpoint}'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
+      final doctorsRes = await http
+          .get(
+            Uri.parse(
+              '${ApiConfig.baseUrl}${ApiConfig.aiReportMyDoctorsEndpoint}',
+            ),
+            headers: {'Authorization': 'Bearer $token'},
+          )
+          .timeout(
+            _requestTimeout,
+            onTimeout: () => throw Exception(
+              'Request timed out. Please check your internet connection and try again.',
+            ),
+          );
       setState(() => _isSendingToDoctor = false);
 
       if (!mounted) return;
@@ -300,21 +326,28 @@ class _ResultsReportPageState extends State<ResultsReportPage>
 
       // 4. Send to backend
       setState(() => _isSendingToDoctor = true);
-      final sendRes = await http.post(
-        Uri.parse(
-          '${ApiConfig.baseUrl}${ApiConfig.aiReportSendToDoctorEndpoint}',
-        ),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'doctor_id': selected['id'],
-          'time_range_days': 30,
-          if (messageCtrl.text.trim().isNotEmpty)
-            'message': messageCtrl.text.trim(),
-        }),
-      );
+      final sendRes = await http
+          .post(
+            Uri.parse(
+              '${ApiConfig.baseUrl}${ApiConfig.aiReportSendToDoctorEndpoint}',
+            ),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode({
+              'doctor_id': selected['id'],
+              'time_range_days': 30,
+              if (messageCtrl.text.trim().isNotEmpty)
+                'message': messageCtrl.text.trim(),
+            }),
+          )
+          .timeout(
+            _requestTimeout,
+            onTimeout: () => throw Exception(
+              'Request timed out. Please check your internet connection and try again.',
+            ),
+          );
       setState(() => _isSendingToDoctor = false);
 
       if (!mounted) return;

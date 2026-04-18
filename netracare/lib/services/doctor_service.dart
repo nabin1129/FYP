@@ -15,6 +15,20 @@ class DoctorService {
   factory DoctorService() => _instance;
   DoctorService._internal();
 
+  static const Duration _requestTimeout = Duration(seconds: 15);
+
+  static Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) {
+    return http
+        .get(uri, headers: headers)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _onTimeout() {
+    throw Exception(
+      'Request timed out. Please check your internet connection and try again.',
+    );
+  }
+
   // In-memory storage (cache + fallback)
   final List<Patient> _patients = [];
   final Map<String, List<MedicalRecord>> _medicalRecords = {};
@@ -86,7 +100,7 @@ class DoctorService {
       final token = await DoctorApiService.getDoctorToken();
       if (token == null) return;
 
-      final response = await http.get(
+      final response = await _get(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.doctorProfileEndpoint}'),
         headers: {
           'Content-Type': 'application/json',
@@ -121,7 +135,7 @@ class DoctorService {
       final token = await DoctorApiService.getDoctorToken();
       if (token == null) throw Exception('No doctor token');
 
-      final response = await http.get(
+      final response = await _get(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.doctorPatientsEndpoint}'),
         headers: {
           'Content-Type': 'application/json',
@@ -160,7 +174,7 @@ class DoctorService {
       if (token == null) throw Exception('No doctor token');
 
       final patientId = int.parse(id);
-      final response = await http.get(
+      final response = await _get(
         Uri.parse(
           '${ApiConfig.baseUrl}${ApiConfig.doctorPatientDetailEndpoint(patientId)}',
         ),
@@ -287,7 +301,7 @@ class DoctorService {
       final token = await DoctorApiService.getDoctorToken();
       if (token == null) throw Exception('No doctor token');
 
-      final response = await http.get(
+      final response = await _get(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.doctorStatsEndpoint}'),
         headers: {
           'Content-Type': 'application/json',
@@ -351,7 +365,7 @@ class DoctorService {
       final token = await DoctorApiService.getDoctorToken();
       if (token == null) throw Exception('No doctor token');
 
-      final response = await http.get(
+      final response = await _get(
         Uri.parse(
           '${ApiConfig.baseUrl}${ApiConfig.doctorConsultationsEndpoint}',
         ),

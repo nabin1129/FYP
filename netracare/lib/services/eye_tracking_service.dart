@@ -70,7 +70,38 @@ class EyeTrackingTestData {
 }
 
 class EyeTrackingService {
-  static const String _endpoint = '/eye-tracking';
+  static const Duration _requestTimeout = Duration(seconds: 15);
+
+  static Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) {
+    return http
+        .get(uri, headers: headers)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _post(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return http
+        .post(uri, headers: headers, body: body)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _delete(
+    Uri uri, {
+    Map<String, String>? headers,
+  }) {
+    return http
+        .delete(uri, headers: headers)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _onTimeout() {
+    throw Exception(
+      'Request timed out. Please check your internet connection and try again.',
+    );
+  }
 
   /// Save eye tracking test results to backend
   static Future<Map<String, dynamic>> saveTestResults(
@@ -82,8 +113,8 @@ class EyeTrackingService {
         throw Exception('Authentication required');
       }
 
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}$_endpoint/tests'),
+      final response = await _post(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.eyeTrackingTestsEndpoint}'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -113,8 +144,10 @@ class EyeTrackingService {
         throw Exception('Authentication required');
       }
 
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}$_endpoint/upload-data'),
+      final response = await _post(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.eyeTrackingUploadDataEndpoint}',
+        ),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -145,9 +178,9 @@ class EyeTrackingService {
         throw Exception('Authentication required');
       }
 
-      final response = await http.get(
+      final response = await _get(
         Uri.parse(
-          '${ApiConfig.baseUrl}$_endpoint/tests?limit=$limit&offset=$offset',
+          '${ApiConfig.baseUrl}${ApiConfig.eyeTrackingTestsEndpoint}?limit=$limit&offset=$offset',
         ),
         headers: {'Authorization': 'Bearer $token'},
       );
@@ -179,8 +212,8 @@ class EyeTrackingService {
         throw Exception('Authentication required');
       }
 
-      final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}$_endpoint/tests/latest'),
+      final response = await _get(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.eyeTrackingLatestEndpoint}'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -207,8 +240,10 @@ class EyeTrackingService {
         throw Exception('Authentication required');
       }
 
-      final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}$_endpoint/tests/statistics'),
+      final response = await _get(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.eyeTrackingStatisticsEndpoint}',
+        ),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -234,8 +269,10 @@ class EyeTrackingService {
         throw Exception('Authentication required');
       }
 
-      final response = await http.delete(
-        Uri.parse('${ApiConfig.baseUrl}$_endpoint/$resultId'),
+      final response = await _delete(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.eyeTrackingResultDetailEndpoint(resultId)}',
+        ),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -259,8 +296,10 @@ class EyeTrackingService {
         throw Exception('Authentication required');
       }
 
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}$_endpoint/$resultId/generate-report'),
+      final response = await _post(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.eyeTrackingGenerateReportEndpoint(resultId)}',
+        ),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -285,8 +324,10 @@ class EyeTrackingService {
         throw Exception('Authentication required');
       }
 
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}$_endpoint/calibrate'),
+      final response = await _post(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.eyeTrackingCalibrateEndpoint}',
+        ),
         headers: {'Authorization': 'Bearer $token'},
       );
 

@@ -11,6 +11,39 @@ class PupilReflexService {
   // HELPER METHODS
   // =========================
 
+  static const Duration _requestTimeout = Duration(seconds: 15);
+
+  static Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) {
+    return http
+        .get(uri, headers: headers)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _post(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return http
+        .post(uri, headers: headers, body: body)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _delete(
+    Uri uri, {
+    Map<String, String>? headers,
+  }) {
+    return http
+        .delete(uri, headers: headers)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _onTimeout() {
+    throw Exception(
+      'Request timed out. Please check your internet connection and try again.',
+    );
+  }
+
   static Future<String?> _getToken() async {
     return await ApiService.getToken();
   }
@@ -79,7 +112,7 @@ class PupilReflexService {
     // Create multipart request
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('${ApiConfig.baseUrl}/api/pupil-reflex/test/submit'),
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.pupilReflexSubmitEndpoint}'),
     );
 
     // Add authorization header
@@ -135,7 +168,12 @@ class PupilReflexService {
     }
 
     // Send request
-    final streamedResponse = await request.send();
+    final streamedResponse = await request.send().timeout(
+      _requestTimeout,
+      onTimeout: () => throw Exception(
+        'Request timed out. Please check your internet connection and try again.',
+      ),
+    );
     final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 201 || response.statusCode == 200) {
@@ -165,8 +203,8 @@ class PupilReflexService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/api/pupil-reflex/tests'),
+    final response = await _get(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.pupilReflexTestsEndpoint}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -200,8 +238,10 @@ class PupilReflexService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/api/pupil-reflex/tests/$testId'),
+    final response = await _get(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.pupilReflexTestDetailEndpoint(testId)}',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -234,8 +274,10 @@ class PupilReflexService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.delete(
-      Uri.parse('${ApiConfig.baseUrl}/api/pupil-reflex/tests/$testId'),
+    final response = await _delete(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.pupilReflexTestDetailEndpoint(testId)}',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -275,8 +317,10 @@ class PupilReflexService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/api/pupil-reflex/start-test'),
+    final response = await _post(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.pupilReflexStartTestEndpoint}',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -316,7 +360,9 @@ class PupilReflexService {
     // Create multipart request
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('${ApiConfig.baseUrl}/api/pupil-reflex/analyze-video'),
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.pupilReflexAnalyzeVideoEndpoint}',
+      ),
     );
 
     // Add authorization header
@@ -336,7 +382,12 @@ class PupilReflexService {
     );
 
     // Send request
-    final streamedResponse = await request.send();
+    final streamedResponse = await request.send().timeout(
+      _requestTimeout,
+      onTimeout: () => throw Exception(
+        'Request timed out. Please check your internet connection and try again.',
+      ),
+    );
     final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 200) {
@@ -362,8 +413,10 @@ class PupilReflexService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/api/pupil-reflex/results/$testId'),
+    final response = await _get(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.pupilReflexResultsEndpoint(testId)}',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

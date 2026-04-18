@@ -25,7 +25,9 @@ class BlinkDetectionService {
 
       final response = await http
           .post(
-            Uri.parse('${ApiConfig.baseUrl}/blink-detection/analyze-frame'),
+            Uri.parse(
+              '${ApiConfig.baseUrl}${ApiConfig.blinkAnalyzeFrameEndpoint}',
+            ),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $token',
@@ -76,7 +78,7 @@ class BlinkDetectionService {
 
       final response = await http
           .post(
-            Uri.parse('${ApiConfig.baseUrl}/blink-detection/submit'),
+            Uri.parse('${ApiConfig.baseUrl}${ApiConfig.blinkSubmitEndpoint}'),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $token',

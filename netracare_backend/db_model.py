@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from flask_sqlalchemy import SQLAlchemy
 import json
 
@@ -18,7 +18,25 @@ class User(db.Model):
     profile_image_url = db.Column(db.String(500))
     reset_otp = db.Column(db.String(6))
     reset_otp_expiry = db.Column(db.DateTime)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None, microsecond=0),
+    )
+
+
+class AuthRateLimitEvent(db.Model):
+    """Shared authentication rate-limit event record."""
+
+    __tablename__ = "auth_rate_limit_events"
+
+    id = db.Column(db.Integer, primary_key=True)
+    kind = db.Column(db.String(64), nullable=False, index=True)
+    scope_key = db.Column(db.String(255), nullable=False, index=True)
+    created_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None, microsecond=0),
+        index=True,
+    )
 
 
 class EyeTrackingTest(db.Model):

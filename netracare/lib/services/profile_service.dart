@@ -7,6 +7,24 @@ import 'api_service.dart';
 
 /// Service for handling profile-related API calls
 class ProfileService {
+  static const Duration _requestTimeout = Duration(seconds: 15);
+
+  static Future<http.Response> _put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return http
+        .put(uri, headers: headers, body: body)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _onTimeout() {
+    throw Exception(
+      'Request timed out. Please check your internet connection and try again.',
+    );
+  }
+
   /// Update user profile with extended fields
   static Future<User> updateProfile({
     String? name,
@@ -36,7 +54,7 @@ class ProfileService {
     if (medicalHistory != null) body['medical_history'] = medicalHistory;
     if (profileImageUrl != null) body['profile_image_url'] = profileImageUrl;
 
-    final response = await http.put(
+    final response = await _put(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.profileEndpoint}'),
       headers: {
         'Authorization': 'Bearer $token',
@@ -68,7 +86,7 @@ class ProfileService {
 
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse('${ApiConfig.baseUrl}/user/profile/image'),
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.profileImageEndpointLegacy}'),
     );
 
     request.headers['Authorization'] = 'Bearer $token';
@@ -76,7 +94,12 @@ class ProfileService {
       await http.MultipartFile.fromPath('profile_image', imageFile.path),
     );
 
-    final streamedResponse = await request.send();
+    final streamedResponse = await request.send().timeout(
+      _requestTimeout,
+      onTimeout: () => throw Exception(
+        'Request timed out. Please check your internet connection and try again.',
+      ),
+    );
     final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 200) {

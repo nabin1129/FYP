@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -12,6 +13,43 @@ class ApiService {
   );
   static const String _tokenKey = 'auth_token';
   static const String _adminTokenKey = 'admin_token';
+  static const Duration _requestTimeout = Duration(seconds: 15);
+
+  static Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) {
+    return http
+        .get(uri, headers: headers)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _post(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return http
+        .post(uri, headers: headers, body: body)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return http
+        .put(uri, headers: headers, body: body)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _onTimeout() {
+    throw Exception(
+      'Request timed out. Please check your internet connection and try again.',
+    );
+  }
+
+  static bool _isEndpointMissing(http.Response response) {
+    return response.statusCode == 404 || response.statusCode == 405;
+  }
 
   // =========================
   // TOKEN
@@ -44,11 +82,23 @@ class ApiService {
   // LOGIN
   // =========================
   static Future<AuthResponse> login(String email, String password) async {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.loginEndpoint}'),
+    final primaryEndpoint = ApiConfig.loginEndpoint;
+    http.Response response = await _post(
+      Uri.parse('${ApiConfig.baseUrl}$primaryEndpoint'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
+
+    if (_isEndpointMissing(response)) {
+      final alternate = ApiConfig.alternateAuthEndpoint(primaryEndpoint);
+      if (alternate != null) {
+        response = await _post(
+          Uri.parse('${ApiConfig.baseUrl}$alternate'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'email': email, 'password': password}),
+        );
+      }
+    }
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -65,13 +115,11 @@ class ApiService {
   /// Returns false if credentials are wrong (401).
   /// Throws a [String] message for other errors.
   static Future<bool> doctorLogin(String email, String password) async {
-    final response = await http
-        .post(
-          Uri.parse('${ApiConfig.baseUrl}/api/doctors/login'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'email': email, 'password': password}),
-        )
-        .timeout(const Duration(seconds: 10));
+    final response = await _post(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.doctorLoginEndpoint}'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -119,13 +167,11 @@ class ApiService {
   /// Returns false if credentials are wrong (401).
   /// Throws a [String] message for other errors.
   static Future<bool> adminLogin(String email, String password) async {
-    final response = await http
-        .post(
-          Uri.parse('${ApiConfig.baseUrl}${ApiConfig.adminLoginEndpoint}'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'email': email, 'password': password}),
-        )
-        .timeout(const Duration(seconds: 10));
+    final response = await _post(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.adminLoginEndpoint}'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -153,17 +199,34 @@ class ApiService {
     int? age,
     String? sex,
   }) async {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.signupEndpoint}'),
+    final payload = {
+      // Support both legacy and v2 auth payload contracts.
+      'name': name,
+      'username': name,
+      'full_name': name,
+      'email': email,
+      'password': password,
+      if (age != null) 'age': age,
+      if (sex != null) 'sex': sex,
+    };
+
+    final primaryEndpoint = ApiConfig.signupEndpoint;
+    http.Response response = await _post(
+      Uri.parse('${ApiConfig.baseUrl}$primaryEndpoint'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'name': name,
-        'email': email,
-        'password': password,
-        if (age != null) 'age': age,
-        if (sex != null) 'sex': sex,
-      }),
+      body: jsonEncode(payload),
     );
+
+    if (_isEndpointMissing(response)) {
+      final alternate = ApiConfig.alternateAuthEndpoint(primaryEndpoint);
+      if (alternate != null) {
+        response = await _post(
+          Uri.parse('${ApiConfig.baseUrl}$alternate'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(payload),
+        );
+      }
+    }
 
     if (response.statusCode == 201) {
       final data = jsonDecode(response.body);
@@ -185,16 +248,38 @@ class ApiService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.profileEndpoint}'),
+    final primaryEndpoint = ApiConfig.profileEndpoint;
+    http.Response response = await _get(
+      Uri.parse('${ApiConfig.baseUrl}$primaryEndpoint'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json', // 🔥 IMPORTANT
       },
     );
 
+    if (_isEndpointMissing(response)) {
+      final alternate = ApiConfig.alternateAuthEndpoint(primaryEndpoint);
+      if (alternate != null) {
+        response = await _get(
+          Uri.parse('${ApiConfig.baseUrl}$alternate'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+        );
+      }
+    }
+
     if (response.statusCode == 200) {
-      return User.fromJson(jsonDecode(response.body));
+      final data = jsonDecode(response.body);
+      if (data is Map<String, dynamic> &&
+          data['user'] is Map<String, dynamic>) {
+        return User.fromJson(data['user'] as Map<String, dynamic>);
+      }
+      if (data is Map<String, dynamic>) {
+        return User.fromJson(data);
+      }
+      throw Exception('Invalid profile payload received from server.');
     }
 
     if (response.statusCode == 401) {
@@ -222,12 +307,15 @@ class ApiService {
 
     final Map<String, dynamic> body = {};
     if (name != null) body['name'] = name;
+    if (name != null) body['full_name'] = name;
     if (email != null) body['email'] = email;
     if (age != null) body['age'] = age;
     if (sex != null) body['sex'] = sex;
+    if (sex != null) body['gender'] = sex;
 
-    final response = await http.put(
-      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.profileEndpoint}'),
+    final primaryEndpoint = ApiConfig.profileEndpoint;
+    http.Response response = await _put(
+      Uri.parse('${ApiConfig.baseUrl}$primaryEndpoint'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -235,9 +323,30 @@ class ApiService {
       body: jsonEncode(body),
     );
 
+    if (_isEndpointMissing(response)) {
+      final alternate = ApiConfig.alternateAuthEndpoint(primaryEndpoint);
+      if (alternate != null) {
+        response = await _put(
+          Uri.parse('${ApiConfig.baseUrl}$alternate'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode(body),
+        );
+      }
+    }
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return User.fromJson(data['user'] as Map<String, dynamic>);
+      if (data is Map<String, dynamic> &&
+          data['user'] is Map<String, dynamic>) {
+        return User.fromJson(data['user'] as Map<String, dynamic>);
+      }
+      if (data is Map<String, dynamic>) {
+        return User.fromJson(data);
+      }
+      throw Exception('Invalid profile update payload received from server.');
     }
 
     if (response.statusCode == 401) {
@@ -298,7 +407,7 @@ class ApiService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.post(
+    final response = await _post(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.visualAcuityEndpoint}'),
       headers: {
         'Authorization': 'Bearer $token',
@@ -331,7 +440,7 @@ class ApiService {
     int count = 5,
   }) async {
     final token = await getToken();
-    final response = await http.get(
+    final response = await _get(
       Uri.parse(
         '${ApiConfig.baseUrl}${ApiConfig.colourVisionPlatesEndpoint}?count=$count',
       ),
@@ -356,7 +465,7 @@ class ApiService {
   }) async {
     final token = await getToken();
 
-    final response = await http.post(
+    final response = await _post(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.colourVisionTestsEndpoint}'),
       headers: {
         'Authorization': 'Bearer $token',
@@ -379,7 +488,7 @@ class ApiService {
 
   static Future<List<Map<String, dynamic>>> getColorVisionTests() async {
     final token = await getToken();
-    final response = await http.get(
+    final response = await _get(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.colourVisionTestsEndpoint}'),
       headers: {'Authorization': 'Bearer $token'},
     );
@@ -394,7 +503,7 @@ class ApiService {
 
   static Future<Map<String, dynamic>> getVisualAcuityTests() async {
     final token = await getToken();
-    final response = await http.get(
+    final response = await _get(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.visualAcuityTestsEndpoint}'),
       headers: {'Authorization': 'Bearer $token'},
     );
@@ -408,7 +517,7 @@ class ApiService {
 
   static Future<Map<String, dynamic>> getEyeTrackingTests() async {
     final token = await getToken();
-    final response = await http.get(
+    final response = await _get(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.eyeTrackingTestsEndpoint}'),
       headers: {'Authorization': 'Bearer $token'},
     );
@@ -439,7 +548,7 @@ class ApiService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.post(
+    final response = await _post(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.eyeTrackingTestsEndpoint}'),
       headers: {
         'Authorization': 'Bearer $token',
@@ -503,8 +612,8 @@ class ApiService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/distance/calibrate'),
+    final response = await _post(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.distanceCalibrateEndpoint}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -532,8 +641,10 @@ class ApiService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/distance/calibration/active'),
+    final response = await _get(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.distanceActiveCalibrationEndpoint}',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -568,8 +679,10 @@ class ApiService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/distance/calibrations'),
+    final response = await _get(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.distanceCalibrationsEndpoint}',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -603,8 +716,8 @@ class ApiService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/distance/validate'),
+    final response = await _post(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.distanceValidateEndpoint}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -636,8 +749,8 @@ class ApiService {
     final token = await getToken();
     if (token == null) throw Exception('No authentication token found');
 
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/user/medical-records'),
+    final response = await _get(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.medicalRecordsEndpoint}'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -661,8 +774,8 @@ class ApiService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/consultation/doctors'),
+    final response = await _get(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.consultationDoctorsEndpoint}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -694,8 +807,8 @@ class ApiService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/consultation/book'),
+    final response = await _post(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.consultationBookEndpoint}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -727,8 +840,8 @@ class ApiService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/consultation/history'),
+    final response = await _get(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.consultationHistoryEndpoint}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -757,8 +870,10 @@ class ApiService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/consultation/chat/$doctorId'),
+    final response = await _get(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.consultationChatEndpoint}/$doctorId',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -788,8 +903,10 @@ class ApiService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/consultation/chat/$doctorId'),
+    final response = await _post(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.consultationChatEndpoint}/$doctorId',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -813,11 +930,24 @@ class ApiService {
   // FORGOT / RESET PASSWORD
   // =========================
   static Future<void> forgotPassword(String email) async {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/auth/forgot-password'),
+    final payload = {'email': email};
+    final primaryEndpoint = ApiConfig.forgotPasswordEndpoint;
+    http.Response response = await _post(
+      Uri.parse('${ApiConfig.baseUrl}$primaryEndpoint'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email}),
+      body: jsonEncode(payload),
     );
+
+    if (_isEndpointMissing(response)) {
+      final alternate = ApiConfig.alternateAuthEndpoint(primaryEndpoint);
+      if (alternate != null) {
+        response = await _post(
+          Uri.parse('${ApiConfig.baseUrl}$alternate'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(payload),
+        );
+      }
+    }
 
     if (response.statusCode == 200) return;
     _throwReadableError(response);
@@ -828,15 +958,24 @@ class ApiService {
     required String otp,
     required String newPassword,
   }) async {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/auth/reset-password'),
+    final payload = {'email': email, 'otp': otp, 'new_password': newPassword};
+    final primaryEndpoint = ApiConfig.resetPasswordEndpoint;
+    http.Response response = await _post(
+      Uri.parse('${ApiConfig.baseUrl}$primaryEndpoint'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'email': email,
-        'otp': otp,
-        'new_password': newPassword,
-      }),
+      body: jsonEncode(payload),
     );
+
+    if (_isEndpointMissing(response)) {
+      final alternate = ApiConfig.alternateAuthEndpoint(primaryEndpoint);
+      if (alternate != null) {
+        response = await _post(
+          Uri.parse('${ApiConfig.baseUrl}$alternate'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(payload),
+        );
+      }
+    }
 
     if (response.statusCode == 200) return;
     _throwReadableError(response);
@@ -850,15 +989,24 @@ class ApiService {
     required String email,
     required String name,
   }) async {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/auth/google-login'),
+    final payload = {'google_token': googleToken, 'email': email, 'name': name};
+    final primaryEndpoint = ApiConfig.googleLoginEndpoint;
+    http.Response response = await _post(
+      Uri.parse('${ApiConfig.baseUrl}$primaryEndpoint'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'google_token': googleToken,
-        'email': email,
-        'name': name,
-      }),
+      body: jsonEncode(payload),
     );
+
+    if (_isEndpointMissing(response)) {
+      final alternate = ApiConfig.alternateAuthEndpoint(primaryEndpoint);
+      if (alternate != null) {
+        response = await _post(
+          Uri.parse('${ApiConfig.baseUrl}$alternate'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(payload),
+        );
+      }
+    }
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);

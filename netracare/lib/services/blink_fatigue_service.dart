@@ -11,6 +11,20 @@ class BlinkFatigueService {
   // HELPER METHODS
   // =========================
 
+  static const Duration _requestTimeout = Duration(seconds: 15);
+
+  static Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) {
+    return http
+        .get(uri, headers: headers)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _onTimeout() {
+    throw Exception(
+      'Request timed out. Please check your internet connection and try again.',
+    );
+  }
+
   static Future<String?> _getToken() async {
     return await ApiService.getToken();
   }
@@ -60,7 +74,7 @@ class BlinkFatigueService {
     // Create multipart request
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('${ApiConfig.baseUrl}/blink-fatigue/predict'),
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.blinkFatiguePredictEndpoint}'),
     );
 
     // Add authorization header
@@ -72,7 +86,12 @@ class BlinkFatigueService {
     );
 
     // Send request
-    final streamedResponse = await request.send();
+    final streamedResponse = await request.send().timeout(
+      _requestTimeout,
+      onTimeout: () => throw Exception(
+        'Request timed out. Please check your internet connection and try again.',
+      ),
+    );
     final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 200) {
@@ -114,7 +133,7 @@ class BlinkFatigueService {
     // Create multipart request
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('${ApiConfig.baseUrl}/blink-fatigue/test/submit'),
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.blinkFatigueSubmitEndpoint}'),
     );
 
     // Add authorization header
@@ -136,7 +155,12 @@ class BlinkFatigueService {
     }
 
     // Send request
-    final streamedResponse = await request.send();
+    final streamedResponse = await request.send().timeout(
+      _requestTimeout,
+      onTimeout: () => throw Exception(
+        'Request timed out. Please check your internet connection and try again.',
+      ),
+    );
     final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 200) {
@@ -166,8 +190,8 @@ class BlinkFatigueService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/blink-fatigue/history'),
+    final response = await _get(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.blinkFatigueHistoryEndpoint}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -204,8 +228,10 @@ class BlinkFatigueService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/blink-fatigue/history/$testId'),
+    final response = await _get(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.blinkFatigueHistoryDetailEndpoint(testId)}',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -239,8 +265,8 @@ class BlinkFatigueService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/blink-fatigue/stats'),
+    final response = await _get(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.blinkFatigueStatsEndpoint}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

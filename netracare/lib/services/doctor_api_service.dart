@@ -15,6 +15,49 @@ class DoctorApiService {
   );
   static const String _tokenKey = 'auth_token';
   static const String _doctorTokenKey = 'doctor_token';
+  static const Duration _requestTimeout = Duration(seconds: 15);
+
+  static Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) {
+    return http
+        .get(uri, headers: headers)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _post(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return http
+        .post(uri, headers: headers, body: body)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return http
+        .put(uri, headers: headers, body: body)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _delete(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return http
+        .delete(uri, headers: headers, body: body)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  static Future<http.Response> _onTimeout() {
+    throw Exception(
+      'Request timed out. Please check your internet connection and try again.',
+    );
+  }
 
   // =========================
   // TOKEN MANAGEMENT
@@ -58,8 +101,10 @@ class DoctorApiService {
         throw Exception('Please login as a doctor');
       }
 
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/doctors/change-password'),
+      final response = await _post(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.doctorChangePasswordEndpoint}',
+        ),
         headers: _getHeaders(token),
         body: jsonEncode({
           'current_password': currentPassword,
@@ -84,8 +129,8 @@ class DoctorApiService {
         throw Exception('Please login as a doctor');
       }
 
-      final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/api/doctors/all-users'),
+      final response = await _get(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.doctorAllUsersEndpoint}'),
         headers: _getHeaders(token),
       );
 
@@ -112,9 +157,9 @@ class DoctorApiService {
         throw Exception('Please login');
       }
 
-      final response = await http.post(
+      final response = await _post(
         Uri.parse(
-          '${ApiConfig.baseUrl}/api/consultations/$consultationId/share-test',
+          '${ApiConfig.baseUrl}${ApiConfig.shareTestEndpointRaw(consultationId)}',
         ),
         headers: _getHeaders(token),
         body: jsonEncode({'test_type': testType, 'test_id': testId}),
@@ -143,9 +188,9 @@ class DoctorApiService {
         throw Exception('Please login');
       }
 
-      final response = await http.get(
+      final response = await _get(
         Uri.parse(
-          '${ApiConfig.baseUrl}/api/consultations/$consultationId/messages',
+          '${ApiConfig.baseUrl}${ApiConfig.consultationMessagesEndpointRaw(consultationId)}',
         ),
         headers: _getHeaders(token),
       );
@@ -172,9 +217,9 @@ class DoctorApiService {
         throw Exception('Please login');
       }
 
-      final response = await http.post(
+      final response = await _post(
         Uri.parse(
-          '${ApiConfig.baseUrl}/api/consultations/$consultationId/messages',
+          '${ApiConfig.baseUrl}${ApiConfig.consultationMessagesEndpointRaw(consultationId)}',
         ),
         headers: _getHeaders(token),
         body: jsonEncode({'content': message}),
@@ -208,9 +253,9 @@ class DoctorApiService {
         throw Exception('Please login as a doctor');
       }
 
-      final response = await http.get(
+      final response = await _get(
         Uri.parse(
-          '${ApiConfig.baseUrl}/api/consultations/$consultationId/doctor/messages',
+          '${ApiConfig.baseUrl}${ApiConfig.doctorConsultationMessagesEndpointRaw(consultationId)}',
         ),
         headers: _getHeaders(token),
       );
@@ -237,9 +282,9 @@ class DoctorApiService {
         throw Exception('Please login as a doctor');
       }
 
-      final response = await http.post(
+      final response = await _post(
         Uri.parse(
-          '${ApiConfig.baseUrl}/api/consultations/$consultationId/doctor/messages',
+          '${ApiConfig.baseUrl}${ApiConfig.doctorConsultationMessagesEndpointRaw(consultationId)}',
         ),
         headers: _getHeaders(token),
         body: jsonEncode({'content': message}),
@@ -273,8 +318,10 @@ class DoctorApiService {
         throw Exception('Please login as a doctor');
       }
 
-      final response = await http.put(
-        Uri.parse('${ApiConfig.baseUrl}/api/consultations/$consultationId'),
+      final response = await _put(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.consultationDetailEndpointRaw(consultationId)}',
+        ),
         headers: _getHeaders(token),
         body: jsonEncode({'status': 'scheduled'}),
       );
@@ -298,8 +345,10 @@ class DoctorApiService {
         throw Exception('Please login as a doctor');
       }
 
-      final response = await http.put(
-        Uri.parse('${ApiConfig.baseUrl}/api/consultations/$consultationId'),
+      final response = await _put(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.consultationDetailEndpointRaw(consultationId)}',
+        ),
         headers: _getHeaders(token),
         body: jsonEncode({'status': 'rejected'}),
       );
@@ -323,8 +372,10 @@ class DoctorApiService {
         throw Exception('Please login as a doctor');
       }
 
-      final response = await http.put(
-        Uri.parse('${ApiConfig.baseUrl}/api/consultations/$consultationId'),
+      final response = await _put(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.consultationDetailEndpointRaw(consultationId)}',
+        ),
         headers: _getHeaders(token),
         body: jsonEncode({'status': 'completed'}),
       );
@@ -358,10 +409,7 @@ class DoctorApiService {
         url += '?${Uri(queryParameters: params).query}';
       }
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: _getHeaders(null),
-      );
+      final response = await _get(Uri.parse(url), headers: _getHeaders(null));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -384,10 +432,7 @@ class DoctorApiService {
       final url =
           '${ApiConfig.baseUrl}${ApiConfig.doctorSearchEndpoint}?q=$query';
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: _getHeaders(null),
-      );
+      final response = await _get(Uri.parse(url), headers: _getHeaders(null));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -416,10 +461,7 @@ class DoctorApiService {
       final url =
           '${ApiConfig.baseUrl}${ApiConfig.doctorDetailEndpoint(int.parse(doctorId))}';
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: _getHeaders(null),
-      );
+      final response = await _get(Uri.parse(url), headers: _getHeaders(null));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -455,7 +497,7 @@ class DoctorApiService {
         throw Exception('Please login to book a consultation');
       }
 
-      final response = await http.post(
+      final response = await _post(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.bookConsultationEndpoint}'),
         headers: _getHeaders(token),
         body: jsonEncode({
@@ -495,7 +537,7 @@ class DoctorApiService {
       '${ApiConfig.baseUrl}${ApiConfig.availableDoctorSlotsEndpoint}?doctor_id=$doctorId',
     );
 
-    final response = await http.get(uri, headers: _getHeaders(token));
+    final response = await _get(uri, headers: _getHeaders(token));
     if (response.statusCode != 200) {
       final error = jsonDecode(response.body);
       throw Exception(error['message'] ?? 'Failed to fetch slots');
@@ -519,7 +561,7 @@ class DoctorApiService {
     final uri = Uri.parse(
       '${ApiConfig.baseUrl}${ApiConfig.doctorSlotsEndpoint}?include_past=${includePast.toString()}',
     );
-    final response = await http.get(uri, headers: _getHeaders(token));
+    final response = await _get(uri, headers: _getHeaders(token));
 
     if (response.statusCode != 200) {
       final error = jsonDecode(response.body);
@@ -543,7 +585,7 @@ class DoctorApiService {
       throw Exception('Please login as a doctor');
     }
 
-    final response = await http.post(
+    final response = await _post(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.doctorSlotsEndpoint}'),
       headers: _getHeaders(token),
       body: jsonEncode({
@@ -581,7 +623,7 @@ class DoctorApiService {
       if (isActive != null) 'is_active': isActive,
     };
 
-    final response = await http.put(
+    final response = await _put(
       Uri.parse(
         '${ApiConfig.baseUrl}${ApiConfig.doctorSlotDetailEndpoint(slotId)}',
       ),
@@ -605,7 +647,7 @@ class DoctorApiService {
       throw Exception('Please login as a doctor');
     }
 
-    final response = await http.delete(
+    final response = await _delete(
       Uri.parse(
         '${ApiConfig.baseUrl}${ApiConfig.doctorSlotDetailEndpoint(slotId)}',
       ),
@@ -634,10 +676,7 @@ class DoctorApiService {
         url += '?status=$status';
       }
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: _getHeaders(token),
-      );
+      final response = await _get(Uri.parse(url), headers: _getHeaders(token));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -662,7 +701,7 @@ class DoctorApiService {
         throw Exception('Please login');
       }
 
-      final response = await http.get(
+      final response = await _get(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.patientUpcomingEndpoint}'),
         headers: _getHeaders(token),
       );
@@ -708,7 +747,7 @@ class DoctorApiService {
         throw Exception('Please login');
       }
 
-      final response = await http.post(
+      final response = await _post(
         Uri.parse(
           '${ApiConfig.baseUrl}${ApiConfig.cancelConsultationEndpoint(consultationId)}',
         ),
@@ -741,10 +780,7 @@ class DoctorApiService {
         url += '?unread=true';
       }
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: _getHeaders(token),
-      );
+      final response = await _get(Uri.parse(url), headers: _getHeaders(token));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -764,7 +800,7 @@ class DoctorApiService {
 
       if (token == null) return 0;
 
-      final response = await http.get(
+      final response = await _get(
         Uri.parse(
           '${ApiConfig.baseUrl}${ApiConfig.userNotificationCountEndpoint}',
         ),
@@ -791,7 +827,7 @@ class DoctorApiService {
         throw Exception('Please login');
       }
 
-      final response = await http.post(
+      final response = await _post(
         Uri.parse(
           '${ApiConfig.baseUrl}${ApiConfig.userNotificationsEndpoint}/$notificationId/read',
         ),
@@ -813,7 +849,7 @@ class DoctorApiService {
         throw Exception('Please login');
       }
 
-      final response = await http.post(
+      final response = await _post(
         Uri.parse(
           '${ApiConfig.baseUrl}${ApiConfig.userNotificationsEndpoint}/read-all',
         ),
@@ -835,7 +871,7 @@ class DoctorApiService {
         throw Exception('Please login');
       }
 
-      final response = await http.delete(
+      final response = await _delete(
         Uri.parse(
           '${ApiConfig.baseUrl}${ApiConfig.userNotificationsEndpoint}/$notificationId',
         ),
@@ -868,10 +904,7 @@ class DoctorApiService {
         url += '?unread=true';
       }
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: _getHeaders(token),
-      );
+      final response = await _get(Uri.parse(url), headers: _getHeaders(token));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -891,7 +924,7 @@ class DoctorApiService {
 
       if (token == null) return 0;
 
-      final response = await http.get(
+      final response = await _get(
         Uri.parse(
           '${ApiConfig.baseUrl}${ApiConfig.doctorNotificationCountEndpoint}',
         ),
@@ -918,7 +951,7 @@ class DoctorApiService {
         throw Exception('Please login');
       }
 
-      final response = await http.post(
+      final response = await _post(
         Uri.parse(
           '${ApiConfig.baseUrl}${ApiConfig.doctorNotificationsEndpoint}/$notificationId/read',
         ),
@@ -940,7 +973,7 @@ class DoctorApiService {
         throw Exception('Please login');
       }
 
-      final response = await http.post(
+      final response = await _post(
         Uri.parse(
           '${ApiConfig.baseUrl}${ApiConfig.doctorNotificationsEndpoint}/read-all',
         ),
@@ -963,7 +996,7 @@ class DoctorApiService {
         throw Exception('Please login');
       }
 
-      final response = await http.delete(
+      final response = await _delete(
         Uri.parse(
           '${ApiConfig.baseUrl}${ApiConfig.doctorNotificationsEndpoint}/$notificationId/delete',
         ),

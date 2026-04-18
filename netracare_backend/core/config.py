@@ -14,11 +14,13 @@ except ImportError:
 class BaseConfig:
     """Base configuration shared by all environments."""
 
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production-min-32-bytes-required")
+    DEFAULT_SECRET_KEY = "dev-secret-key-change-in-production-min-32-bytes-required"
+    SECRET_KEY = os.getenv("SECRET_KEY", DEFAULT_SECRET_KEY)
     JWT_EXP_MINUTES = 1440
     ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin333221")
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+    CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "*")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 

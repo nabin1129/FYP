@@ -7,6 +7,30 @@ import '../../models/consultation/chat_message_model.dart';
 import '../doctor_api_service.dart';
 
 class ChatRepository {
+  static const Duration _requestTimeout = Duration(seconds: 15);
+
+  Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) {
+    return http
+        .get(uri, headers: headers)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  Future<http.Response> _post(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return http
+        .post(uri, headers: headers, body: body)
+        .timeout(_requestTimeout, onTimeout: _onTimeout);
+  }
+
+  Future<http.Response> _onTimeout() {
+    throw Exception(
+      'Request timed out. Please check your internet connection and try again.',
+    );
+  }
+
   Future<String?> _token({required bool isDoctor}) async {
     if (isDoctor) {
       return DoctorApiService.getDoctorToken();
@@ -36,8 +60,8 @@ class ChatRepository {
       if (isDoctor && patientId != null) 'patient_id': patientId,
     };
 
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/api/chat/rooms'),
+    final response = await _post(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.chatRoomsEndpoint}'),
       headers: headers,
       body: jsonEncode(body),
     );
@@ -61,8 +85,10 @@ class ChatRepository {
     required int consultationId,
   }) async {
     final headers = await _headers(isDoctor: isDoctor);
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/api/chat/rooms/$consultationId/messages'),
+    final response = await _get(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.chatRoomMessagesEndpoint(consultationId)}',
+      ),
       headers: headers,
     );
 

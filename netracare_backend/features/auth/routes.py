@@ -9,7 +9,7 @@ import random
 import string
 import requests as http_requests
 
-from db_model import db, User
+from db_model import AuthRateLimitEvent, db, User
 from core.config import BaseConfig
 from core.mailer import send_otp_email
 
@@ -17,6 +17,80 @@ auth_ns = Namespace(
     "auth",
     description="Authentication APIs"
 )
+
+
+# -----------------------------
+# RATE LIMITING / LOCKOUT (in-memory)
+# -----------------------------
+SIGNUP_WINDOW_SECONDS = 3600
+MAX_SIGNUP_ATTEMPTS = 5
+
+FORGOT_PASSWORD_WINDOW_SECONDS = 3600
+MAX_FORGOT_PASSWORD_ATTEMPTS = 5
+
+LOGIN_FAILURE_WINDOW_SECONDS = 900
+MAX_LOGIN_FAILURES = 6
+
+
+def _client_ip() -> str:
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip() or "unknown"
+    return request.remote_addr or "unknown"
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None, microsecond=0)
+
+
+def _rate_limit_cutoff(window_seconds: int) -> datetime:
+    return _utcnow() - timedelta(seconds=window_seconds)
+
+
+def _login_is_locked(key: str):
+    cutoff = _rate_limit_cutoff(LOGIN_FAILURE_WINDOW_SECONDS)
+    failures = (
+        AuthRateLimitEvent.query.filter_by(kind="login_failure", scope_key=key)
+        .filter(AuthRateLimitEvent.created_at >= cutoff)
+        .order_by(AuthRateLimitEvent.created_at.asc())
+        .all()
+    )
+    if len(failures) >= MAX_LOGIN_FAILURES:
+        oldest = failures[0].created_at or _utcnow()
+        retry_after = max(
+            1,
+            int(LOGIN_FAILURE_WINDOW_SECONDS - (_utcnow() - oldest).total_seconds()),
+        )
+        return True, retry_after
+    return False, 0
+
+
+def _record_rate_limit_event(kind: str, key: str, window_seconds: int) -> None:
+    cutoff = _rate_limit_cutoff(window_seconds)
+    AuthRateLimitEvent.query.filter_by(kind=kind, scope_key=key).filter(
+        AuthRateLimitEvent.created_at < cutoff
+    ).delete(synchronize_session=False)
+    db.session.add(
+        AuthRateLimitEvent(
+            kind=kind,
+            scope_key=key,
+            created_at=_utcnow(),
+        )
+    )
+    db.session.commit()
+
+
+def _clear_login_failures(key: str) -> None:
+    AuthRateLimitEvent.query.filter_by(kind="login_failure", scope_key=key).delete(
+        synchronize_session=False
+    )
+    db.session.commit()
+
+
+def _rate_limit_response(message: str, retry_after: int):
+    return {
+        "message": message,
+    }, 429, {"Retry-After": str(retry_after)}
 
 # -----------------------------
 # PASSWORD POLICY (STRONG)
@@ -87,8 +161,33 @@ class Signup(Resource):
         if not data:
             auth_ns.abort(400, "Invalid JSON body")
 
+        email = data.get("email", "").strip().lower()
+        signup_key = f"{_client_ip()}:{email or 'unknown'}"
+        cutoff = _rate_limit_cutoff(SIGNUP_WINDOW_SECONDS)
+        attempts = (
+            AuthRateLimitEvent.query.filter_by(kind="signup_attempt", scope_key=signup_key)
+            .filter(AuthRateLimitEvent.created_at >= cutoff)
+            .order_by(AuthRateLimitEvent.created_at.asc())
+            .all()
+        )
+        if len(attempts) >= MAX_SIGNUP_ATTEMPTS:
+            oldest = attempts[0].created_at or _utcnow()
+            retry_after = max(
+                1,
+                int(
+                    SIGNUP_WINDOW_SECONDS
+                    - (_utcnow() - oldest).total_seconds()
+                ),
+            )
+            return _rate_limit_response(
+                f"Too many signup attempts. Try again in {retry_after} seconds.",
+                retry_after,
+            )
+
+        _record_rate_limit_event("signup_attempt", signup_key, SIGNUP_WINDOW_SECONDS)
+
         # Check email duplication
-        if User.query.filter_by(email=data["email"]).first():
+        if User.query.filter_by(email=email).first():
             auth_ns.abort(400, "Email already registered")
 
         password = data["password"]
@@ -103,7 +202,7 @@ class Signup(Resource):
 
         user = User(
             name=data["name"],
-            email=data["email"],
+            email=email,
             password_hash=generate_password_hash(password),
             age=data.get("age"),
             sex=data.get("sex"),
@@ -134,12 +233,28 @@ class Login(Resource):
         if not data:
             auth_ns.abort(400, "Invalid JSON body")
 
-        user = User.query.filter_by(email=data["email"]).first()
+        email = data.get("email", "").strip().lower()
+        login_key = f"{_client_ip()}:{email or 'unknown'}"
+        locked, retry_after = _login_is_locked(login_key)
+        if locked:
+            return _rate_limit_response(
+                f"Too many failed login attempts. Try again in {retry_after} seconds.",
+                retry_after,
+            )
+
+        user = User.query.filter_by(email=email).first()
 
         if not user or not check_password_hash(
             user.password_hash, data["password"]
         ):
+            _record_rate_limit_event(
+                "login_failure",
+                login_key,
+                LOGIN_FAILURE_WINDOW_SECONDS,
+            )
             auth_ns.abort(401, "Invalid email or password")
+
+        _clear_login_failures(login_key)
 
         token = generate_token(user.id)
 
@@ -184,6 +299,37 @@ class ForgotPassword(Resource):
             auth_ns.abort(400, "Email is required")
 
         email = data["email"].strip().lower()
+        forgot_key = f"{_client_ip()}:{email}"
+        cutoff = _rate_limit_cutoff(FORGOT_PASSWORD_WINDOW_SECONDS)
+        attempts = (
+            AuthRateLimitEvent.query.filter_by(
+                kind="forgot_password_attempt",
+                scope_key=forgot_key,
+            )
+            .filter(AuthRateLimitEvent.created_at >= cutoff)
+            .order_by(AuthRateLimitEvent.created_at.asc())
+            .all()
+        )
+        if len(attempts) >= MAX_FORGOT_PASSWORD_ATTEMPTS:
+            oldest = attempts[0].created_at or _utcnow()
+            retry_after = max(
+                1,
+                int(
+                    FORGOT_PASSWORD_WINDOW_SECONDS
+                    - (_utcnow() - oldest).total_seconds()
+                ),
+            )
+            return _rate_limit_response(
+                f"Too many OTP requests. Try again in {retry_after} seconds.",
+                retry_after,
+            )
+
+        _record_rate_limit_event(
+            "forgot_password_attempt",
+            forgot_key,
+            FORGOT_PASSWORD_WINDOW_SECONDS,
+        )
+
         user = User.query.filter_by(email=email).first()
 
         if not user:
