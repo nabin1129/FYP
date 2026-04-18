@@ -68,6 +68,57 @@ class PupilReflexService {
   }
 
   // =========================
+  // CLINICAL OUTPUT HELPERS
+  // =========================
+
+  /// Extract standardized clinical output from either top-level or nested payloads.
+  static Map<String, dynamic>? extractClinicalOutput(
+    Map<String, dynamic> payload,
+  ) {
+    final top = payload['clinical_output'];
+    if (top is Map<String, dynamic>) {
+      return top;
+    }
+
+    final results = payload['results'];
+    if (results is Map<String, dynamic>) {
+      final nested = results['clinical_output'];
+      if (nested is Map<String, dynamic>) {
+        return nested;
+      }
+    }
+
+    return null;
+  }
+
+  /// Extract clinical summary text from payload when available.
+  static String? extractClinicalSummary(Map<String, dynamic> payload) {
+    final summary = payload['clinical_summary'];
+    if (summary is String && summary.trim().isNotEmpty) {
+      return summary;
+    }
+
+    final results = payload['results'];
+    if (results is Map<String, dynamic>) {
+      final nested = results['clinical_summary'];
+      if (nested is String && nested.trim().isNotEmpty) {
+        return nested;
+      }
+    }
+
+    final clinical = extractClinicalOutput(payload);
+    final interpretation = clinical?['interpretation'];
+    if (interpretation is Map<String, dynamic>) {
+      final text = interpretation['summary'];
+      if (text is String && text.trim().isNotEmpty) {
+        return text;
+      }
+    }
+
+    return null;
+  }
+
+  // =========================
   // SUBMIT TEST
   // =========================
 

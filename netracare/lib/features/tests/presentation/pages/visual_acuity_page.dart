@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/features/tests/presentation/pages/visual_acuity_test_page.dart';
+import 'package:netracare/features/tests/presentation/pages/visual_acuity_variant.dart';
 
 class VisualAcuityPage extends StatefulWidget {
   const VisualAcuityPage({super.key});
@@ -11,6 +12,7 @@ class VisualAcuityPage extends StatefulWidget {
 
 class _VisualAcuityPageState extends State<VisualAcuityPage> {
   String step = 'intro'; // intro | setup | preparation
+  VisualAcuityVariant selectedVariant = VisualAcuityVariant.snellen;
 
   void proceed() {
     if (step == 'intro') {
@@ -37,7 +39,9 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
   void startTest() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const VisualAcuityTestPage()),
+      MaterialPageRoute(
+        builder: (context) => VisualAcuityTestPage(variant: selectedVariant),
+      ),
     );
   }
 
@@ -198,6 +202,61 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
         ),
         const SizedBox(height: 24),
 
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Test type',
+            style: TextStyle(
+              fontSize: AppTheme.fontBody,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: VisualAcuityVariant.values.map((variant) {
+            final isSelected = selectedVariant == variant;
+            return ChoiceChip(
+              selected: isSelected,
+              label: Text(variant.title),
+              onSelected: (_) {
+                setState(() {
+                  selectedVariant = variant;
+                });
+              },
+              selectedColor: AppTheme.primary.withValues(alpha: 0.14),
+              labelStyle: TextStyle(
+                color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+              side: BorderSide(
+                color: isSelected
+                    ? AppTheme.primary
+                    : AppTheme.border.withValues(alpha: 0.9),
+              ),
+              backgroundColor: Colors.white,
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppTheme.primary.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppTheme.primary.withValues(alpha: 0.12)),
+          ),
+          child: Text(
+            selectedVariant.description,
+            style: const TextStyle(color: AppTheme.textSecondary, height: 1.4),
+          ),
+        ),
+        const SizedBox(height: 20),
+
         // Setup Checklist
         _checklistItem("Find a quiet, well-lit room"),
         const SizedBox(height: 12),
@@ -224,7 +283,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
               SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  "You'll be shown 10 letters. Identify each one for accurate results.",
+                  "You'll be shown 10 prompts. Use the selected test type to answer each one accurately.",
                   style: TextStyle(
                     fontSize: AppTheme.fontSM,
                     color: AppTheme.warningDark,
@@ -240,7 +299,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: proceed,
+            onPressed: startTest,
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 12),
               backgroundColor: AppTheme.primary,
@@ -249,7 +308,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
               ),
             ),
             child: const Text(
-              "Proceed to Test",
+              "Start Test",
               style: TextStyle(
                 fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.w600,

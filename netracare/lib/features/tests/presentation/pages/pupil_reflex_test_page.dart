@@ -47,6 +47,10 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
   double? confidence;
   String? diagnosis;
   String? recommendations;
+  String? clinicalOutputVersion;
+  String? clinicalSummary;
+  String? clinicalUrgency;
+  List<String> clinicalRecommendationItems = [];
 
   bool isSaving = false;
   bool isSaved = false;
@@ -422,6 +426,12 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
         final nystagmus = (payload['nystagmus'] is Map<String, dynamic>)
             ? payload['nystagmus'] as Map<String, dynamic>
             : null;
+        final clinical = PupilReflexService.extractClinicalOutput(payload);
+        final interpretation =
+            clinical?['interpretation'] as Map<String, dynamic>?;
+        final recommendationBlock =
+            clinical?['recommendations'] as Map<String, dynamic>?;
+        final items = recommendationBlock?['items'];
 
         if (nystagmus != null) {
           nystagmusDetected = nystagmus['detected'] ?? false;
@@ -430,6 +440,30 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
           confidence = (nystagmus['confidence'] as num?)?.toDouble();
           diagnosis = payload['diagnosis'];
           recommendations = payload['recommendations'];
+          clinicalOutputVersion = payload['clinical_output_version']
+              ?.toString();
+          clinicalSummary =
+              PupilReflexService.extractClinicalSummary(payload) ??
+              interpretation?['summary']?.toString();
+          clinicalUrgency = recommendationBlock?['urgency']?.toString();
+          clinicalRecommendationItems = items is List
+              ? items
+                    .whereType<String>()
+                    .map((item) => item.trim())
+                    .where((item) => item.isNotEmpty)
+                    .toList()
+              : [];
+
+          if ((diagnosis == null || diagnosis!.isEmpty) &&
+              clinicalSummary != null &&
+              clinicalSummary!.isNotEmpty) {
+            diagnosis = clinicalSummary;
+          }
+
+          if ((recommendations == null || recommendations!.isEmpty) &&
+              clinicalRecommendationItems.isNotEmpty) {
+            recommendations = clinicalRecommendationItems.join('; ');
+          }
           analysisSuccessful = true;
           debugPrint(
             'Nystagmus analysis successful: detected=$nystagmusDetected',
@@ -1184,6 +1218,61 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
           const SizedBox(height: 16),
 
           // Diagnosis
+          if (clinicalSummary != null && clinicalSummary!.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.accent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.fact_check, color: AppTheme.accent),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Structured Clinical Summary'
+                          '${clinicalOutputVersion != null ? ' (v$clinicalOutputVersion)' : ''}',
+                          style: TextStyle(
+                            fontSize: AppTheme.fontBody,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.accent,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          clinicalSummary!,
+                          style: TextStyle(
+                            fontSize: AppTheme.fontSM,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        if (clinicalUrgency != null &&
+                            clinicalUrgency!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Text(
+                              'Clinical urgency: $clinicalUrgency',
+                              style: TextStyle(
+                                fontSize: AppTheme.fontSM,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.warning,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (clinicalSummary != null && clinicalSummary!.isNotEmpty)
+            const SizedBox(height: 16),
+
           if (diagnosis != null && diagnosis!.isNotEmpty)
             Container(
               padding: const EdgeInsets.all(16),
@@ -1225,6 +1314,52 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
           const SizedBox(height: 16),
 
           // Recommendations
+          if (clinicalRecommendationItems.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.checklist, color: AppTheme.success),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Structured Recommendations',
+                          style: TextStyle(
+                            fontSize: AppTheme.fontBody,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.success,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        ...clinicalRecommendationItems.map(
+                          (item) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              '- $item',
+                              style: TextStyle(
+                                fontSize: AppTheme.fontSM,
+                                color: AppTheme.success,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (clinicalRecommendationItems.isNotEmpty)
+            const SizedBox(height: 16),
+
           if (recommendations != null && recommendations!.isNotEmpty)
             Container(
               padding: const EdgeInsets.all(16),

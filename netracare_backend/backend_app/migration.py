@@ -63,3 +63,30 @@ def ensure_consultation_schema_migrated() -> None:
     finally:
         if conn:
             conn.close()
+
+
+def ensure_visual_acuity_schema_migrated() -> None:
+    """Add the visual acuity variant column if it is missing."""
+    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db.sqlite3')
+
+    if not os.path.exists(db_path):
+        return
+
+    conn = None
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        cursor.execute("PRAGMA table_info(visual_acuity_tests)")
+        columns = [row[1] for row in cursor.fetchall()]
+        if 'test_variant' not in columns:
+            cursor.execute(
+                "ALTER TABLE visual_acuity_tests ADD COLUMN test_variant VARCHAR(50) DEFAULT 'snellen'"
+            )
+
+        conn.commit()
+    except Exception as exc:
+        print(f"Warning: visual acuity schema migration check failed: {exc}")
+    finally:
+        if conn:
+            conn.close()

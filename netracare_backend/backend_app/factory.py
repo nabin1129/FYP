@@ -11,6 +11,7 @@ from backend_app.api_registry import build_api
 from backend_app.web_routes import register_web_routes
 from backend_app.migration import (
     ensure_consultation_schema_migrated,
+    ensure_visual_acuity_schema_migrated,
     ensure_user_schema_migrated,
 )
 from features.distance_calibration.routes import distance_bp
@@ -33,6 +34,7 @@ def create_app() -> Flask:
     with app.app_context():
         ensure_user_schema_migrated()
         ensure_consultation_schema_migrated()
+        ensure_visual_acuity_schema_migrated()
 
     return app
 

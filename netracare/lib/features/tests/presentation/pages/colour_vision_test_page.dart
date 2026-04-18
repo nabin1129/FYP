@@ -44,6 +44,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
   bool isLoading = true;
   String? errorMessage;
   DateTime? testStartTime;
+  bool _isSkippingFailedPlate = false;
 
   int currentPlate = 0;
   List<String> answers = [];
@@ -72,8 +73,16 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
           .map((data) => IshiharaPlate.fromJson(data))
           .toList();
 
+      final validPlates = await _filterLoadablePlates(plates);
+
+      if (validPlates.isEmpty) {
+        throw Exception(
+          'No valid colour vision plates available. Please retry.',
+        );
+      }
+
       setState(() {
-        ishiharaPlates = plates;
+        ishiharaPlates = validPlates;
         isLoading = false;
       });
     } catch (e) {
@@ -109,7 +118,68 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
     }
   }
 
+  Future<List<IshiharaPlate>> _filterLoadablePlates(
+    List<IshiharaPlate> plates,
+  ) async {
+    final valid = <IshiharaPlate>[];
+
+    for (final plate in plates) {
+      final imagePath = plate.imagePath.trim();
+      if (imagePath.isEmpty) {
+        continue;
+      }
+
+      final imageUrl = '${ApiService.getBaseUrl()}$imagePath';
+
+      try {
+        await precacheImage(NetworkImage(imageUrl), context);
+        valid.add(plate);
+      } catch (_) {
+        // Skip broken or unreachable plate images.
+      }
+    }
+
+    return valid;
+  }
+
+  void _skipCurrentFailedPlate() {
+    if (!mounted || _isSkippingFailedPlate || ishiharaPlates.isEmpty) {
+      return;
+    }
+
+    _isSkippingFailedPlate = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        _isSkippingFailedPlate = false;
+        return;
+      }
+
+      setState(() {
+        if (ishiharaPlates.isNotEmpty && currentPlate < ishiharaPlates.length) {
+          ishiharaPlates.removeAt(currentPlate);
+        }
+
+        if (currentPlate >= ishiharaPlates.length && currentPlate > 0) {
+          currentPlate = ishiharaPlates.length - 1;
+        }
+
+        if (ishiharaPlates.isEmpty) {
+          errorMessage =
+              'All test plate images failed to load. Please retry later.';
+          isLoading = false;
+        }
+      });
+
+      _isSkippingFailedPlate = false;
+    });
+  }
+
   int calculateScore() {
+    if (ishiharaPlates.isEmpty) {
+      return 0;
+    }
+
     int correct = 0;
     // Use minimum length to prevent index out of bounds
     final minLength = answers.length < ishiharaPlates.length
@@ -543,20 +613,27 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                       );
                     },
                     errorBuilder: (context, error, stackTrace) {
+                      _skipCurrentFailedPlate();
+
                       return Container(
                         color: AppTheme.background,
                         child: const Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
-                                Icons.error_outline,
-                                size: 48,
-                                color: AppTheme.textSecondary,
+                              SizedBox(
+                                width: 28,
+                                height: 28,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    AppTheme.primary,
+                                  ),
+                                ),
                               ),
-                              SizedBox(height: 8),
+                              SizedBox(height: 10),
                               Text(
-                                'Image failed to load',
+                                'Skipping unavailable plate...',
                                 style: TextStyle(color: AppTheme.textSecondary),
                               ),
                             ],

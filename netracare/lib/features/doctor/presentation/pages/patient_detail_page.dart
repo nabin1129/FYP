@@ -622,6 +622,9 @@ class _PatientDetailPageState extends State<PatientDetailPage>
     final latest = results.first;
     final dateStr = _timeAgo(latest['created_at'] as String?);
     final resultText = _extractTestResultText(label, latest);
+    final variantText = label == 'Visual Acuity'
+        ? _visualAcuityVariantLabel(latest['test_variant'])
+        : null;
 
     // Build secondary detail rows specific to each test type
     final List<_DetailRow> details = _buildDetailRows(label, latest);
@@ -662,7 +665,9 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                       ),
                     ),
                     Text(
-                      resultText,
+                      variantText == null
+                          ? resultText
+                          : '$variantText · $resultText',
                       style: const TextStyle(
                         fontSize: AppTheme.fontSM,
                         color: AppTheme.textSecondary,
@@ -763,6 +768,12 @@ class _PatientDetailPageState extends State<PatientDetailPage>
     switch (label) {
       case 'Visual Acuity':
         return [
+          if (r['test_variant'] != null)
+            _DetailRow(
+              'Variant',
+              _visualAcuityVariantLabel(r['test_variant']),
+              true,
+            ),
           if (r['snellen_value'] != null)
             _DetailRow('Snellen', r['snellen_value'].toString(), true),
           if (r['severity'] != null)
@@ -811,7 +822,16 @@ class _PatientDetailPageState extends State<PatientDetailPage>
         ];
 
       case 'Pupil Reflex':
+        final clinical = r['clinical_output'] as Map<String, dynamic>?;
+        final interpretation =
+            clinical?['interpretation'] as Map<String, dynamic>?;
+        final recommendations =
+            clinical?['recommendations'] as Map<String, dynamic>?;
         return [
+          if (interpretation?['summary'] != null)
+            _DetailRow('Clinical', interpretation!['summary'].toString(), true),
+          if (recommendations?['urgency'] != null)
+            _DetailRow('Urgency', recommendations!['urgency'].toString(), true),
           if (r['constriction_amplitude'] != null)
             _DetailRow(
               'Constriction',
@@ -873,8 +893,9 @@ class _PatientDetailPageState extends State<PatientDetailPage>
         final snellen = result['snellen_value'];
         final severity = result['severity'];
         final score = result['score'];
+        final variantLabel = _visualAcuityVariantLabel(result['test_variant']);
         if (snellen != null && severity != null) {
-          return 'Snellen: $snellen · $severity';
+          return '$variantLabel · Snellen: $snellen · $severity';
         }
         if (score != null) return 'Score: $score%';
         return 'Completed';
@@ -904,6 +925,17 @@ class _PatientDetailPageState extends State<PatientDetailPage>
         return parts.isNotEmpty ? parts.join(' · ') : 'Completed';
 
       case 'Pupil Reflex':
+        final clinical = result['clinical_output'] as Map<String, dynamic>?;
+        final interpretation =
+            clinical?['interpretation'] as Map<String, dynamic>?;
+        final recommendations =
+            clinical?['recommendations'] as Map<String, dynamic>?;
+        if (interpretation?['summary'] != null) {
+          final urgency = recommendations?['urgency'];
+          return urgency != null
+              ? '${interpretation!['summary']} · urgency: $urgency'
+              : interpretation!['summary'].toString();
+        }
         final amplitude = result['constriction_amplitude'];
         final reactionMs = result['reaction_time'] != null
             ? ((result['reaction_time'] as num) * 1000).round()
@@ -933,6 +965,17 @@ class _PatientDetailPageState extends State<PatientDetailPage>
 
       default:
         return 'Completed';
+    }
+  }
+
+  String _visualAcuityVariantLabel(dynamic value) {
+    switch ((value ?? 'snellen').toString().toLowerCase()) {
+      case 'tumbling_e':
+        return 'Tumbling E';
+      case 'landolt_c':
+        return 'Landolt C';
+      default:
+        return 'Snellen';
     }
   }
 

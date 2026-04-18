@@ -340,6 +340,7 @@ def _user_to_admin_dict(user: User, include_history: bool = False) -> dict:
             },
             'visual_acuity': {
                 'created_at': latest_visual.created_at.isoformat() if latest_visual and latest_visual.created_at else None,
+                'test_variant': latest_visual.test_variant if latest_visual else None,
                 'snellen': latest_visual.snellen_value if latest_visual else None,
                 'severity': latest_visual.severity if latest_visual else None,
                 'score': round((latest_visual.correct_answers / latest_visual.total_questions) * 100) if latest_visual and latest_visual.total_questions else None,

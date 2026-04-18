@@ -123,6 +123,7 @@ class VisualAcuityTest(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
     # Test results
+    test_variant = db.Column(db.String(50), default='snellen')
     correct_answers = db.Column(db.Integer, nullable=False)
     total_questions = db.Column(db.Integer, nullable=False)
     logmar_value = db.Column(db.Float, nullable=False)
@@ -143,6 +144,7 @@ class VisualAcuityTest(db.Model):
         return {
             'id': self.id,
             'user_id': self.user_id,
+            'test_variant': self.test_variant or 'snellen',
             'correct_answers': self.correct_answers,
             'total_questions': self.total_questions,
             'score': score,
@@ -525,9 +527,97 @@ class PupilReflexTest(db.Model):
     
     # Relationship
     user = db.relationship('User', backref=db.backref('pupil_reflex_tests', lazy=True))
+
+    def _recommendation_items(self):
+        if not self.recommendations:
+            return []
+        return [item.strip() for item in self.recommendations.split(';') if item.strip()]
+
+    def _clinical_urgency(self):
+        severity = (self.nystagmus_severity or '').lower()
+        reaction_time_ms = (self.reaction_time or 0) * 1000
+
+        if severity == 'severe' or reaction_time_ms > 450:
+            return 'urgent'
+        if severity == 'moderate' or reaction_time_ms > 320:
+            return 'soon'
+        return 'routine'
+
+    def _clinical_output(self):
+        reaction_time_ms = round((self.reaction_time or 0) * 1000, 2)
+
+        components = [
+            {
+                'code': 'reaction_time',
+                'display': 'Pupil reaction time',
+                'value': reaction_time_ms,
+                'unit': 'ms',
+            },
+            {
+                'code': 'constriction_amplitude',
+                'display': 'Constriction amplitude',
+                'value': self.constriction_amplitude,
+                'unit': 'qualitative',
+            },
+            {
+                'code': 'symmetry',
+                'display': 'Pupillary symmetry',
+                'value': self.symmetry,
+                'unit': 'qualitative',
+            },
+            {
+                'code': 'nystagmus_detected',
+                'display': 'Nystagmus detected',
+                'value': bool(self.nystagmus_detected),
+                'unit': 'boolean',
+            },
+            {
+                'code': 'nystagmus_type',
+                'display': 'Nystagmus type',
+                'value': self.nystagmus_type,
+                'unit': 'qualitative',
+            },
+            {
+                'code': 'nystagmus_severity',
+                'display': 'Nystagmus severity',
+                'value': self.nystagmus_severity,
+                'unit': 'qualitative',
+            },
+            {
+                'code': 'nystagmus_confidence',
+                'display': 'Nystagmus confidence',
+                'value': self.nystagmus_confidence,
+                'unit': 'probability',
+            },
+        ]
+
+        return {
+            'standard': 'FHIR-aligned',
+            'resource_type': 'Observation',
+            'status': 'final' if self.status == 'completed' else 'preliminary',
+            'effectiveDateTime': self.created_at.isoformat() if self.created_at else None,
+            'code': {
+                'text': 'Pupil reflex and nystagmus screening',
+            },
+            'component': components,
+            'interpretation': {
+                'summary': self.diagnosis,
+                'severity': self.nystagmus_severity,
+                'nystagmus_detected': bool(self.nystagmus_detected),
+            },
+            'recommendations': {
+                'urgency': self._clinical_urgency(),
+                'items': self._recommendation_items(),
+            },
+            'quality': {
+                'confidence': self.nystagmus_confidence,
+                'status': self.status,
+            },
+        }
     
     def to_dict(self) -> dict:
         """Convert test to dictionary"""
+        clinical_output = self._clinical_output()
         return {
             'id': self.id,
             'user_id': self.user_id,
@@ -551,5 +641,8 @@ class PupilReflexTest(db.Model):
             'test_duration': self.test_duration,
             'image_filename': self.image_filename,
             'status': self.status,
-            'updated_at': self.updated_at.isoformat()
+            'updated_at': self.updated_at.isoformat(),
+            'clinical_output_version': '1.0-fhir-aligned',
+            'clinical_output': clinical_output,
+            'clinical_summary': clinical_output['interpretation']['summary'],
         }

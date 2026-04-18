@@ -393,7 +393,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
         _visualAcuityTests.length +
         _colourVisionTests.length +
         _eyeTrackingTests.length +
-        _blinkFatigueTests.length;
+        _blinkFatigueTests.length +
+        _pupilReflexTests.length;
 
     String getLatestVisualAcuity() {
       if (_visualAcuityTests.isEmpty) return 'Not tested';
@@ -402,7 +403,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
       final total = test['total_questions'] ?? test['total'] ?? 0;
       final score =
           test['score'] ?? (total > 0 ? ((correct / total) * 100).round() : 0);
-      return '$correct/$total ($score%)';
+      final snellen = test['snellen_value'] ?? test['snellen'] ?? 'N/A';
+      final variant = _visualAcuityVariantLabel(test['test_variant']);
+      return '$variant - $correct/$total ($score%) - $snellen';
+    }
+
+    String getLatestVisualAcuityUrgency() {
+      if (_visualAcuityTests.isEmpty) return 'N/A';
+      return _resolveVisualUrgency(_visualAcuityTests.first) ?? 'Routine';
     }
 
     String getLatestEyeTracking() {
@@ -417,11 +425,35 @@ class _ResultsReportPageState extends State<ResultsReportPage>
       return '${test['correct_count']}/${test['total_plates']} - ${test['severity']}';
     }
 
+    String getLatestColourVisionUrgency() {
+      if (_colourVisionTests.isEmpty) return 'N/A';
+      return _resolveColourUrgency(_colourVisionTests.first) ?? 'Routine';
+    }
+
     String getLatestFatigue() {
       if (_blinkFatigueTests.isEmpty) return 'Not tested';
       final test = _blinkFatigueTests.first;
       final alertness = _resolveAlertnessPercent(test);
       return '${test['classification']} (${(alertness ?? 0).round()}% alert)';
+    }
+
+    String getLatestPupilReflex() {
+      if (_pupilReflexTests.isEmpty) return 'Not tested';
+      final test = _pupilReflexTests.first;
+      final summary = _resolvePupilClinicalSummary(test);
+      final urgency = _resolvePupilUrgency(test);
+      if (summary != null && urgency != null) {
+        return '$summary [$urgency]';
+      }
+      if (summary != null) {
+        return summary;
+      }
+      final reactionTime = _resolvePupilReactionTime(test);
+      final amplitude = _resolvePupilAmplitude(test);
+      if (reactionTime != null) {
+        return '${reactionTime.toStringAsFixed(3)}s - $amplitude amplitude';
+      }
+      return '$amplitude amplitude';
     }
 
     pdf.addPage(
@@ -451,10 +483,17 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 ),
               ),
               pw.SizedBox(height: 10),
-              pw.Text('Ã¢â‚¬Â¢ Visual Acuity: ${getLatestVisualAcuity()}'),
-              pw.Text('Ã¢â‚¬Â¢ Eye Tracking: ${getLatestEyeTracking()}'),
-              pw.Text('Ã¢â‚¬Â¢ Colour Vision: ${getLatestColourVision()}'),
-              pw.Text('Ã¢â‚¬Â¢ Fatigue Level: ${getLatestFatigue()}'),
+              pw.Text('- Visual Acuity: ${getLatestVisualAcuity()}'),
+              pw.Text(
+                '- Visual Acuity Urgency: ${getLatestVisualAcuityUrgency()}',
+              ),
+              pw.Text('- Eye Tracking: ${getLatestEyeTracking()}'),
+              pw.Text('- Colour Vision: ${getLatestColourVision()}'),
+              pw.Text(
+                '- Colour Vision Urgency: ${getLatestColourVisionUrgency()}',
+              ),
+              pw.Text('- Fatigue Level: ${getLatestFatigue()}'),
+              pw.Text('- Pupil Reflex: ${getLatestPupilReflex()}'),
               pw.SizedBox(height: 20),
               pw.Text(
                 'Note: This report is based on self-assessment tests. Please consult with a qualified eye care professional for comprehensive evaluation.',
@@ -685,11 +724,26 @@ class _ResultsReportPageState extends State<ResultsReportPage>
       testCount++;
     }
 
+    if (_blinkFatigueTests.isNotEmpty) {
+      final alertness = _resolveAlertnessPercent(_blinkFatigueTests.first);
+      if (alertness != null) {
+        totalScore += alertness.toInt();
+        testCount++;
+      }
+    }
+
+    if (_pupilReflexTests.isNotEmpty) {
+      totalScore += _resolvePupilScore(_pupilReflexTests.first);
+      testCount++;
+    }
+
     final overallScore = testCount > 0 ? (totalScore / testCount).round() : 0;
     final totalTests =
         _visualAcuityTests.length +
         _colourVisionTests.length +
-        _eyeTrackingTests.length;
+        _eyeTrackingTests.length +
+        _blinkFatigueTests.length +
+        _pupilReflexTests.length;
 
     return Container(
       margin: const EdgeInsets.all(16),
@@ -1228,7 +1282,15 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 ? '${_visualAcuityTests.first['correct_answers'] ?? 0}/${_visualAcuityTests.first['total_questions'] ?? 0}'
                 : 'No data',
             _visualAcuityTests.isNotEmpty
-                ? '${_visualAcuityTests.first['snellen_value'] ?? 'N/A'}'
+                ? (() {
+                    final severity =
+                        _visualAcuityTests.first['severity']?.toString() ??
+                        'Normal';
+                    final urgency =
+                        _resolveVisualUrgency(_visualAcuityTests.first) ??
+                        'Routine';
+                    return '${_visualAcuityVariantLabel(_visualAcuityTests.first['test_variant'])} • Severity: $severity • Urgency: $urgency';
+                  })()
                 : 'Not tested',
             Icons.remove_red_eye,
             AppTheme.categoryBlue,
@@ -1255,7 +1317,15 @@ class _ResultsReportPageState extends State<ResultsReportPage>
                 ? '${_colourVisionTests.first['correct_count'] ?? 0}/${_colourVisionTests.first['total_plates'] ?? 0}'
                 : 'No data',
             _colourVisionTests.isNotEmpty
-                ? (_colourVisionTests.first['severity'] ?? 'Normal')
+                ? (() {
+                    final severity =
+                        _colourVisionTests.first['severity']?.toString() ??
+                        'Normal';
+                    final urgency =
+                        _resolveColourUrgency(_colourVisionTests.first) ??
+                        'Routine';
+                    return 'Severity: $severity • Urgency: $urgency';
+                  })()
                 : 'Not tested',
             Icons.palette,
             AppTheme.categoryPurple,
@@ -1285,10 +1355,17 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           _buildTestCard(
             'Pupil Reflex',
             _pupilReflexTests.isNotEmpty
-                ? '${(_pupilReflexTests.first['reaction_time'] ?? 0).toStringAsFixed(3)}s'
+                ? (() {
+                    final reactionTime = _resolvePupilReactionTime(
+                      _pupilReflexTests.first,
+                    );
+                    return reactionTime != null
+                        ? '${reactionTime.toStringAsFixed(3)}s'
+                        : 'Completed';
+                  })()
                 : 'No data',
             _pupilReflexTests.isNotEmpty
-                ? '${_pupilReflexTests.first['constriction_amplitude'] ?? 'Normal'} amplitude'
+                ? _resolvePupilSummaryLine(_pupilReflexTests.first)
                 : 'Not tested',
             Icons.flash_on,
             AppTheme.categoryIndigo,
@@ -1549,12 +1626,11 @@ class _ResultsReportPageState extends State<ResultsReportPage>
 
   Widget _buildPupilReflexTestCard(Map<String, dynamic> test) {
     final date = _formatDate(test['date'] ?? test['created_at'] ?? '');
-    final reactionTime =
-        (test['reaction_time'] ?? test['pupil_reaction_time'] ?? 0.0)
-            .toDouble();
-    final amplitude =
-        test['constriction_amplitude'] ?? test['amplitude'] ?? 'Normal';
+    final reactionTime = _resolvePupilReactionTime(test) ?? 0.0;
+    final amplitude = _resolvePupilAmplitude(test);
     final symmetry = test['symmetry'] ?? 'Equal';
+    final clinicalSummary = _resolvePupilClinicalSummary(test);
+    final urgency = _resolvePupilUrgency(test);
 
     Color getReactionColor() {
       if (reactionTime < 0.3) {
@@ -1633,6 +1709,14 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           ),
           const SizedBox(height: 8),
           _buildDetailItem('Symmetry', symmetry),
+          if (clinicalSummary != null) ...[
+            const SizedBox(height: 8),
+            _buildDetailItem('Clinical Summary', clinicalSummary),
+          ],
+          if (urgency != null) ...[
+            const SizedBox(height: 8),
+            _buildDetailItem('Urgency', urgency),
+          ],
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: (0.5 - reactionTime).clamp(0.0, 0.5) / 0.5,
@@ -1697,8 +1781,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     final score =
         test['score'] ?? (total > 0 ? ((correct / total) * 100).round() : 0);
     final date = _formatDate(test['date'] ?? test['created_at'] ?? '');
+    final variant = _visualAcuityVariantLabel(test['test_variant']);
     final snellen = test['snellen'] ?? test['snellen_value'] ?? 'N/A';
     final severity = test['severity'] ?? 'Normal';
+    final urgency = _resolveVisualUrgency(test);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -1744,6 +1830,8 @@ class _ResultsReportPageState extends State<ResultsReportPage>
             ],
           ),
           const SizedBox(height: 12),
+          _buildDetailItem('Variant', variant),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(child: _buildDetailItem('Score', '$correct/$total')),
@@ -1752,6 +1840,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
           ),
           const SizedBox(height: 8),
           _buildDetailItem('Severity', severity),
+          if (urgency != null) ...[
+            const SizedBox(height: 8),
+            _buildDetailItem('Urgency', urgency),
+          ],
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: score / 100,
@@ -1875,6 +1967,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     final totalPlates = test['total_plates'] ?? 0;
     final score = test['score'] ?? 0;
     final severity = test['severity'] ?? 'Normal';
+    final urgency = _resolveColourUrgency(test);
     final userAnswers = test['user_answers'] as List<dynamic>? ?? [];
     final correctAnswers = test['correct_answers'] as List<dynamic>? ?? [];
 
@@ -1933,6 +2026,10 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               Expanded(child: _buildDetailItem('Score', '$score%')),
             ],
           ),
+          if (urgency != null) ...[
+            const SizedBox(height: 8),
+            _buildDetailItem('Urgency', urgency),
+          ],
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: totalPlates > 0 ? correctCount / totalPlates : 0,
@@ -2085,6 +2182,184 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     return null;
   }
 
+  Map<String, dynamic>? _resolvePupilClinicalOutput(Map<String, dynamic> test) {
+    final clinical = PupilReflexService.extractClinicalOutput(test);
+    if (clinical != null) {
+      return clinical;
+    }
+    final raw = test['clinical_output'];
+    if (raw is Map<String, dynamic>) {
+      return raw;
+    }
+    return null;
+  }
+
+  String? _resolvePupilClinicalSummary(Map<String, dynamic> test) {
+    final summary = PupilReflexService.extractClinicalSummary(test);
+    if (summary != null && summary.trim().isNotEmpty) {
+      return summary;
+    }
+    final interpretation = _resolvePupilClinicalOutput(test)?['interpretation'];
+    if (interpretation is Map<String, dynamic>) {
+      final text = interpretation['summary'];
+      if (text is String && text.trim().isNotEmpty) {
+        return text;
+      }
+    }
+    return null;
+  }
+
+  String? _resolvePupilUrgency(Map<String, dynamic> test) {
+    final output = _resolvePupilClinicalOutput(test);
+    final recommendations = output?['recommendations'];
+    final urgencyFromRecommendations = recommendations is Map
+        ? recommendations['urgency']
+        : null;
+    final urgency =
+        urgencyFromRecommendations ??
+        output?['urgency'] ??
+        output?['clinical_urgency'] ??
+        test['urgency'] ??
+        test['clinical_urgency'];
+
+    final normalized = _normalizeUrgency(urgency);
+    if (normalized != null) {
+      return normalized;
+    }
+
+    final summary = _resolvePupilClinicalSummary(test);
+    if (summary != null) {
+      final match = RegExp(
+        r'clinical\s+urgency\s*:\s*([a-zA-Z]+)',
+        caseSensitive: false,
+      ).firstMatch(summary);
+      if (match != null) {
+        return _normalizeUrgency(match.group(1));
+      }
+    }
+
+    return null;
+  }
+
+  String? _normalizeUrgency(dynamic urgency) {
+    if (urgency == null) {
+      return null;
+    }
+    final raw = urgency.toString().trim();
+    if (raw.isEmpty) {
+      return null;
+    }
+
+    final lower = raw.toLowerCase();
+    switch (lower) {
+      case 'urgent':
+        return 'Urgent';
+      case 'soon':
+        return 'Soon';
+      case 'routine':
+        return 'Routine';
+      case 'high':
+        return 'Urgent';
+      case 'medium':
+        return 'Soon';
+      case 'low':
+        return 'Routine';
+      default:
+        return raw[0].toUpperCase() + raw.substring(1);
+    }
+  }
+
+  String? _urgencyFromSeverity(dynamic severityValue) {
+    final severity = severityValue?.toString().trim().toLowerCase();
+    if (severity == null || severity.isEmpty) {
+      return null;
+    }
+
+    if (severity.contains('severe')) {
+      return 'Urgent';
+    }
+    if (severity.contains('moderate') || severity.contains('mild')) {
+      return 'Soon';
+    }
+    if (severity.contains('normal')) {
+      return 'Routine';
+    }
+    if (severity.contains('deficiency') || severity.contains('impairment')) {
+      return 'Soon';
+    }
+    return null;
+  }
+
+  String? _resolveVisualUrgency(Map<String, dynamic> test) {
+    final explicit = _normalizeUrgency(test['urgency']);
+    if (explicit != null) {
+      return explicit;
+    }
+    return _urgencyFromSeverity(test['severity']);
+  }
+
+  String? _resolveColourUrgency(Map<String, dynamic> test) {
+    final explicit = _normalizeUrgency(test['urgency']);
+    if (explicit != null) {
+      return explicit;
+    }
+    return _urgencyFromSeverity(test['severity']);
+  }
+
+  double? _resolvePupilReactionTime(Map<String, dynamic> test) {
+    final raw = test['reaction_time'] ?? test['pupil_reaction_time'];
+    if (raw is num) {
+      return raw.toDouble();
+    }
+    if (raw is String) {
+      return double.tryParse(raw);
+    }
+    return null;
+  }
+
+  String _resolvePupilAmplitude(Map<String, dynamic> test) {
+    final raw = test['constriction_amplitude'] ?? test['amplitude'];
+    if (raw is String && raw.trim().isNotEmpty) {
+      return raw;
+    }
+    return 'Normal';
+  }
+
+  String _resolvePupilSummaryLine(Map<String, dynamic> test) {
+    final summary = _resolvePupilClinicalSummary(test);
+    final urgency = _resolvePupilUrgency(test);
+    if (summary != null && urgency != null) {
+      return '$summary [$urgency]';
+    }
+    if (summary != null) {
+      return summary;
+    }
+    return '${_resolvePupilAmplitude(test)} amplitude';
+  }
+
+  int _resolvePupilScore(Map<String, dynamic> test) {
+    final reaction = _resolvePupilReactionTime(test);
+    if (reaction == null) {
+      return 75;
+    }
+    if (reaction <= 0.25) {
+      return 95;
+    }
+    if (reaction <= 0.30) {
+      return 90;
+    }
+    if (reaction <= 0.35) {
+      return 80;
+    }
+    if (reaction <= 0.40) {
+      return 70;
+    }
+    if (reaction <= 0.50) {
+      return 60;
+    }
+    return 50;
+  }
+
   Widget _buildBlinkFatigueTestCard(Map<String, dynamic> test) {
     final date = _formatDate(test['date'] ?? test['created_at'] ?? '');
     final classification = _resolveBlinkClassification(test);
@@ -2235,8 +2510,9 @@ class _ResultsReportPageState extends State<ResultsReportPage>
     // Add visual acuity tests
     for (var test in _visualAcuityTests) {
       final date = test['date'] ?? test['created_at'] ?? 'Unknown date';
+      final variant = _visualAcuityVariantLabel(test['test_variant']);
       allTests.add({
-        'title': 'Visual Acuity Test',
+        'title': 'Visual Acuity Test ($variant)',
         'date': date,
         'score': test['score'] ?? 0,
         'timestamp': date,
@@ -2278,6 +2554,17 @@ class _ResultsReportPageState extends State<ResultsReportPage>
         'title': 'Blink & Fatigue Test',
         'date': date,
         'score': alertness?.round() ?? 0,
+        'timestamp': date,
+      });
+    }
+
+    // Add pupil reflex tests
+    for (var test in _pupilReflexTests) {
+      final date = test['date'] ?? test['created_at'] ?? 'Unknown date';
+      allTests.add({
+        'title': 'Pupil Reflex Test • ${_resolvePupilSummaryLine(test)}',
+        'date': date,
+        'score': _resolvePupilScore(test),
         'timestamp': date,
       });
     }
@@ -2893,6 +3180,17 @@ class _ResultsReportPageState extends State<ResultsReportPage>
         ],
       ),
     );
+  }
+
+  String _visualAcuityVariantLabel(dynamic value) {
+    switch ((value ?? 'snellen').toString().toLowerCase()) {
+      case 'tumbling_e':
+        return 'Tumbling E';
+      case 'landolt_c':
+        return 'Landolt C';
+      default:
+        return 'Snellen';
+    }
   }
 }
 

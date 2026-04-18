@@ -761,7 +761,7 @@ class _UserDetailSheet extends StatelessWidget {
         _historyTypeSection('Visual Acuity', visual, Icons.visibility_outlined, (
           test,
         ) {
-          return 'Date: ${_strText(test['created_at'])} | Score: ${_strText(test['correct_answers'] ?? test['correct'])}/${_strText(test['total_questions'] ?? test['total'])} | Snellen: ${_strText(test['snellen_value'] ?? test['snellen'])}';
+          return 'Date: ${_strText(test['created_at'])} | Variant: ${_visualAcuityVariantLabel(test['test_variant'])} | Score: ${_strText(test['correct_answers'] ?? test['correct'])}/${_strText(test['total_questions'] ?? test['total'])} | Snellen: ${_strText(test['snellen_value'] ?? test['snellen'])}';
         }),
         _historyTypeSection('Colour Vision', colour, Icons.palette_outlined, (
           test,
@@ -779,7 +779,14 @@ class _UserDetailSheet extends StatelessWidget {
         _historyTypeSection('Pupil Reflex', pupil, Icons.light_mode_outlined, (
           test,
         ) {
-          return 'Date: ${_strText(test['created_at'])} | Reaction: ${_numText(test['reaction_time'], suffix: 's')} | Symmetry: ${_strText(test['symmetry'])} | Nystagmus: ${_strText(test['nystagmus_severity'])}';
+          final clinical = test['clinical_output'] as Map<String, dynamic>?;
+          final interpretation =
+              clinical?['interpretation'] as Map<String, dynamic>?;
+          final recommendations =
+              clinical?['recommendations'] as Map<String, dynamic>?;
+          final summary = _strText(interpretation?['summary']);
+          final urgency = _strText(recommendations?['urgency']);
+          return 'Date: ${_strText(test['created_at'])} | Clinical: $summary | Urgency: $urgency | Reaction: ${_numText(test['reaction_time'], suffix: 's')} | Symmetry: ${_strText(test['symmetry'])} | Nystagmus: ${_strText(test['nystagmus_severity'])}';
         }),
       ],
     );
@@ -871,6 +878,11 @@ class _UserDetailSheet extends StatelessWidget {
         user.recentTests['blink_fatigue'] as Map<String, dynamic>? ?? const {};
     final pupil =
         user.recentTests['pupil_reflex'] as Map<String, dynamic>? ?? const {};
+    final pupilClinical = pupil['clinical_output'] as Map<String, dynamic>?;
+    final pupilInterpretation =
+        pupilClinical?['interpretation'] as Map<String, dynamic>?;
+    final pupilRecommendations =
+        pupilClinical?['recommendations'] as Map<String, dynamic>?;
 
     final eyeScore = _toDouble(eye['gaze_accuracy']);
     final visualScore = _toDouble(visual['score']);
@@ -909,6 +921,7 @@ class _UserDetailSheet extends StatelessWidget {
           _resultCard(
             title: 'Visual Acuity',
             lines: [
+              'Variant: ${_visualAcuityVariantLabel(visual['test_variant'])}',
               'Score: ${_strText('${_strText(visual['correct'])}/${_strText(visual['total'])}')}',
               'Percent: ${_numText(visual['score'], suffix: '%')}',
               'Snellen: ${_strText(visual['snellen'])}',
@@ -951,6 +964,8 @@ class _UserDetailSheet extends StatelessWidget {
           _resultCard(
             title: 'Pupil Reflex',
             lines: [
+              'Clinical: ${_strText(pupilInterpretation?['summary'])}',
+              'Urgency: ${_strText(pupilRecommendations?['urgency'])}',
               'Reaction Time: ${_numText(pupil['reaction_time'], suffix: 's')}',
               'Amplitude: ${_strText(pupil['constriction_amplitude'])}',
               'Symmetry: ${_strText(pupil['symmetry'])}',
@@ -1168,6 +1183,17 @@ class _UserDetailSheet extends StatelessWidget {
         );
       }).toList(),
     );
+  }
+
+  String _visualAcuityVariantLabel(dynamic value) {
+    switch ((value ?? 'snellen').toString().toLowerCase()) {
+      case 'tumbling_e':
+        return 'Tumbling E';
+      case 'landolt_c':
+        return 'Landolt C';
+      default:
+        return 'Snellen';
+    }
   }
 }
 

@@ -400,6 +400,7 @@ class ApiService {
   static Future<VisualAcuityResult> submitVisualAcuityTest({
     required int correct,
     required int total,
+    required String testVariant,
   }) async {
     final token = await getToken();
 
@@ -413,7 +414,11 @@ class ApiService {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({'correct_answers': correct, 'total_questions': total}),
+      body: jsonEncode({
+        'correct_answers': correct,
+        'total_questions': total,
+        'test_variant': testVariant,
+      }),
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {

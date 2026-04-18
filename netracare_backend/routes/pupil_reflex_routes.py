@@ -52,6 +52,23 @@ FACE_CASCADE = cv2.CascadeClassifier(
     cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
 )
 
+
+def to_json_safe(value):
+    """Recursively convert NumPy values to native Python JSON-safe types."""
+    if isinstance(value, np.generic):
+        return value.item()
+
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+
+    if isinstance(value, dict):
+        return {key: to_json_safe(item) for key, item in value.items()}
+
+    if isinstance(value, (list, tuple, set)):
+        return [to_json_safe(item) for item in value]
+
+    return value
+
 def allowed_file(filename):
     """Check if file extension is allowed"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -154,7 +171,7 @@ def calculate_pupil_response(video_path, flash_timestamps):
         response_time_ms = ((min_frame - flash_frame) / fps) * 1000
         constriction_percent = ((baseline_radius - min_radius) / baseline_radius) * 100
         
-        return response_time_ms, constriction_percent
+        return float(response_time_ms), float(constriction_percent)
     
     except Exception as e:
         print(f"Error calculating pupil response: {str(e)}")
@@ -305,7 +322,7 @@ def detect_nystagmus_movements(video_path):
         else:
             severity = "severe"
         
-        return True, movement_type, severity, confidence
+        return True, movement_type, severity, float(confidence)
     
     except Exception as e:
         print(f"Error detecting nystagmus: {str(e)}")
@@ -349,6 +366,16 @@ def generate_diagnosis(pupil_response_time, constriction_percent, nystagmus_dete
         diagnosis = "; ".join(issues)
     
     return diagnosis, "; ".join(recommendations) if recommendations else "No specific recommendations"
+
+
+def build_nystagmus_summary(nystagmus_detected, nystagmus_type, severity, confidence):
+    if not nystagmus_detected:
+        return 'No nystagmus detected'
+
+    movement = nystagmus_type or 'unspecified'
+    level = severity or 'unknown'
+    confidence_text = f'{round((confidence or 0) * 100):.0f}% confidence'
+    return f'{level.capitalize()} {movement} nystagmus detected ({confidence_text})'
 
 @pupil_reflex_ns.route('/start-test')
 class StartTest(Resource):
@@ -451,6 +478,9 @@ class AnalyzeVideo(Resource):
             diagnosis, recommendations = generate_diagnosis(
                 response_time, constriction, nystagmus_detected, nystagmus_type, severity
             )
+            summary = build_nystagmus_summary(
+                nystagmus_detected, nystagmus_type, severity, confidence
+            )
             
             # Update test record with compatible fields
             if response_time is not None:
@@ -469,8 +499,9 @@ class AnalyzeVideo(Resource):
             test.status = 'completed'
             
             db.session.commit()
-            
-            return {
+            serialized_test = test.to_dict()
+
+            response_payload = {
                 'message': 'Video analyzed successfully',
                 'face_detected': face_detected,
                 'results': {
@@ -486,10 +517,16 @@ class AnalyzeVideo(Resource):
                         'severity': severity,
                         'confidence': confidence
                     },
+                    'summary': summary,
                     'diagnosis': diagnosis,
-                    'recommendations': recommendations
+                    'recommendations': recommendations,
+                    'clinical_output_version': serialized_test.get('clinical_output_version'),
+                    'clinical_output': serialized_test.get('clinical_output'),
+                    'clinical_summary': serialized_test.get('clinical_summary'),
                 }
-            }, 200
+            }
+
+            return to_json_safe(response_payload), 200
         
         except Exception as e:
             db.session.rollback()
@@ -508,6 +545,8 @@ class GetResults(Resource):
             
             if not test:
                 return {'message': 'Test not found'}, 404
+
+            serialized_test = test.to_dict()
             
             return {
                 'test_id': test.id,
@@ -525,7 +564,10 @@ class GetResults(Resource):
                     'confidence': test.nystagmus_confidence
                 },
                 'diagnosis': test.diagnosis,
-                'recommendations': test.recommendations
+                'recommendations': test.recommendations,
+                'clinical_output_version': serialized_test.get('clinical_output_version'),
+                'clinical_output': serialized_test.get('clinical_output'),
+                'clinical_summary': serialized_test.get('clinical_summary'),
             }, 200
         
         except Exception as e:
@@ -546,12 +588,16 @@ class TestHistory(Resource):
             
             results = []
             for test in tests:
+                serialized = test.to_dict()
                 results.append({
                     'test_id': test.id,
                     'test_date': test.created_at.isoformat() if test.created_at else None,
                     'nystagmus_detected': test.nystagmus_detected,
                     'nystagmus_type': test.nystagmus_type,
-                    'diagnosis': test.diagnosis
+                    'diagnosis': test.diagnosis,
+                    'clinical_output_version': serialized.get('clinical_output_version'),
+                    'clinical_output': serialized.get('clinical_output'),
+                    'clinical_summary': serialized.get('clinical_summary'),
                 })
             
             return {
@@ -661,6 +707,7 @@ class SimpleTestSubmission(Resource):
             
             db.session.add(test)
             db.session.commit()
+            serialized_test = test.to_dict()
             
             return {
                 'message': 'Test submitted successfully',
@@ -674,7 +721,10 @@ class SimpleTestSubmission(Resource):
                 'nystagmus_severity': nystagmus_severity,
                 'created_at': test.created_at.isoformat(),
                 'diagnosis': diagnosis,
-                'recommendations': recommendations
+                'recommendations': recommendations,
+                'clinical_output_version': serialized_test.get('clinical_output_version'),
+                'clinical_output': serialized_test.get('clinical_output'),
+                'clinical_summary': serialized_test.get('clinical_summary'),
             }, 201
         
         except Exception as e:

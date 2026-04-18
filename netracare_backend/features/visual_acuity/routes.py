@@ -14,12 +14,14 @@ visual_acuity_ns = Namespace('visual-acuity', description='Visual acuity test op
 # API Models for documentation
 test_submission_model = visual_acuity_ns.model('VisualAcuityTestSubmission', {
     'correct_answers': fields.Integer(required=True, description='Number of correct answers'),
-    'total_questions': fields.Integer(required=True, description='Total number of questions')
+    'total_questions': fields.Integer(required=True, description='Total number of questions'),
+    'test_variant': fields.String(required=False, description='Test variant: snellen, tumbling_e, or landolt_c')
 })
 
 test_response_model = visual_acuity_ns.model('VisualAcuityTestResponse', {
     'id': fields.Integer(description='Test ID'),
     'user_id': fields.Integer(description='User ID'),
+    'test_variant': fields.String(description='Selected test variant'),
     'correct_answers': fields.Integer(description='Correct answers'),
     'total_questions': fields.Integer(description='Total questions'),
     'logmar_value': fields.Float(description='LogMAR value'),
@@ -41,6 +43,10 @@ class VisualAcuityTests(Resource):
             data = request.get_json()
             correct = data['correct_answers']
             total = data['total_questions']
+            test_variant = (data.get('test_variant') or 'snellen').strip().lower()
+
+            if test_variant not in {'snellen', 'tumbling_e', 'landolt_c'}:
+                visual_acuity_ns.abort(400, 'Invalid test_variant')
             
             # Validate inputs
             validate(correct, total)
@@ -53,6 +59,7 @@ class VisualAcuityTests(Resource):
             # Create test record
             test = VisualAcuityTest(
                 user_id=current_user.id,
+                test_variant=test_variant,
                 correct_answers=correct,
                 total_questions=total,
                 logmar_value=logmar,

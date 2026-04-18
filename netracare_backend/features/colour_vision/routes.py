@@ -20,11 +20,24 @@ import os
 # Create namespace
 colour_vision_ns = Namespace('colour-vision', description='Colour vision test operations (Ishihara)')
 
-# Dataset path - adjust based on your setup
-DATASET_PATH = Path(__file__).parent.parent / 'FYP' / 'ishihara_data_set'
-if not DATASET_PATH.exists():
-    # Try alternative path
-    DATASET_PATH = Path(__file__).parent.parent / 'ishihara_data_set'
+def _resolve_dataset_path() -> Path:
+    """Resolve Ishihara dataset path across known project layouts."""
+    here = Path(__file__).resolve()
+    candidates = [
+        here.parents[3] / 'ishihara_data_set',  # <workspace>/ishihara_data_set
+        here.parents[2] / 'ishihara_data_set',  # <workspace>/netracare_backend/ishihara_data_set
+        here.parents[1] / 'ishihara_data_set',  # <workspace>/netracare_backend/features/ishihara_data_set
+    ]
+
+    for path in candidates:
+        if path.exists() and path.is_dir():
+            return path
+
+    # Keep a deterministic fallback for error messages in get_random_plates.
+    return candidates[0]
+
+
+DATASET_PATH = _resolve_dataset_path()
 
 # API Models for documentation
 plate_model = colour_vision_ns.model('IshiharaPlate', {
@@ -77,7 +90,10 @@ def get_random_plates(count=10):
         List of plate dictionaries with metadata and image paths
     """
     if not DATASET_PATH.exists():
-        raise FileNotFoundError(f"Dataset not found at {DATASET_PATH}")
+        raise FileNotFoundError(
+            f"Dataset not found at {DATASET_PATH}. "
+            "Expected folder name: ishihara_data_set"
+        )
     
     # Get all available plate numbers
     available_plates = get_all_plate_numbers()

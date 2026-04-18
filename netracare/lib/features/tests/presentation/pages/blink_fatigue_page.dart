@@ -2,6 +2,7 @@
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/features/tests/presentation/pages/blink_fatigue_cnn_test_page.dart';
 import 'package:netracare/services/api_service.dart';
+import 'package:netracare/services/blink_fatigue_service.dart';
 
 class BlinkFatiguePage extends StatefulWidget {
   const BlinkFatiguePage({super.key});
@@ -12,6 +13,32 @@ class BlinkFatiguePage extends StatefulWidget {
 
 class _BlinkFatiguePageState extends State<BlinkFatiguePage> {
   String step = 'intro'; // intro | setup
+  Map<String, dynamic>? _fatigueConfig;
+  bool _loadingConfig = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFatigueConfig();
+  }
+
+  Future<void> _loadFatigueConfig() async {
+    setState(() => _loadingConfig = true);
+    try {
+      final config = await BlinkFatigueService.getConfig();
+      if (mounted) {
+        setState(() {
+          _fatigueConfig = config;
+        });
+      }
+    } catch (_) {
+      // Keep the UI usable even if config lookup fails.
+    } finally {
+      if (mounted) {
+        setState(() => _loadingConfig = false);
+      }
+    }
+  }
 
   void proceed() {
     if (step == 'intro') {
@@ -210,6 +237,23 @@ class _BlinkFatiguePageState extends State<BlinkFatiguePage> {
             ],
           ),
         ),
+        const SizedBox(height: 12),
+        if (_loadingConfig)
+          const Text(
+            'Loading test settings...',
+            style: TextStyle(
+              fontSize: AppTheme.fontSM,
+              color: AppTheme.textSecondary,
+            ),
+          )
+        else if (_fatigueConfig != null)
+          Text(
+            'Backend drowsiness threshold: ${((_fatigueConfig?['drowsy_threshold'] as num?)?.toDouble() ?? 0.6).toStringAsFixed(2)}',
+            style: const TextStyle(
+              fontSize: AppTheme.fontSM,
+              color: AppTheme.textSecondary,
+            ),
+          ),
         const SizedBox(height: 24),
         SizedBox(
           width: double.infinity,

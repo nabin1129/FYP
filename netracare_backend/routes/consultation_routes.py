@@ -167,6 +167,7 @@ class BookConsultation(Resource):
             )
             
             db.session.add(consultation)
+            db.session.flush()
             
             # Create notification for doctor
             patient_name = current_user.name if hasattr(current_user, 'name') else 'A patient'
@@ -556,9 +557,29 @@ class ConsultationDetail(Resource):
 
             if status == 'in_progress':
                 consultation.started_at = consultation.started_at or datetime.utcnow()
+                db.session.add(Notification(
+                    recipient_type='user',
+                    recipient_id=consultation.patient_id,
+                    notification_type='consultation_started',
+                    title='Consultation Started',
+                    message=f'Your consultation with {current_doctor.name} has started.',
+                    related_type='consultation',
+                    related_id=consultation.id,
+                    priority='normal',
+                ))
 
             if status == 'completed':
                 consultation.ended_at = consultation.ended_at or datetime.utcnow()
+                db.session.add(Notification(
+                    recipient_type='user',
+                    recipient_id=consultation.patient_id,
+                    notification_type='consultation_completed',
+                    title='Consultation Completed',
+                    message=f'Your consultation with {current_doctor.name} has been completed.',
+                    related_type='consultation',
+                    related_id=consultation.id,
+                    priority='normal',
+                ))
 
             # Notify patient about doctor decision for pending requests
             if status in ['scheduled', 'rejected']:
@@ -678,6 +699,17 @@ class StartConsultation(Resource):
             
             consultation.status = 'in_progress'
             consultation.started_at = datetime.utcnow()
+
+            db.session.add(Notification(
+                recipient_type='user',
+                recipient_id=consultation.patient_id,
+                notification_type='consultation_started',
+                title='Consultation Started',
+                message=f'Your consultation with {current_doctor.name} has started.',
+                related_type='consultation',
+                related_id=consultation.id,
+                priority='normal',
+            ))
             
             db.session.commit()
             
@@ -738,6 +770,17 @@ class CompleteConsultation(Resource):
             ).first()
             if link:
                 link.last_consultation = datetime.utcnow()
+
+            db.session.add(Notification(
+                recipient_type='user',
+                recipient_id=consultation.patient_id,
+                notification_type='consultation_completed',
+                title='Consultation Completed',
+                message=f'Your consultation with {current_doctor.name} has been completed.',
+                related_type='consultation',
+                related_id=consultation.id,
+                priority='normal',
+            ))
             
             db.session.commit()
             
@@ -772,6 +815,17 @@ class CancelConsultation(Resource):
                 return {'message': 'Consultation cannot be cancelled'}, 400
             
             consultation.status = 'cancelled'
+
+            db.session.add(Notification(
+                recipient_type='doctor',
+                recipient_id=consultation.doctor_id,
+                notification_type='consultation_cancelled',
+                title='Consultation Cancelled',
+                message='A patient cancelled their consultation request.',
+                related_type='consultation',
+                related_id=consultation.id,
+                priority='normal',
+            ))
             db.session.commit()
             
             return {'message': 'Consultation cancelled'}, 200

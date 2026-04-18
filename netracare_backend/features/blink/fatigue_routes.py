@@ -57,6 +57,12 @@ test_history_model = blink_fatigue_ns.model('BlinkFatigueHistory', {
     'alert_count': fields.Integer(description='Number of alerts triggered')
 })
 
+fatigue_config_model = blink_fatigue_ns.model('BlinkFatigueConfig', {
+    'drowsy_threshold': fields.Float(description='Probability threshold used for drowsy classification'),
+    'image_size': fields.Raw(description='Model input image size'),
+    'class_names': fields.List(fields.String, description='Model output classes'),
+})
+
 
 @blink_fatigue_ns.route('/predict')
 class BlinkFatiguePrediction(Resource):
@@ -297,6 +303,25 @@ class BlinkFatigueStats(Resource):
             
         except Exception as e:
             blink_fatigue_ns.abort(500, f'Failed to retrieve stats: {str(e)}')
+
+
+@blink_fatigue_ns.route('/config')
+class BlinkFatigueConfig(Resource):
+    """Get model/configuration metadata for the fatigue test UI"""
+
+    @blink_fatigue_ns.marshal_with(fatigue_config_model)
+    @blink_fatigue_ns.doc(security='Bearer')
+    @token_required
+    def get(self, current_user):
+        model = get_model_singleton()
+        return {
+            'drowsy_threshold': getattr(model, 'DROWSY_LABEL_THRESHOLD', 0.6),
+            'image_size': {
+                'width': getattr(model, 'img_width', 224),
+                'height': getattr(model, 'img_height', 224),
+            },
+            'class_names': list(getattr(model, 'class_names', ['drowsy', 'notdrowsy'])),
+        }, 200
 
 
 # =============================================

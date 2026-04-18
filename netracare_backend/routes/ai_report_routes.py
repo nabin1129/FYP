@@ -157,7 +157,15 @@ def calculate_pupil_reflex_score(tests):
         )
     else:
         findings.append("No nystagmus detected")
-    return max(score, 0), "; ".join(findings) if findings else "Pupil reflex test completed"
+
+    urgency = "routine"
+    if (t.nystagmus_severity or '').lower() == 'severe' or (t.reaction_time or 0) * 1000 > 450:
+        urgency = 'urgent'
+    elif (t.nystagmus_severity or '').lower() == 'moderate' or (t.reaction_time or 0) * 1000 > 320:
+        urgency = 'soon'
+
+    clinical_summary = "; ".join(findings) if findings else "Pupil reflex test completed"
+    return max(score, 0), f"{clinical_summary} (clinical urgency: {urgency})"
 
 
 def analyze_trends(tests_by_type):
@@ -231,11 +239,14 @@ def _assemble_report(user, time_range_days: int):
 
     overall_score = sum(scores.values()) / len(scores)
     trends = analyze_trends(tests_by_type)
-    ai_text = call_gemini_for_report(
+    ai_result = call_gemini_for_report(
         user, scores, findings, trends, tests_by_type, overall_score
     )
+    ai_text = ai_result["text"]
+    report_meta = ai_result["meta"]
 
     report = {
+        "report_version": 1,
         "report_id": f"R-{user.id}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
         "user_id": user.id,
         "user_name": user.name or "Patient",
@@ -245,6 +256,7 @@ def _assemble_report(user, time_range_days: int):
         "findings": findings,
         "trends": trends,
         "ai_report_text": ai_text,
+        "report_metadata": report_meta,
         "test_counts": {k: len(v) for k, v in tests_by_type.items()},
         "gemini_used": GEMINI_AVAILABLE,
         "time_range_days": time_range_days,
@@ -267,7 +279,9 @@ def _build_system_prompt(user, scores, findings, trends, tests_by_type, overall_
     if va_tests:
         t = va_tests[0]
         score_pct = round((t.correct_answers / t.total_questions) * 100) if t.total_questions else 0
+        variant = (t.test_variant or 'snellen').replace('_', ' ').title()
         va_detail = (
+            f"Variant: {variant}, "
             f"Snellen: {t.snellen_value or 'N/A'}, "
             f"Correct: {t.correct_answers or 'N/A'}/{t.total_questions or 'N/A'}, "
             f"Score: {score_pct}%, Severity: {t.severity or 'N/A'}"
@@ -356,14 +370,35 @@ Keep total report under 800 words."""
 
 def call_gemini_for_report(user, scores, findings, trends, tests_by_type, overall_score):
     if not GEMINI_AVAILABLE or _gemini_model is None:
-        return _fallback_report(scores, findings, trends, overall_score)
+        return {
+            "text": _fallback_report(scores, findings, trends, overall_score),
+            "meta": {
+                "generator": "fallback",
+                "fallback_used": True,
+                "fallback_reason": "Gemini unavailable",
+            },
+        }
     prompt = _build_system_prompt(user, scores, findings, trends, tests_by_type, overall_score)
     try:
         response = _gemini_model.generate_content(prompt)
-        return response.text.strip()
+        return {
+            "text": response.text.strip(),
+            "meta": {
+                "generator": "gemini",
+                "fallback_used": False,
+                "fallback_reason": None,
+            },
+        }
     except Exception as e:
         print(f"Gemini API error: {e}")
-        return _fallback_report(scores, findings, trends, overall_score)
+        return {
+            "text": _fallback_report(scores, findings, trends, overall_score),
+            "meta": {
+                "generator": "fallback",
+                "fallback_used": True,
+                "fallback_reason": str(e),
+            },
+        }
 
 
 def _fallback_report(scores, findings, trends, overall_score):
@@ -666,9 +701,10 @@ class GetInsights(Resource):
             insights = []
             if latest_visual:
                 score_pct = round((latest_visual.correct_answers / latest_visual.total_questions) * 100) if latest_visual.total_questions else 0
+                variant = (latest_visual.test_variant or 'snellen').replace('_', ' ').title()
                 insights.append({
                     "type": "visual_acuity",
-                    "message": f"Last visual acuity test: {latest_visual.snellen_value or 'N/A'} ({score_pct}%)",
+                    "message": f"Last visual acuity test ({variant}): {latest_visual.snellen_value or 'N/A'} ({score_pct}%)",
                     "date": latest_visual.created_at.isoformat() if latest_visual.created_at else None,
                 })
             if latest_colour and (latest_colour.severity or "").lower() != "normal":
@@ -685,9 +721,14 @@ class GetInsights(Resource):
                     "date": latest_blink.created_at.isoformat() if latest_blink.created_at else None,
                 })
             if latest_pupil and latest_pupil.nystagmus_detected:
+                urgency = 'routine'
+                if (latest_pupil.nystagmus_severity or '').lower() == 'severe' or (latest_pupil.reaction_time or 0) > 0.45:
+                    urgency = 'urgent'
+                elif (latest_pupil.nystagmus_severity or '').lower() == 'moderate' or (latest_pupil.reaction_time or 0) > 0.32:
+                    urgency = 'soon'
                 insights.append({
                     "type": "pupil_reflex",
-                    "message": f"{latest_pupil.nystagmus_severity.title()} nystagmus detected",
+                    "message": f"{latest_pupil.nystagmus_severity.title()} nystagmus detected (clinical urgency: {urgency})",
                     "date": latest_pupil.created_at.isoformat() if latest_pupil.created_at else None,
                 })
 

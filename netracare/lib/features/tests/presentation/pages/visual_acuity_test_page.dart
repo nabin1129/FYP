@@ -5,9 +5,12 @@ import 'package:netracare/services/api_service.dart';
 import 'package:netracare/models/distance_calibration_model.dart';
 import 'package:netracare/widgets/distance_monitor_widget.dart';
 import 'package:netracare/widgets/distance_feedback_overlay.dart';
+import 'package:netracare/features/tests/presentation/pages/visual_acuity_variant.dart';
 
 class VisualAcuityTestPage extends StatefulWidget {
-  const VisualAcuityTestPage({super.key});
+  final VisualAcuityVariant variant;
+
+  const VisualAcuityTestPage({super.key, required this.variant});
 
   @override
   State<VisualAcuityTestPage> createState() => _VisualAcuityTestPageState();
@@ -20,8 +23,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
   DistanceCalibrationData? calibration;
   bool isLoadingCalibration = true;
 
-  final List<String> letters = ['E', 'F', 'P', 'T', 'O', 'Z', 'L', 'D'];
-  String currentLetter = 'E';
+  late VisualAcuityQuestion currentQuestion;
   double fontSize = 80;
 
   int total = 0;
@@ -83,7 +85,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
       await Future.delayed(const Duration(milliseconds: 500));
       if (mounted) {
         setState(() => cameraReady = true);
-        _nextLetter();
+        _nextQuestion();
       }
     } catch (e) {
       if (mounted) {
@@ -109,10 +111,13 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
     });
   }
 
-  void _nextLetter() {
+  void _nextQuestion() {
     if (mounted) {
       setState(() {
-        currentLetter = letters[Random().nextInt(letters.length)];
+        currentQuestion = VisualAcuityQuestion.generate(
+          widget.variant,
+          Random(),
+        );
         fontSize = max(30, fontSize - 6);
       });
     }
@@ -122,12 +127,12 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
     if (isSubmitting || isTestPaused) return; // Block if test is paused
 
     total++;
-    if (answer == currentLetter) correct++;
+    if (answer == currentQuestion.expectedAnswer) correct++;
 
     if (total >= 10) {
       _showResult();
     } else {
-      _nextLetter();
+      _nextQuestion();
     }
   }
 
@@ -141,6 +146,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
       final result = await ApiService.submitVisualAcuityTest(
         correct: correct,
         total: total,
+        testVariant: widget.variant.apiValue,
       );
 
       if (!mounted) return;
@@ -159,6 +165,8 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _resultRow("Correct Answers", "$correct / $total"),
+              const SizedBox(height: 12),
+              _resultRow("Test Type", widget.variant.title),
               const SizedBox(height: 12),
               _resultRow("logMAR Score", result.logMAR.toStringAsFixed(2)),
               const SizedBox(height: 12),
@@ -218,7 +226,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                   correct = 0;
                   isSubmitting = false;
                 });
-                _nextLetter();
+                _nextQuestion();
               },
               child: const Text("Retry Test"),
             ),
@@ -250,7 +258,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                   correct = 0;
                   isSubmitting = false;
                 });
-                _nextLetter();
+                _nextQuestion();
               },
               child: const Text("Retry Test"),
             ),
@@ -536,15 +544,9 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                         ],
                       ),
                       child: Center(
-                        child: Text(
-                          currentLetter,
-                          style: TextStyle(
-                            fontSize: fontSize,
-                            color: AppTheme.textDark,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: 'Courier New',
-                            letterSpacing: 2,
-                          ),
+                        child: VisualAcuityStimulus(
+                          question: currentQuestion,
+                          fontSize: fontSize,
                         ),
                       ),
                     ),
@@ -568,7 +570,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'Select the letter displayed above',
+                              widget.variant.answerPrompt,
                               style: TextStyle(
                                 fontSize: AppTheme.fontSM,
                                 color: AppTheme.primary,
@@ -622,13 +624,15 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                             physics: const NeverScrollableScrollPhysics(),
                             mainAxisSpacing: 12,
                             crossAxisSpacing: 12,
-                            children: letters.map((l) {
+                            children: widget.variant.answerOptions.map((
+                              option,
+                            ) {
                               return Material(
                                 color: Colors.transparent,
                                 child: InkWell(
                                   onTap: isSubmitting
                                       ? null
-                                      : () => _submitAnswer(l),
+                                      : () => _submitAnswer(option),
                                   borderRadius: BorderRadius.circular(12),
                                   child: Container(
                                     decoration: BoxDecoration(
@@ -645,7 +649,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        l,
+                                        _optionLabel(option),
                                         style: const TextStyle(
                                           fontSize: AppTheme.fontTitle,
                                           fontWeight: FontWeight.bold,
@@ -692,5 +696,20 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
 
     // Return test without distance monitoring if no calibration
     return testContent;
+  }
+
+  String _optionLabel(String option) {
+    switch (option) {
+      case 'up':
+        return '↑';
+      case 'right':
+        return '→';
+      case 'down':
+        return '↓';
+      case 'left':
+        return '←';
+      default:
+        return option;
+    }
   }
 }

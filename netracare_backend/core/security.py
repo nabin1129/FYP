@@ -37,19 +37,11 @@ def token_required(fn):
                 },
                 leeway=30,
             )
-
             user_id = int(payload["sub"])
             user = db.session.get(User, user_id)
 
             if not user:
                 return {"error": "User not found"}, 401
-
-            if _is_method:
-                # Resource.method(self, current_user, *extra_args)
-                return fn(args[0], user, *args[1:], **kwargs)
-            else:
-                # Blueprint view function(current_user, *url_args)
-                return fn(user, *args, **kwargs)
 
         except jwt.ExpiredSignatureError as e:
             print(f"Token expired: {e}")
@@ -60,6 +52,13 @@ def token_required(fn):
         except Exception as e:
             print(f"Unexpected error during token validation: {e}")
             return {"error": "Token validation failed"}, 401
+
+        if _is_method:
+            # Resource.method(self, current_user, *extra_args)
+            return fn(args[0], user, *args[1:], **kwargs)
+
+        # Blueprint view function(current_user, *url_args)
+        return fn(user, *args, **kwargs)
 
     return wrapper
 
@@ -127,7 +126,6 @@ def admin_token_required(fn):
                 return {"message": "Invalid token type for admin route"}, 403
 
             current_admin = payload.get("sub")
-            return fn(self, *args, current_admin=current_admin, **kwargs)
         except jwt.ExpiredSignatureError:
             return {"message": "Admin token expired"}, 401
         except jwt.InvalidTokenError:
@@ -135,5 +133,7 @@ def admin_token_required(fn):
         except Exception as e:
             print(f"Unexpected admin token validation error: {e}")
             return {"message": "Admin token validation failed"}, 401
+
+        return fn(self, *args, current_admin=current_admin, **kwargs)
 
     return wrapper

@@ -284,4 +284,37 @@ class BlinkFatigueService {
 
     _throwReadableError(response);
   }
+
+  // =========================
+  // MODEL CONFIG
+  // =========================
+
+  /// Get backend fatigue model configuration so the UI can stay aligned with
+  /// the server-side threshold and class labels.
+  static Future<Map<String, dynamic>> getConfig() async {
+    final token = await _getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Session expired. Please login again.');
+    }
+
+    final response = await _get(
+      Uri.parse('${ApiConfig.baseUrl}/blink-fatigue/config'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+
+    if (response.statusCode == 401) {
+      await _deleteToken();
+      throw Exception('Session expired. Please login again.');
+    }
+
+    _throwReadableError(response);
+  }
 }
