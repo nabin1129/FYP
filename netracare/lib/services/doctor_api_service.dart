@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -6,6 +7,7 @@ import '../config/api_config.dart';
 import '../models/consultation/consultation_model.dart';
 import '../models/consultation/doctor_model.dart';
 import '../models/consultation/doctor_slot_model.dart';
+import '../models/doctor/medical_record_model.dart';
 
 /// API Service for Doctor-Patient linking and consultations
 /// Handles real API calls to the backend
@@ -1007,5 +1009,244 @@ class DoctorApiService {
     } catch (e) {
       return false;
     }
+  }
+
+  // =========================
+  // PATIENT DOCUMENTS/RECORDS
+  // =========================
+
+  /// Get patient test results for sharing
+  static Future<List<Map<String, dynamic>>> getPatientTestResults(
+    String patientId,
+  ) async {
+    try {
+      final token = await getDoctorToken();
+      if (token == null) return [];
+
+      final response = await _get(
+        Uri.parse('${ApiConfig.baseUrl}/api/patients/$patientId/test-results'),
+        headers: _getHeaders(token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(
+          data['test_results'] as List? ?? [],
+        );
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching patient test results: $e');
+      return [];
+    }
+  }
+
+  /// Get patient clinical notes for sharing
+  static Future<List<Map<String, dynamic>>> getPatientClinicalNotes(
+    String patientId,
+  ) async {
+    try {
+      final token = await getDoctorToken();
+      if (token == null) return [];
+
+      final response = await _get(
+        Uri.parse(
+          '${ApiConfig.baseUrl}/api/patients/$patientId/clinical-notes',
+        ),
+        headers: _getHeaders(token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(
+          data['clinical_notes'] as List? ?? [],
+        );
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching patient clinical notes: $e');
+      return [];
+    }
+  }
+
+  /// Send message with attachments
+  static Future<bool> sendChatMessageWithAttachments({
+    required bool isDoctor,
+    required int consultationId,
+    required String? message,
+    required List<Map<String, dynamic>> attachments,
+  }) async {
+    try {
+      final token = isDoctor ? await getDoctorToken() : await getToken();
+      if (token == null) return false;
+
+      // Determine message_type based on attachment type
+      String messageType = 'attachment';
+      if (attachments.isNotEmpty) {
+        final attachmentType =
+            attachments.first['type']?.toString().toLowerCase() ?? '';
+        if (attachmentType.contains('test')) {
+          messageType = 'testResult';
+        } else if (attachmentType.contains('clinical')) {
+          messageType = 'clinicalNote';
+        } else if (attachmentType.contains('medical')) {
+          messageType = 'medicalRecord';
+        }
+      }
+
+      final endpoint = isDoctor
+          ? ApiConfig.doctorConsultationMessagesEndpointRaw(
+              consultationId.toString(),
+            )
+          : ApiConfig.consultationMessagesEndpointRaw(
+              consultationId.toString(),
+            );
+
+      final response = await _post(
+        Uri.parse('${ApiConfig.baseUrl}$endpoint'),
+        headers: _getHeaders(token),
+        body: jsonEncode({
+          'content': message,
+          'message_type': messageType,
+          'attachments': attachments,
+        }),
+      );
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      debugPrint('Error sending chat message with attachments: $e');
+      return false;
+    }
+  }
+
+  // =========================
+  // MEDICAL RECORDS
+  // =========================
+
+  /// Upload a file to the backend and return `{file_url, file_name, file_size, mime_type}`.
+  static Future<Map<String, dynamic>> uploadRecordFile({
+    required Uint8List bytes,
+    required String fileName,
+    required String mimeType,
+  }) async {
+    final token = await getDoctorToken();
+    if (token == null) throw Exception('Please login as a doctor');
+
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}${ApiConfig.medicalRecordUploadEndpoint}',
+    );
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..files.add(
+        http.MultipartFile.fromBytes('file', bytes, filename: fileName),
+      );
+
+    final streamed = await request.send().timeout(_requestTimeout);
+    final response = await http.Response.fromStream(streamed);
+
+    if (response.statusCode == 200) {
+      return (jsonDecode(response.body) as Map<String, dynamic>);
+    }
+    final error = jsonDecode(response.body) as Map<String, dynamic>;
+    throw Exception(error['message'] ?? 'File upload failed');
+  }
+
+  static Future<Map<String, dynamic>> createMedicalRecord({
+    required String patientId,
+    required MedicalRecordType recordType,
+    required String title,
+    required String description,
+    String category = 'general',
+    String? fileUrl,
+    String? fileName,
+    int? fileSize,
+    String? mimeType,
+  }) async {
+    final token = await getDoctorToken();
+    if (token == null) {
+      throw Exception('Please login as a doctor');
+    }
+
+    final response = await _post(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.doctorMedicalRecordsEndpoint}',
+      ),
+      headers: _getHeaders(token),
+      body: jsonEncode({
+        'patient_id': int.tryParse(patientId),
+        'record_type': recordType.apiValue,
+        'title': title,
+        'description': description,
+        'category': category,
+        'file_url': fileUrl,
+        'file_name': fileName,
+        'file_size': fileSize,
+        'mime_type': mimeType,
+      }),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return Map<String, dynamic>.from(data['record'] ?? data);
+    }
+
+    final error = jsonDecode(response.body) as Map<String, dynamic>;
+    throw Exception(error['message'] ?? 'Failed to create medical record');
+  }
+
+  static Future<Map<String, dynamic>> createClinicalNote({
+    required String patientId,
+    required String title,
+    required String content,
+    required NoteCategory category,
+  }) async {
+    final token = await getDoctorToken();
+    if (token == null) {
+      throw Exception('Please login as a doctor');
+    }
+
+    final response = await _post(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.doctorMedicalRecordsEndpoint}',
+      ),
+      headers: _getHeaders(token),
+      body: jsonEncode({
+        'patient_id': int.tryParse(patientId),
+        'record_type': 'clinical_note',
+        'title': title,
+        'description': content,
+        'category': category.apiValue,
+      }),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return Map<String, dynamic>.from(data['record'] ?? data);
+    }
+
+    final error = jsonDecode(response.body) as Map<String, dynamic>;
+    throw Exception(error['message'] ?? 'Failed to create clinical note');
+  }
+
+  static Future<List<Map<String, dynamic>>> getDoctorMedicalRecords() async {
+    final token = await getDoctorToken();
+    if (token == null) {
+      throw Exception('Please login as a doctor');
+    }
+
+    final response = await _get(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.doctorMedicalRecordsEndpoint}',
+      ),
+      headers: _getHeaders(token),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return List<Map<String, dynamic>>.from(data['records'] ?? const []);
+    }
+
+    final error = jsonDecode(response.body) as Map<String, dynamic>;
+    throw Exception(error['message'] ?? 'Failed to fetch medical records');
   }
 }

@@ -19,6 +19,7 @@ from services.consultation_booking_service import (
 )
 from core.security import token_required
 from routes.doctor_routes import doctor_token_required
+from features.chat.firebase_history_store import mirror_message, mirror_messages_read
 
 # Create namespace
 consultation_ns = Namespace('consultations', description='Consultation management')
@@ -256,6 +257,9 @@ class PatientUpcomingConsultations(Resource):
     def get(self, current_user):
         """Get patient's upcoming scheduled consultations"""
         try:
+            # Mark any past scheduled consultations as missed
+            Consultation.mark_missed_consultations()
+            
             now = datetime.utcnow()
             
             consultations = Consultation.query.filter(
@@ -441,6 +445,9 @@ class DoctorSchedule(Resource):
     def get(self, current_doctor):
         """Get doctor's schedule"""
         try:
+            # Mark any past scheduled consultations as missed
+            Consultation.mark_missed_consultations()
+            
             date_str = request.args.get('date')
             
             query = Consultation.query.filter_by(
@@ -640,7 +647,7 @@ class ScheduleConsultation(Resource):
             if consultation.consultation_type == 'physical':
                 return {'message': 'Physical consultations are scheduled from doctor slots'}, 409
             
-            data = request.get_json()
+            data = request.get_json() or {}
             
             if not data.get('scheduled_at'):
                 return {'message': 'Scheduled datetime is required'}, 400
@@ -651,7 +658,7 @@ class ScheduleConsultation(Resource):
                 return {'message': 'Invalid datetime format'}, 400
 
             if not is_future_utc(scheduled_at):
-                return {'message': 'Scheduled datetime must be in the future (UTC)'}, 400
+                return {'message': 'Cannot schedule consultation in the past. Please select a future date and time.'}, 400
             
             consultation.scheduled_at = scheduled_at
             consultation.status = 'scheduled'
@@ -861,12 +868,17 @@ class ConsultationMessages(Resource):
             ).all()
             
             # Mark messages as read
+            read_at = datetime.utcnow()
+            updated_messages = []
             for msg in messages:
                 if msg.sender_type == 'doctor' and not msg.is_read:
                     msg.is_read = True
-                    msg.read_at = datetime.utcnow()
+                    msg.read_at = read_at
+                    updated_messages.append(msg)
             
             db.session.commit()
+            if updated_messages:
+                mirror_messages_read(consultation, updated_messages, read_at=read_at)
             
             return {
                 'messages': [m.to_dict() for m in messages]
@@ -890,19 +902,58 @@ class ConsultationMessages(Resource):
                 return {'message': 'Not authorized'}, 403
             
             data = request.get_json()
-            
+
+            attachments = data.get('attachments') or []
+            if not isinstance(attachments, list):
+                attachments = []
+            first_attachment = attachments[0] if attachments else None
+            if first_attachment is not None and not isinstance(first_attachment, dict):
+                first_attachment = None
+
             content = (data.get('content') or data.get('message') or '').strip()
-            if not content:
+            if not content and not first_attachment:
                 return {'message': 'Message content is required'}, 400
+
+            message_type = (data.get('message_type') or 'text').lower()
+            if first_attachment:
+                message_type = (
+                    first_attachment.get('type') or
+                    first_attachment.get('attachment_type') or
+                    message_type or
+                    'file'
+                ).lower()
+                if message_type == 'attachment':
+                    message_type = 'file'
+                if not content:
+                    content = 'Shared attachment'
+
+            file_url = None
+            file_name = None
+            test_type = data.get('test_type')
+            test_id = data.get('test_id')
+            if first_attachment:
+                file_url = first_attachment.get('url')
+                file_name = first_attachment.get('file_name') or first_attachment.get('fileName')
+                if not test_type:
+                    test_type = first_attachment.get('linked_entity_title') or first_attachment.get('linkedEntityTitle')
+                if test_id is None:
+                    linked_id = first_attachment.get('linked_entity_id') or first_attachment.get('linkedEntityId')
+                    if linked_id is not None:
+                        try:
+                            test_id = int(linked_id)
+                        except (TypeError, ValueError):
+                            test_id = None
             
             message = ConsultationMessage(
                 consultation_id=consultation_id,
                 sender_type='patient',
                 sender_id=current_user.id,
-                message_type=data.get('message_type', 'text'),
+                message_type=message_type,
                 content=content,
-                test_type=data.get('test_type'),
-                test_id=data.get('test_id'),
+                file_url=file_url,
+                file_name=file_name,
+                test_type=test_type,
+                test_id=test_id,
             )
             
             db.session.add(message)
@@ -918,6 +969,7 @@ class ConsultationMessages(Resource):
             db.session.add(notification)
             
             db.session.commit()
+            mirror_message(consultation, message)
             
             return {
                 'message': 'Message sent',
@@ -952,12 +1004,17 @@ class DoctorConsultationMessages(Resource):
             ).all()
             
             # Mark patient messages as read
+            read_at = datetime.utcnow()
+            updated_messages = []
             for msg in messages:
                 if msg.sender_type == 'patient' and not msg.is_read:
                     msg.is_read = True
-                    msg.read_at = datetime.utcnow()
+                    msg.read_at = read_at
+                    updated_messages.append(msg)
             
             db.session.commit()
+            if updated_messages:
+                mirror_messages_read(consultation, updated_messages, read_at=read_at)
             
             return {
                 'messages': [m.to_dict() for m in messages]
@@ -980,18 +1037,59 @@ class DoctorConsultationMessages(Resource):
             if consultation.doctor_id != current_doctor.id:
                 return {'message': 'Not authorized'}, 403
             
-            data = request.get_json()
-            
+            data = request.get_json() or {}
+
+            attachments = data.get('attachments') or []
+            if not isinstance(attachments, list):
+                attachments = []
+            first_attachment = attachments[0] if attachments else None
+            if first_attachment is not None and not isinstance(first_attachment, dict):
+                first_attachment = None
+
             content = (data.get('content') or data.get('message') or '').strip()
-            if not content:
+            if not content and not first_attachment:
                 return {'message': 'Message content is required'}, 400
+
+            message_type = (data.get('message_type') or 'text').lower()
+            if first_attachment:
+                message_type = (
+                    first_attachment.get('type') or
+                    first_attachment.get('attachment_type') or
+                    message_type or
+                    'file'
+                ).lower()
+                if message_type == 'attachment':
+                    message_type = 'file'
+                if not content:
+                    content = 'Shared attachment'
+
+            file_url = None
+            file_name = None
+            test_type = data.get('test_type')
+            test_id = data.get('test_id')
+            if first_attachment:
+                file_url = first_attachment.get('url')
+                file_name = first_attachment.get('file_name') or first_attachment.get('fileName')
+                if not test_type:
+                    test_type = first_attachment.get('linked_entity_title') or first_attachment.get('linkedEntityTitle')
+                if test_id is None:
+                    linked_id = first_attachment.get('linked_entity_id') or first_attachment.get('linkedEntityId')
+                    if linked_id is not None:
+                        try:
+                            test_id = int(linked_id)
+                        except (TypeError, ValueError):
+                            test_id = None
             
             message = ConsultationMessage(
                 consultation_id=consultation_id,
                 sender_type='doctor',
                 sender_id=current_doctor.id,
-                message_type=data.get('message_type', 'text'),
+                message_type=message_type,
                 content=content,
+                file_url=file_url,
+                file_name=file_name,
+                test_type=test_type,
+                test_id=test_id,
             )
             
             db.session.add(message)
@@ -1006,6 +1104,7 @@ class DoctorConsultationMessages(Resource):
             db.session.add(notification)
             
             db.session.commit()
+            mirror_message(consultation, message)
             
             return {
                 'message': 'Message sent',
@@ -1075,6 +1174,7 @@ class ShareTestResult(Resource):
             db.session.add(notification)
             
             db.session.commit()
+            mirror_message(consultation, message)
             
             return {
                 'message': 'Test result shared',
@@ -1084,4 +1184,92 @@ class ShareTestResult(Resource):
         except Exception as e:
             db.session.rollback()
             return {'message': f'Share failed: {str(e)}'}, 500
+
+
+# ==========================
+# DOCTOR-ASSIGNED RECORDS
+# ==========================
+
+@consultation_ns.route('/assigned-records')
+class DoctorAssignedRecords(Resource):
+    """Fetch medical records, clinical notes, and test results assigned by doctors"""
+    
+    @consultation_ns.doc(security='Bearer')
+    @token_required
+    def get(self, current_user):
+        """Get all doctor-assigned records (medical records, clinical notes, test results)"""
+        try:
+            # Query all consultation messages from doctors with various record types
+            messages = ConsultationMessage.query.join(
+                Consultation, ConsultationMessage.consultation_id == Consultation.id
+            ).filter(
+                Consultation.patient_id == current_user.id,
+                ConsultationMessage.sender_type == 'doctor',
+                ConsultationMessage.message_type.in_([
+                    'medicalRecord', 'medical_record',
+                    'clinicalNote', 'clinical_note',
+                    'testResult', 'test_result'
+                ])
+            ).order_by(ConsultationMessage.created_at.desc()).all()
+            
+            # Convert messages to record format organized by type
+            records = {
+                'scanReports': [],
+                'prescriptions': [],
+                'labReports': [],
+                'clinicalNotes': [],
+                'testResults': [],
+                'all': []
+            }
+            
+            for msg in messages:
+                doctor = db.session.get(Doctor, msg.sender_id)
+                doctor_name = doctor.name if doctor else 'Unknown Doctor'
+                
+                # Determine the category based on message type
+                message_type_lower = msg.message_type.lower() if msg.message_type else ''
+                is_clinical = 'clinical' in message_type_lower
+                is_test = 'test' in message_type_lower
+                
+                record = {
+                    'id': msg.id,
+                    'title': msg.content or f'{msg.test_type or "Document"} from {doctor_name}',
+                    'type': msg.test_type or 'document',
+                    'date': msg.created_at.isoformat() if msg.created_at else None,
+                    'fileName': msg.file_name or 'document.pdf',
+                    'url': msg.file_url,
+                    'source': 'doctor',
+                    'doctorName': doctor_name,
+                    'doctorId': msg.sender_id,
+                    'consultationId': msg.consultation_id,
+                    'description': msg.content,
+                    'messageId': msg.id
+                }
+                
+                records['all'].append(record)
+                
+                # Categorize by message type first
+                if is_clinical:
+                    records['clinicalNotes'].append(record)
+                elif is_test:
+                    records['testResults'].append(record)
+                else:
+                    # Medical record - further categorize by test_type
+                    if msg.test_type:
+                        test_type_lower = msg.test_type.lower()
+                        if 'scan' in test_type_lower or 'image' in test_type_lower:
+                            records['scanReports'].append(record)
+                        elif 'prescription' in test_type_lower or 'medicine' in test_type_lower:
+                            records['prescriptions'].append(record)
+                        elif 'lab' in test_type_lower or 'report' in test_type_lower:
+                            records['labReports'].append(record)
+                        else:
+                            records['labReports'].append(record)
+                    else:
+                        records['labReports'].append(record)
+            
+            return records, 200
+            
+        except Exception as e:
+            return {'message': f'Failed to fetch assigned records: {str(e)}'}, 500
 

@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isParticipantUid(uid) {
+      return request.auth != null
+        && request.auth.uid == uid
+        && request.auth.token.chat_access == true
+        && (request.auth.token.role == 'doctor' || request.auth.token.role == 'patient')
+        && request.auth.token.role != 'admin'
+        && request.auth.token.is_admin != true;
+    }
+
+    function canAccessConsultation(consultationId) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/consultations/$(consultationId))
+        && get(/databases/$(database)/documents/consultations/$(consultationId)).data.participant_uids.hasAny([request.auth.uid])
+        && isParticipantUid(request.auth.uid);
+    }
+
+    match /consultations/{consultationId} {
+      allow read: if canAccessConsultation(consultationId);
+      allow write: if false;
+
+      match /messages/{messageId} {
+        allow read: if canAccessConsultation(consultationId);
+        allow write: if false;
+      }
+    }
+  }
+}

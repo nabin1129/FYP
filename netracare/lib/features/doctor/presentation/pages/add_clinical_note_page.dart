@@ -35,23 +35,17 @@ class _AddClinicalNotePageState extends State<AddClinicalNotePage> {
     setState(() => _isSaving = true);
 
     try {
-      final note = ClinicalNote(
-        id: 'note_${DateTime.now().millisecondsSinceEpoch}',
+      await _doctorService.addClinicalNoteAsync(
         patientId: widget.patientId,
-        doctorId: 'doc_1',
-        doctorName: 'Dr. Rajesh Kumar Shrestha',
         title: _titleController.text.trim(),
         content: _contentController.text.trim(),
-        createdAt: DateTime.now(),
         category: _selectedCategory,
       );
-
-      _doctorService.addClinicalNote(note);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Clinical note added successfully'),
+            content: Text('Clinical note saved to database'),
             backgroundColor: AppTheme.success,
           ),
         );

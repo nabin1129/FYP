@@ -265,6 +265,53 @@ class DoctorService {
     _medicalRecords[record.patientId]!.insert(0, record);
   }
 
+  /// Persist medical record to backend and update local cache.
+  Future<MedicalRecord> addMedicalRecordAsync({
+    required String patientId,
+    required MedicalRecordType recordType,
+    required String title,
+    required String description,
+    String category = 'general',
+    String? fileName,
+    String? fileUrl,
+    int? fileSize,
+    String? mimeType,
+  }) async {
+    final created = await DoctorApiService.createMedicalRecord(
+      patientId: patientId,
+      recordType: recordType,
+      title: title,
+      description: description,
+      category: category,
+      fileUrl: fileUrl,
+      fileName: fileName,
+      fileSize: fileSize,
+      mimeType: mimeType,
+    );
+
+    final record = MedicalRecord.fromJson(created);
+    addMedicalRecord(record);
+    return record;
+  }
+
+  Future<List<MedicalRecord>> getMedicalRecordsAsync(String patientId) async {
+    try {
+      final records = await DoctorApiService.getDoctorMedicalRecords();
+      return records
+          .where((record) {
+            final recordType = (record['record_type']?.toString() ?? '')
+                .toLowerCase();
+            return recordType != 'clinical_note' &&
+                recordType != 'test_result' &&
+                record['patient_id']?.toString() == patientId;
+          })
+          .map(MedicalRecord.fromJson)
+          .toList();
+    } catch (_) {
+      return getMedicalRecords(patientId);
+    }
+  }
+
   // ============================================
   // CLINICAL NOTES OPERATIONS
   // ============================================
@@ -283,6 +330,42 @@ class DoctorService {
       _clinicalNotes[note.patientId] = [];
     }
     _clinicalNotes[note.patientId]!.insert(0, note);
+  }
+
+  /// Persist clinical note to backend and update local cache.
+  Future<ClinicalNote> addClinicalNoteAsync({
+    required String patientId,
+    required String title,
+    required String content,
+    required NoteCategory category,
+  }) async {
+    final created = await DoctorApiService.createClinicalNote(
+      patientId: patientId,
+      title: title,
+      content: content,
+      category: category,
+    );
+
+    final parsedNote = ClinicalNote.fromJson(created);
+    addClinicalNote(parsedNote);
+    return parsedNote;
+  }
+
+  Future<List<ClinicalNote>> getClinicalNotesAsync(String patientId) async {
+    try {
+      final records = await DoctorApiService.getDoctorMedicalRecords();
+      return records
+          .where(
+            (record) =>
+                (record['record_type']?.toString() ?? '').toLowerCase() ==
+                'clinical_note',
+          )
+          .map(ClinicalNote.fromJson)
+          .where((note) => note.patientId == patientId)
+          .toList();
+    } catch (_) {
+      return getClinicalNotes(patientId);
+    }
   }
 
   // ============================================

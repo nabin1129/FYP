@@ -165,6 +165,27 @@ class Consultation(db.Model):
             'reason': self.reason,
             'created_at': self.created_at.isoformat() if self.created_at else None,
         }
+    
+    @classmethod
+    def mark_missed_consultations(cls):
+        """Mark scheduled consultations as missed if their scheduled time has passed"""
+        from datetime import datetime
+        now = datetime.utcnow()
+        
+        # Find all scheduled consultations where scheduled_at is in the past
+        missed = cls.query.filter(
+            cls.status == 'scheduled',
+            cls.scheduled_at < now
+        ).all()
+        
+        for consultation in missed:
+            consultation.status = 'missed'
+            consultation.updated_at = now
+        
+        if missed:
+            db.session.commit()
+            return len(missed)
+        return 0
 
 
 class ConsultationMessage(db.Model):
@@ -199,9 +220,46 @@ class ConsultationMessage(db.Model):
     
     # Relationships
     consultation = db.relationship('Consultation', back_populates='messages')
+
+    def _to_attachment_list(self) -> list:
+        """Build attachment payload expected by Flutter chat clients."""
+        attachment_type = (self.message_type or 'file').lower()
+        if attachment_type == 'attachment':
+            attachment_type = 'file'
+
+        if attachment_type in {'text'} and not self.file_name and not self.file_url:
+            return []
+
+        file_name = self.file_name
+        if not file_name:
+            if attachment_type == 'test_result':
+                test_name = (self.test_type or 'test_result').replace('_', ' ')
+                file_name = f"{test_name}.pdf"
+            elif attachment_type == 'medical_record':
+                file_name = 'medical_record.pdf'
+            elif attachment_type == 'clinical_note':
+                file_name = 'clinical_note.pdf'
+            else:
+                file_name = 'attachment'
+
+        payload = {
+            'id': str(self.id),
+            'file_name': file_name,
+            'url': self.file_url,
+            'type': attachment_type,
+        }
+
+        if self.test_id is not None:
+            payload['linked_entity_id'] = str(self.test_id)
+        if self.test_type:
+            title = self.test_type.replace('_', ' ').title()
+            payload['linked_entity_title'] = title
+
+        return [payload]
     
     def to_dict(self) -> dict:
         """Convert to dictionary"""
+        attachments = self._to_attachment_list()
         return {
             'id': str(self.id),
             'consultation_id': self.consultation_id,
@@ -213,6 +271,7 @@ class ConsultationMessage(db.Model):
             'content': self.content,
             'file_url': self.file_url,
             'file_name': self.file_name,
+            'attachments': attachments,
             'test_type': self.test_type,
             'test_id': self.test_id,
             'is_read': self.is_read,

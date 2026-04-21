@@ -3,7 +3,8 @@ enum ConsultationStatus {
   scheduled,
   pending,
   completed,
-  cancelled;
+  cancelled,
+  missed;
 
   @override
   String toString() {
@@ -16,6 +17,8 @@ enum ConsultationStatus {
         return 'Completed';
       case ConsultationStatus.cancelled:
         return 'Cancelled';
+      case ConsultationStatus.missed:
+        return 'Missed';
     }
   }
 
@@ -29,6 +32,8 @@ enum ConsultationStatus {
         return ConsultationStatus.completed;
       case 'cancelled':
         return ConsultationStatus.cancelled;
+      case 'missed':
+        return ConsultationStatus.missed;
       default:
         return ConsultationStatus.pending;
     }
@@ -69,6 +74,8 @@ enum ConsultationType {
 class Consultation {
   final String id;
   final String doctorName;
+  final String doctorId;
+  final String doctorImage;
   final String date;
   final ConsultationType type;
   final ConsultationStatus status;
@@ -77,6 +84,8 @@ class Consultation {
   const Consultation({
     required this.id,
     required this.doctorName,
+    this.doctorId = '',
+    this.doctorImage = '',
     required this.date,
     required this.type,
     required this.status,
@@ -90,6 +99,13 @@ class Consultation {
       // Support both camelCase (backend to_dict) and snake_case keys
       doctorName:
           json['doctorName'] as String? ?? json['doctor_name'] as String? ?? '',
+      doctorId:
+          (json['doctorId'] as dynamic ?? json['doctor_id'] as dynamic ?? '')
+              .toString(),
+      doctorImage:
+          json['doctorImage'] as String? ??
+          json['doctor_image'] as String? ??
+          '',
       date:
           json['date'] as String? ??
           json['scheduled_datetime'] as String? ??

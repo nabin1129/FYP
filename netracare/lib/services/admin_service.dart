@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/admin/admin_doctor_model.dart';
@@ -449,5 +450,180 @@ class AdminService {
       '${ApiConfig.baseUrl}${ApiConfig.adminUserReportPdfEndpoint(userId)}?days=$days',
     );
     return _get(uri, headers: headers);
+  }
+
+  // ========================================
+  // MEDICAL RECORDS
+  // ========================================
+
+  Future<List<Map<String, dynamic>>> getMedicalRecords({
+    bool includeDeleted = false,
+  }) async {
+    final response = await getMedicalRecordsPaged(
+      includeDeleted: includeDeleted,
+    );
+    return List<Map<String, dynamic>>.from(response['records'] ?? const []);
+  }
+
+  Future<Map<String, dynamic>> getMedicalRecordsPaged({
+    bool includeDeleted = false,
+    String? status,
+    String? recordType,
+    String? query,
+    int? doctorId,
+    int? patientId,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    final headers = await _adminHeaders();
+    final uri =
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.adminMedicalRecordsEndpoint}',
+        ).replace(
+          queryParameters: {
+            'include_deleted': includeDeleted ? 'true' : 'false',
+            'page': page.toString(),
+            'per_page': perPage.toString(),
+            if (status != null && status.isNotEmpty) 'status': status,
+            if (recordType != null && recordType.isNotEmpty)
+              'record_type': recordType,
+            if (query != null && query.trim().isNotEmpty) 'q': query.trim(),
+            if (doctorId != null) 'doctor_id': doctorId.toString(),
+            if (patientId != null) 'patient_id': patientId.toString(),
+          },
+        );
+    final res = await _get(uri, headers: headers);
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
+    if (res.statusCode == 200) {
+      return {
+        'records': List<Map<String, dynamic>>.from(data['records'] ?? const []),
+        'total': data['total'] ?? 0,
+        'page': data['page'] ?? page,
+        'per_page': data['per_page'] ?? perPage,
+        'total_pages': data['total_pages'] ?? 0,
+      };
+    }
+    throw data['message'] as String? ?? 'Failed to fetch medical records';
+  }
+
+  Future<Map<String, dynamic>> getMedicalRecordDetail(int recordId) async {
+    final headers = await _adminHeaders();
+    final res = await _get(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.adminMedicalRecordDetailEndpoint(recordId)}',
+      ),
+      headers: headers,
+    );
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
+    if (res.statusCode == 200) {
+      return data;
+    }
+    throw data['message'] as String? ?? 'Failed to fetch medical record detail';
+  }
+
+  /// Upload a file as an admin and return `{file_url, file_name, file_size, mime_type}`.
+  Future<Map<String, dynamic>> uploadRecordFile({
+    required Uint8List bytes,
+    required String fileName,
+  }) async {
+    final token = await ApiService.getAdminToken();
+    if (token == null || token.isEmpty) {
+      throw 'Admin session expired. Please login again.';
+    }
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}${ApiConfig.adminMedicalRecordUploadEndpoint}',
+    );
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..files.add(
+        http.MultipartFile.fromBytes('file', bytes, filename: fileName),
+      );
+
+    final streamed = await request.send().timeout(_requestTimeout);
+    final response = await http.Response.fromStream(streamed);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode == 200) return data;
+    throw data['message'] as String? ?? 'File upload failed';
+  }
+
+  Future<Map<String, dynamic>> createMedicalRecord(
+    Map<String, dynamic> payload,
+  ) async {
+    final headers = await _adminHeaders();
+    final res = await _post(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.adminMedicalRecordsEndpoint}'),
+      headers: headers,
+      body: jsonEncode(payload),
+    );
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
+    if (res.statusCode == 200 || res.statusCode == 201) {
+      return data;
+    }
+    throw data['message'] as String? ?? 'Failed to create medical record';
+  }
+
+  Future<Map<String, dynamic>> updateMedicalRecord(
+    int recordId,
+    Map<String, dynamic> payload,
+  ) async {
+    final headers = await _adminHeaders();
+    final res = await _put(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.adminMedicalRecordDetailEndpoint(recordId)}',
+      ),
+      headers: headers,
+      body: jsonEncode(payload),
+    );
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
+    if (res.statusCode == 200) {
+      return data;
+    }
+    throw data['message'] as String? ?? 'Failed to update medical record';
+  }
+
+  Future<void> deleteMedicalRecord(int recordId) async {
+    final headers = await _adminHeaders();
+    final res = await _delete(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.adminMedicalRecordDetailEndpoint(recordId)}',
+      ),
+      headers: headers,
+    );
+    if (res.statusCode != 200) {
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      throw data['message'] as String? ?? 'Failed to delete medical record';
+    }
+  }
+
+  Future<void> restoreMedicalRecord(int recordId) async {
+    final headers = await _adminHeaders();
+    final res = await _post(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.adminMedicalRecordDetailEndpoint(recordId)}/restore',
+      ),
+      headers: headers,
+    );
+    if (res.statusCode != 200) {
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      throw data['message'] as String? ?? 'Failed to restore medical record';
+    }
+  }
+
+  Future<void> reassignMedicalRecord({
+    required int recordId,
+    required int doctorId,
+  }) async {
+    final headers = await _adminHeaders();
+    final res = await _post(
+      Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.adminMedicalRecordDetailEndpoint(recordId)}/reassign',
+      ),
+      headers: headers,
+      body: jsonEncode({'doctor_id': doctorId}),
+    );
+    if (res.statusCode != 200) {
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      throw data['message'] as String? ?? 'Failed to reassign medical record';
+    }
   }
 }

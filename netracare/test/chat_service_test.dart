@@ -63,7 +63,7 @@ class FakeChatRepository extends ChatRepository {
     }
 
     return ChatMessage.fromJson({
-      'id': 'server-${fallbackCalls}',
+      'id': 'server-$fallbackCalls',
       'consultation_id': consultationId,
       'sender_type': isDoctor ? 'doctor' : 'patient',
       'content': content,

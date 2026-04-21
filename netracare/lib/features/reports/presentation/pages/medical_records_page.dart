@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
+import 'package:netracare/features/shared/widgets/record_detail_sheet.dart';
 import 'package:netracare/services/api_service.dart';
 import 'package:intl/intl.dart';
 
@@ -17,11 +18,13 @@ class _MedicalRecordsPageState extends State<MedicalRecordsPage>
   List<dynamic> scanReports = [];
   List<dynamic> prescriptions = [];
   List<dynamic> labReports = [];
+  List<dynamic> clinicalNotes = [];
+  List<dynamic> testResults = [];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _loadMedicalRecords();
   }
 
@@ -40,6 +43,8 @@ class _MedicalRecordsPageState extends State<MedicalRecordsPage>
         scanReports = records['scanReports'] ?? [];
         prescriptions = records['prescriptions'] ?? [];
         labReports = records['labReports'] ?? [];
+        clinicalNotes = records['clinicalNotes'] ?? [];
+        testResults = records['testResults'] ?? [];
         isLoading = false;
       });
     } catch (e) {
@@ -50,6 +55,8 @@ class _MedicalRecordsPageState extends State<MedicalRecordsPage>
         scanReports = [];
         prescriptions = [];
         labReports = [];
+        clinicalNotes = [];
+        testResults = [];
         isLoading = false;
         // Don't set errorMessage - just show empty states
       });
@@ -79,10 +86,13 @@ class _MedicalRecordsPageState extends State<MedicalRecordsPage>
           labelColor: AppTheme.categoryBlue,
           unselectedLabelColor: AppTheme.textSecondary,
           indicatorColor: AppTheme.categoryBlue,
+          isScrollable: true,
           tabs: const [
             Tab(text: 'Scan Reports'),
             Tab(text: 'Prescriptions'),
             Tab(text: 'Lab Reports'),
+            Tab(text: 'Clinical Notes'),
+            Tab(text: 'Test Results'),
           ],
         ),
       ),
@@ -94,6 +104,8 @@ class _MedicalRecordsPageState extends State<MedicalRecordsPage>
                 _RecordsList(records: scanReports, type: 'scan'),
                 _RecordsList(records: prescriptions, type: 'prescription'),
                 _RecordsList(records: labReports, type: 'lab'),
+                _RecordsList(records: clinicalNotes, type: 'clinical'),
+                _RecordsList(records: testResults, type: 'test'),
               ],
             ),
     );
@@ -142,6 +154,16 @@ class _RecordsList extends StatelessWidget {
         icon = Icons.biotech;
         title = 'No Lab Reports';
         subtitle = 'Your lab reports will appear here';
+        break;
+      case 'clinical':
+        icon = Icons.assignment;
+        title = 'No Clinical Notes';
+        subtitle = 'Clinical notes from your doctors will appear here';
+        break;
+      case 'test':
+        icon = Icons.science;
+        title = 'No Test Results';
+        subtitle = 'Test results assigned by your doctors will appear here';
         break;
       default:
         icon = Icons.folder_outlined;
@@ -194,7 +216,16 @@ class _MedicalRecordCard extends StatelessWidget {
         : 'Unknown';
 
     final title = record['title'] ?? 'Medical Record';
-    final doctor = record['doctor'] ?? 'N/A';
+    final doctor = record['doctorName'] ?? record['doctor'] ?? 'N/A';
+    final source = (record['source'] ?? 'personal').toString();
+    final category = (record['category'] ?? '').toString();
+    final recordType = (record['record_type'] ?? '').toString();
+    final isFromDoctor = source.startsWith('doctor') || doctor != 'N/A';
+    final detailLabel = _resolveDetailLabel(
+      category: category,
+      recordType: recordType,
+      source: source,
+    );
 
     IconData icon;
     Color iconColor;
@@ -212,6 +243,14 @@ class _MedicalRecordCard extends StatelessWidget {
         icon = Icons.biotech;
         iconColor = const Color(0xFF06B6D4);
         break;
+      case 'clinical':
+        icon = Icons.assignment;
+        iconColor = const Color(0xFF8B5CF6);
+        break;
+      case 'test':
+        icon = Icons.science;
+        iconColor = const Color(0xFF10B981);
+        break;
       default:
         icon = Icons.folder;
         iconColor = AppTheme.textSecondary;
@@ -226,19 +265,19 @@ class _MedicalRecordCard extends StatelessWidget {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          // Navigate to record details
-        },
+        onTap: () => RecordDetailSheet.show(
+          context,
+          Map<String, dynamic>.from(record as Map),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: iconColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: iconColor, size: 24),
               ),
@@ -247,34 +286,131 @@ class _MedicalRecordCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: AppTheme.fontLG,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textDark,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textDark,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (isFromDoctor)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF06B6D4,
+                              ).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'Dr.',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF06B6D4),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Dr. $doctor â€¢ $date',
-                      style: TextStyle(
-                        fontSize: AppTheme.fontSM,
-                        color: AppTheme.textSecondary,
+                    const SizedBox(height: 6),
+                    if (detailLabel != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: iconColor.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          child: Text(
+                            detailLabel,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: iconColor,
+                            ),
+                          ),
+                        ),
                       ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: 14,
+                          color: AppTheme.textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          date,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        if (isFromDoctor) ...[
+                          Icon(
+                            Icons.person,
+                            size: 14,
+                            color: AppTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              'From $doctor',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textSecondary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: AppTheme.textSecondary,
-              ),
+              const SizedBox(width: 12),
+              Icon(Icons.chevron_right, color: AppTheme.border),
             ],
           ),
         ),
       ),
     );
+  }
+
+  String? _resolveDetailLabel({
+    required String category,
+    required String recordType,
+    required String source,
+  }) {
+    final normalizedCategory = category.toLowerCase();
+    final normalizedType = recordType.toLowerCase();
+
+    if (source == 'doctor_consultation') {
+      if (normalizedCategory == 'diagnosis') return 'Diagnosis';
+      if (normalizedType == 'prescription') return 'Prescription';
+      return 'Consultation Note';
+    }
+
+    if (normalizedType == 'clinical_note') return 'Clinical Note';
+    if (normalizedType == 'test_result') return 'Test Result';
+    return null;
   }
 }

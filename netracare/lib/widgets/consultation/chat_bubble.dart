@@ -2,16 +2,21 @@
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/models/consultation/chat_message_model.dart';
 import 'package:netracare/models/consultation/message_delivery_status.dart';
+import 'chat_attachment_widget.dart';
 
 /// Reusable Chat Bubble Widget
 class ChatBubble extends StatelessWidget {
   final ChatMessage message;
 
-  const ChatBubble({super.key, required this.message});
+  /// True when this message was sent by the current viewer (always on the right).
+  /// Falls back to the legacy `user` enum check when not provided.
+  final bool? isMine;
+
+  const ChatBubble({super.key, required this.message, this.isMine});
 
   @override
   Widget build(BuildContext context) {
-    final isUser = message.sender == MessageSender.user;
+    final isUser = isMine ?? (message.sender == MessageSender.user);
     IconData? statusIcon;
     if (isUser) {
       switch (message.status) {
@@ -65,13 +70,31 @@ class ChatBubble extends StatelessWidget {
                     : CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    message.message,
-                    style: TextStyle(
-                      fontSize: AppTheme.fontBody,
-                      color: isUser ? Colors.white : AppTheme.textPrimary,
+                  if (message.message.isNotEmpty)
+                    Text(
+                      message.message,
+                      style: TextStyle(
+                        fontSize: AppTheme.fontBody,
+                        color: isUser ? Colors.white : AppTheme.textPrimary,
+                      ),
                     ),
-                  ),
+                  // Render attachments if present
+                  if (message.attachments != null &&
+                      message.attachments!.isNotEmpty) ...[
+                    if (message.message.isNotEmpty)
+                      const SizedBox(height: AppTheme.spaceSM),
+                    ...message.attachments!.map((attachment) {
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: AppTheme.spaceXS,
+                        ),
+                        child: ChatAttachmentWidget(
+                          attachment: attachment,
+                          isMine: isUser,
+                        ),
+                      );
+                    }),
+                  ],
                   const SizedBox(height: 4),
                   Row(
                     mainAxisSize: MainAxisSize.min,

@@ -65,6 +65,60 @@ def ensure_consultation_schema_migrated() -> None:
             conn.close()
 
 
+def ensure_medical_record_schema_migrated() -> None:
+    """Create the medical_records table when running against an existing SQLite db."""
+    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db.sqlite3')
+
+    if not os.path.exists(db_path):
+        return
+
+    conn = None
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS medical_records (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                doctor_id INTEGER NOT NULL,
+                patient_id INTEGER NOT NULL,
+                record_type VARCHAR(50) NOT NULL,
+                title VARCHAR(255) NOT NULL,
+                description TEXT NOT NULL,
+                category VARCHAR(50) DEFAULT 'general',
+                file_url VARCHAR(500),
+                file_name VARCHAR(255),
+                file_size INTEGER,
+                mime_type VARCHAR(100),
+                status VARCHAR(20) DEFAULT 'active',
+                created_by_id INTEGER NOT NULL,
+                updated_by_id INTEGER,
+                deleted_by_id INTEGER,
+                deleted_at DATETIME,
+                created_at DATETIME,
+                updated_at DATETIME,
+                FOREIGN KEY (doctor_id) REFERENCES doctors(id),
+                FOREIGN KEY (patient_id) REFERENCES user(id),
+                FOREIGN KEY (created_by_id) REFERENCES doctors(id),
+                FOREIGN KEY (updated_by_id) REFERENCES doctors(id),
+                FOREIGN KEY (deleted_by_id) REFERENCES doctors(id)
+            )
+            """
+        )
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_medical_records_doctor_id ON medical_records(doctor_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_medical_records_patient_id ON medical_records(patient_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_medical_records_record_type ON medical_records(record_type)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_medical_records_status ON medical_records(status)")
+
+        conn.commit()
+    except Exception as exc:
+        print(f"Warning: medical record schema migration check failed: {exc}")
+    finally:
+        if conn:
+            conn.close()
+
+
 def ensure_visual_acuity_schema_migrated() -> None:
     """Add the visual acuity variant column if it is missing."""
     db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db.sqlite3')

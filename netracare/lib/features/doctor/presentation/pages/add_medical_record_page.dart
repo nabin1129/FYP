@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:netracare/config/app_theme.dart';
+import 'package:netracare/services/doctor_api_service.dart';
 import 'package:netracare/services/doctor_service.dart';
 import 'package:netracare/models/doctor/medical_record_model.dart';
 
@@ -25,7 +27,13 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
   final _descriptionController = TextEditingController();
 
   bool _isSaving = false;
+  bool _isUploading = false;
+
+  // Populated after a successful file upload
   String? _selectedFileName;
+  String? _uploadedFileUrl;
+  int? _uploadedFileSize;
+  String? _uploadedMimeType;
 
   @override
   void dispose() {
@@ -42,6 +50,8 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
         return Icons.medication;
       case MedicalRecordType.labReport:
         return Icons.science;
+      case MedicalRecordType.testResult:
+        return Icons.science_outlined;
     }
   }
 
@@ -53,22 +63,92 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
         return AppTheme.success;
       case MedicalRecordType.labReport:
         return AppTheme.warning;
+      case MedicalRecordType.testResult:
+        return const Color(0xFF10B981);
     }
   }
 
   Future<void> _pickFile() async {
-    // Simulate file picking
-    setState(() {
-      _selectedFileName =
-          'document_${DateTime.now().millisecondsSinceEpoch}.pdf';
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('File selected successfully'),
-        duration: Duration(seconds: 1),
-      ),
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: [
+        'pdf',
+        'jpg',
+        'jpeg',
+        'png',
+        'gif',
+        'bmp',
+        'tiff',
+        'webp',
+        'doc',
+        'docx',
+      ],
+      withData: true,
     );
+
+    if (result == null || result.files.isEmpty) return;
+    final picked = result.files.first;
+    final bytes = picked.bytes;
+    if (bytes == null) return;
+
+    setState(() => _isUploading = true);
+    try {
+      final meta = await DoctorApiService.uploadRecordFile(
+        bytes: bytes,
+        fileName: picked.name,
+        mimeType: _mimeTypeFromExtension(picked.extension ?? ''),
+      );
+      if (!mounted) return;
+      setState(() {
+        _selectedFileName = meta['file_name'] as String? ?? picked.name;
+        _uploadedFileUrl = meta['file_url'] as String?;
+        _uploadedFileSize = meta['file_size'] as int?;
+        _uploadedMimeType = meta['mime_type'] as String?;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Uploaded: $_selectedFileName'),
+          backgroundColor: AppTheme.success,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Upload failed: $e'),
+          backgroundColor: AppTheme.error,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
+    }
+  }
+
+  String _mimeTypeFromExtension(String ext) {
+    switch (ext.toLowerCase()) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'bmp':
+        return 'image/bmp';
+      case 'webp':
+        return 'image/webp';
+      case 'tiff':
+        return 'image/tiff';
+      case 'doc':
+        return 'application/msword';
+      case 'docx':
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      default:
+        return 'application/octet-stream';
+    }
   }
 
   Future<void> _saveRecord() async {
@@ -77,23 +157,22 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
     setState(() => _isSaving = true);
 
     try {
-      final record = MedicalRecord(
-        id: 'record_${DateTime.now().millisecondsSinceEpoch}',
+      await _doctorService.addMedicalRecordAsync(
         patientId: widget.patientId,
-        type: widget.recordType,
+        recordType: widget.recordType,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
-        date: DateTime.now(),
-        doctorName: 'Dr. Rajesh Kumar Shrestha',
         fileName: _selectedFileName,
+        fileUrl: _uploadedFileUrl,
+        fileSize: _uploadedFileSize,
+        mimeType: _uploadedMimeType,
+        category: 'general',
       );
-
-      _doctorService.addMedicalRecord(record);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${widget.recordType.toString()} added successfully'),
+            content: Text('${widget.recordType.toString()} saved to database'),
             backgroundColor: AppTheme.success,
           ),
         );
@@ -298,7 +377,7 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
               ),
               const SizedBox(height: AppTheme.spaceSM),
               InkWell(
-                onTap: _pickFile,
+                onTap: _isUploading ? null : _pickFile,
                 borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                 child: Container(
                   width: double.infinity,
@@ -307,43 +386,73 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
                     color: AppTheme.surface,
                     borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                     border: Border.all(
-                      color: AppTheme.textLight.withValues(alpha: 0.3),
-                      style: BorderStyle.solid,
+                      color: _selectedFileName != null
+                          ? AppTheme.success.withValues(alpha: 0.5)
+                          : AppTheme.textLight.withValues(alpha: 0.3),
                     ),
                   ),
-                  child: Column(
-                    children: [
-                      Icon(
-                        _selectedFileName != null
-                            ? Icons.check_circle
-                            : Icons.cloud_upload_outlined,
-                        size: 40,
-                        color: _selectedFileName != null
-                            ? AppTheme.success
-                            : AppTheme.textLight,
-                      ),
-                      const SizedBox(height: AppTheme.spaceSM),
-                      Text(
-                        _selectedFileName ?? 'Tap to upload file',
-                        style: TextStyle(
-                          color: _selectedFileName != null
-                              ? AppTheme.textPrimary
-                              : AppTheme.textSecondary,
-                          fontWeight: _selectedFileName != null
-                              ? FontWeight.w500
-                              : FontWeight.normal,
+                  child: _isUploading
+                      ? const Column(
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: AppTheme.spaceSM),
+                            Text(
+                              'Uploading...',
+                              style: TextStyle(color: AppTheme.textSecondary),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          children: [
+                            Icon(
+                              _selectedFileName != null
+                                  ? Icons.check_circle
+                                  : Icons.cloud_upload_outlined,
+                              size: 40,
+                              color: _selectedFileName != null
+                                  ? AppTheme.success
+                                  : AppTheme.textLight,
+                            ),
+                            const SizedBox(height: AppTheme.spaceSM),
+                            Text(
+                              _selectedFileName ?? 'Tap to upload file',
+                              style: TextStyle(
+                                color: _selectedFileName != null
+                                    ? AppTheme.textPrimary
+                                    : AppTheme.textSecondary,
+                                fontWeight: _selectedFileName != null
+                                    ? FontWeight.w500
+                                    : FontWeight.normal,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            if (_selectedFileName == null)
+                              const Text(
+                                'PDF, JPG, PNG, DOC (Max 10 MB)',
+                                style: TextStyle(
+                                  fontSize: AppTheme.fontSM,
+                                  color: AppTheme.textLight,
+                                ),
+                              ),
+                            if (_selectedFileName != null)
+                              TextButton.icon(
+                                onPressed: () => setState(() {
+                                  _selectedFileName = null;
+                                  _uploadedFileUrl = null;
+                                  _uploadedFileSize = null;
+                                  _uploadedMimeType = null;
+                                }),
+                                icon: const Icon(Icons.close, size: 16),
+                                label: const Text('Remove'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppTheme.error,
+                                  padding: EdgeInsets.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                              ),
+                          ],
                         ),
-                      ),
-                      if (_selectedFileName == null)
-                        const Text(
-                          'PDF, JPG, PNG (Max 10MB)',
-                          style: TextStyle(
-                            fontSize: AppTheme.fontSM,
-                            color: AppTheme.textLight,
-                          ),
-                        ),
-                    ],
-                  ),
                 ),
               ),
 
@@ -367,6 +476,8 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
         return 'Eye drops, medications, corrective lenses';
       case MedicalRecordType.labReport:
         return 'Blood tests, diabetic screening, etc.';
+      case MedicalRecordType.testResult:
+        return 'Visual acuity, colour vision, blink fatigue, and related test outputs';
     }
   }
 
@@ -378,6 +489,8 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
         return 'e.g., Eye Drops Prescription';
       case MedicalRecordType.labReport:
         return 'e.g., Blood Sugar Test';
+      case MedicalRecordType.testResult:
+        return 'e.g., Visual Acuity Test Result';
     }
   }
 
@@ -389,6 +502,8 @@ class _AddMedicalRecordPageState extends State<AddMedicalRecordPage> {
         return 'Enter medication details, dosage, and duration...';
       case MedicalRecordType.labReport:
         return 'Enter test results and values...';
+      case MedicalRecordType.testResult:
+        return 'Enter test metrics, interpretation, and recommendations...';
     }
   }
 

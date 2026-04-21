@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/config/api_config.dart';
+import 'package:netracare/features/shared/widgets/record_detail_sheet.dart';
 import 'package:netracare/services/doctor_service.dart';
 import 'package:netracare/services/doctor_api_service.dart';
 import 'package:netracare/models/doctor/patient_model.dart';
@@ -86,13 +87,21 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                     List<Map<String, dynamic>>.from(value as List),
                   ),
                 );
-                _medicalRecords = _doctorService.getMedicalRecords(
-                  widget.patientId,
-                );
-                _clinicalNotes = _doctorService.getClinicalNotes(
-                  widget.patientId,
-                );
                 _isLoading = false;
+              });
+            }
+
+            final medicalRecords = await _doctorService.getMedicalRecordsAsync(
+              widget.patientId,
+            );
+            final clinicalNotes = await _doctorService.getClinicalNotesAsync(
+              widget.patientId,
+            );
+
+            if (mounted) {
+              setState(() {
+                _medicalRecords = medicalRecords;
+                _clinicalNotes = clinicalNotes;
               });
             }
             return;
@@ -107,9 +116,21 @@ class _PatientDetailPageState extends State<PatientDetailPage>
     if (mounted) {
       setState(() {
         _patient = _doctorService.getPatientById(widget.patientId);
-        _medicalRecords = _doctorService.getMedicalRecords(widget.patientId);
-        _clinicalNotes = _doctorService.getClinicalNotes(widget.patientId);
         _isLoading = false;
+      });
+    }
+
+    final medicalRecords = await _doctorService.getMedicalRecordsAsync(
+      widget.patientId,
+    );
+    final clinicalNotes = await _doctorService.getClinicalNotesAsync(
+      widget.patientId,
+    );
+
+    if (mounted) {
+      setState(() {
+        _medicalRecords = medicalRecords;
+        _clinicalNotes = clinicalNotes;
       });
     }
   }
@@ -1086,71 +1107,73 @@ class _PatientDetailPageState extends State<PatientDetailPage>
         icon = Icons.science;
         iconColor = AppTheme.warning;
         break;
+      case MedicalRecordType.testResult:
+        icon = Icons.science_outlined;
+        iconColor = const Color(0xFF10B981);
+        break;
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.spaceSM),
-      padding: const EdgeInsets.all(AppTheme.spaceMD),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        boxShadow: AppTheme.cardShadow,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-            ),
-            child: Icon(icon, color: iconColor, size: 22),
+        onTap: () => RecordDetailSheet.show(context, record.toDetailMap()),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: AppTheme.spaceSM),
+          padding: const EdgeInsets.all(AppTheme.spaceMD),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+            boxShadow: AppTheme.cardShadow,
           ),
-          const SizedBox(width: AppTheme.spaceMD),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  record.title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
-                  ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  record.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: AppTheme.fontSM,
-                    color: AppTheme.textSecondary,
-                  ),
+                child: Icon(icon, color: iconColor, size: 22),
+              ),
+              const SizedBox(width: AppTheme.spaceMD),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      record.title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      record.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: AppTheme.fontSM,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${record.formattedDate} • ${record.doctorName ?? 'Unknown'}',
+                      style: const TextStyle(
+                        fontSize: AppTheme.fontXS,
+                        color: AppTheme.textLight,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${record.formattedDate} • ${record.doctorName ?? 'Unknown'}',
-                  style: const TextStyle(
-                    fontSize: AppTheme.fontXS,
-                    color: AppTheme.textLight,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              const Icon(Icons.chevron_right, color: AppTheme.border, size: 20),
+            ],
           ),
-          if (record.fileName != null)
-            IconButton(
-              icon: const Icon(Icons.download, color: AppTheme.primary),
-              onPressed: () {
-                // Download file
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Downloading file...')),
-                );
-              },
-            ),
-        ],
+        ),
       ),
     );
   }

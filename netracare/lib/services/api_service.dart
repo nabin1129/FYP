@@ -749,23 +749,85 @@ class ApiService {
   // HEALTH DATA ENDPOINTS
   // =========================
 
-  /// Get user's medical records (for future implementation)
+  /// Get user's medical records (user + doctor-assigned combined)
   static Future<Map<String, dynamic>> getMedicalRecords() async {
     final token = await getToken();
     if (token == null) throw Exception('No authentication token found');
 
-    final response = await _get(
-      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.medicalRecordsEndpoint}'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
+    // Initialize with empty records
+    Map<String, dynamic> allRecords = {
+      'scanReports': [],
+      'prescriptions': [],
+      'labReports': [],
+      'clinicalNotes': [],
+      'testResults': [],
+      'all': [],
+    };
 
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else if (response.statusCode == 401) {
-      throw Exception('Session expired');
-    } else {
-      throw Exception('Failed to load medical records');
+    try {
+      // Try to fetch the database-backed patient medical records first
+      final userResponse = await _get(
+        Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.patientMedicalRecordsEndpoint}',
+        ),
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(_requestTimeout);
+
+      if (userResponse.statusCode == 200) {
+        final userData = jsonDecode(userResponse.body) as Map<String, dynamic>;
+        allRecords['scanReports'] = List.from(userData['scanReports'] ?? []);
+        allRecords['prescriptions'] = List.from(
+          userData['prescriptions'] ?? [],
+        );
+        allRecords['labReports'] = List.from(userData['labReports'] ?? []);
+        allRecords['clinicalNotes'] = List.from(
+          userData['clinicalNotes'] ?? [],
+        );
+        allRecords['testResults'] = List.from(userData['testResults'] ?? []);
+        allRecords['all'] = List.from(userData['all'] ?? []);
+      }
+    } catch (e) {
+      // Patient records endpoint may not exist yet, continue with legacy endpoints
     }
+
+    try {
+      // Fetch doctor-assigned records (medical records, clinical notes, test results)
+      final doctorResponse = await _get(
+        Uri.parse('${ApiConfig.baseUrl}/api/consultations/assigned-records'),
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(_requestTimeout);
+
+      if (doctorResponse.statusCode == 200) {
+        final doctorData =
+            jsonDecode(doctorResponse.body) as Map<String, dynamic>;
+        // Merge doctor records
+        final List<dynamic> doctorScanReports = List.from(
+          doctorData['scanReports'] ?? [],
+        );
+        final List<dynamic> doctorPrescriptions = List.from(
+          doctorData['prescriptions'] ?? [],
+        );
+        final List<dynamic> doctorLabReports = List.from(
+          doctorData['labReports'] ?? [],
+        );
+        final List<dynamic> doctorClinicalNotes = List.from(
+          doctorData['clinicalNotes'] ?? [],
+        );
+        final List<dynamic> doctorTestResults = List.from(
+          doctorData['testResults'] ?? [],
+        );
+
+        (allRecords['scanReports'] as List).addAll(doctorScanReports);
+        (allRecords['prescriptions'] as List).addAll(doctorPrescriptions);
+        (allRecords['labReports'] as List).addAll(doctorLabReports);
+        (allRecords['clinicalNotes'] as List).addAll(doctorClinicalNotes);
+        (allRecords['testResults'] as List).addAll(doctorTestResults);
+      }
+    } catch (e) {
+      // Doctor records endpoint may not be available
+    }
+
+    return allRecords;
   }
 
   // =========================

@@ -30,14 +30,21 @@ class _NotificationPanelState extends State<NotificationPanel>
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-    _notifications = _service.notifications;
+    _notifications = _filterNotifications(_service.notifications);
     _subscription = _service.notificationStream.listen((list) {
       if (mounted) {
-        setState(() => _notifications = list);
+        setState(() => _notifications = _filterNotifications(list));
         _staggerController.forward(from: 0);
       }
     });
     _refresh();
+  }
+
+  List<AppNotification> _filterNotifications(
+    List<AppNotification> notifications,
+  ) {
+    // Exclude message notifications - they now appear as badge on chat icon
+    return notifications.where((n) => n.type != 'new_message').toList();
   }
 
   Future<void> _refresh() async {
@@ -72,6 +79,8 @@ class _NotificationPanelState extends State<NotificationPanel>
 
   void _onTap(AppNotification notification) {
     if (!notification.isRead) {
+      // Fire-and-forget: mark as read in background
+      // The stream listener will update the badge automatically
       _service.markAsRead(notification.id);
     }
 

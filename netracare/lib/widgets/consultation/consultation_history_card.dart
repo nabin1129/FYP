@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/models/consultation/consultation_model.dart';
+import 'package:netracare/features/chat/presentation/pages/realtime_chat_page.dart';
 
 /// Reusable Consultation History Card Widget
 class ConsultationHistoryCard extends StatelessWidget {
@@ -110,7 +111,38 @@ class ConsultationHistoryCard extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: AppTheme.spaceMD),
+          // Chat Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _openChat(context),
+              icon: const Icon(Icons.chat_bubble_outline, size: 18),
+              label: const Text('Chat with Doctor'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  void _openChat(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RealtimeChatPage(
+          title: consultation.doctorName,
+          subtitle: 'Chat',
+          isDoctor: false,
+          consultationId: int.tryParse(consultation.id),
+          doctorId: int.tryParse(consultation.doctorId),
+          avatarUrl: consultation.doctorImage,
+        ),
       ),
     );
   }
@@ -124,6 +156,8 @@ class ConsultationHistoryCard extends StatelessWidget {
       case ConsultationStatus.pending:
         return AppTheme.warning;
       case ConsultationStatus.cancelled:
+        return AppTheme.error;
+      case ConsultationStatus.missed:
         return AppTheme.error;
     }
   }

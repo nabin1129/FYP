@@ -9,6 +9,7 @@ from db_model import db
 # Import all models
 from .doctor import Doctor, DoctorPatient
 from .consultation import Consultation, ConsultationMessage, DoctorSlot
+from .medical_record import MedicalRecord
 from .notification import Notification
 
 __all__ = [
@@ -18,6 +19,7 @@ __all__ = [
     'DoctorSlot',
     'Consultation',
     'ConsultationMessage',
+    'MedicalRecord',
     'Notification',
 ]
 

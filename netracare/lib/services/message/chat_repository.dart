@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../../config/api_config.dart';
 import '../../models/consultation/chat_message_model.dart';
+import '../../models/consultation/attachment_model.dart';
 import '../doctor_api_service.dart';
 
 class ChatRepository {
@@ -121,7 +122,50 @@ class ChatRepository {
     return ChatMessage.fromJson(response);
   }
 
+  Future<ChatMessage> sendFallbackWithAttachments({
+    required bool isDoctor,
+    required int consultationId,
+    required String? content,
+    required List<Attachment> attachments,
+  }) async {
+    await DoctorApiService.sendChatMessageWithAttachments(
+      isDoctor: isDoctor,
+      consultationId: consultationId,
+      message: content,
+      attachments: attachments.map((a) => a.toJson()).toList(),
+    );
+
+    // Return an optimistic message since the API doesn't return the full message
+    return ChatMessage(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      sender: isDoctor ? MessageSender.doctor : MessageSender.user,
+      message: content ?? 'Shared documents',
+      time: DateTime.now().toString(),
+      createdAt: DateTime.now(),
+      attachments: attachments,
+    );
+  }
+
   Future<String?> getSocketToken({required bool isDoctor}) {
     return _token(isDoctor: isDoctor);
+  }
+
+  Future<String?> getFirebaseCustomToken({
+    required bool isDoctor,
+    required int consultationId,
+  }) async {
+    final headers = await _headers(isDoctor: isDoctor);
+    final response = await _post(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.chatFirebaseTokenEndpoint}'),
+      headers: headers,
+      body: jsonEncode({'consultation_id': consultationId}),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      return null;
+    }
+
+    final payload = jsonDecode(response.body) as Map<String, dynamic>;
+    return payload['firebase_custom_token']?.toString();
   }
 }

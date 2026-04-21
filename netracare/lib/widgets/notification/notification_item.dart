@@ -70,12 +70,12 @@ class NotificationItem extends StatelessWidget {
           decoration: BoxDecoration(
             color: notification.isRead
                 ? AppTheme.surface
-                : _accentColor.withValues(alpha: 0.05),
+                : AppTheme.info.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             border: Border.all(
               color: notification.isRead
                   ? AppTheme.border
-                  : _accentColor.withValues(alpha: 0.15),
+                  : AppTheme.info.withValues(alpha: 0.2),
             ),
           ),
           child: Row(

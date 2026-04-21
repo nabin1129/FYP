@@ -94,3 +94,7 @@ Images/cache/
 *.aux
 *.out
 *.toc
+
+# ── Root-level XML Debug Dumps ───────────────────────────────────────────────
+/report_*.xml
+/window_dump*.xml

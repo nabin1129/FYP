@@ -26,6 +26,14 @@ def register_web_routes(app) -> None:
             return send_from_directory(str(dataset_path), filename)
         return {"error": "Dataset not found"}, 404
 
+    @app.route("/uploads/medical_records/<path:filename>")
+    def serve_medical_record_file(filename):
+        """Serve uploaded medical record files."""
+        upload_dir = backend_dir / "uploads" / "medical_records"
+        if not upload_dir.exists():
+            return {"error": "Upload directory not found"}, 404
+        return send_from_directory(str(upload_dir), filename)
+
     @app.route("/")
     def home():
         """Home page placeholder."""

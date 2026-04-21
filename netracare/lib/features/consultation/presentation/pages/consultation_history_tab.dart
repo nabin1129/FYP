@@ -60,6 +60,9 @@ class ConsultationHistoryTab extends StatelessWidget {
     final completed = consultations
         .where((c) => c.status == ConsultationStatus.completed)
         .toList();
+    final missed = consultations
+        .where((c) => c.status == ConsultationStatus.missed)
+        .toList();
 
     return ListView(
       padding: const EdgeInsets.all(AppTheme.spaceMD),
@@ -90,6 +93,20 @@ class ConsultationHistoryTab extends StatelessWidget {
           ),
           const SizedBox(height: AppTheme.spaceSM),
           ...pending.map((c) => ConsultationHistoryCard(consultation: c)),
+          const SizedBox(height: AppTheme.spaceMD),
+        ],
+        // Missed Consultations
+        if (missed.isNotEmpty) ...[
+          const Text(
+            'Missed',
+            style: TextStyle(
+              fontSize: AppTheme.fontLG,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.error,
+            ),
+          ),
+          const SizedBox(height: AppTheme.spaceSM),
+          ...missed.map((c) => ConsultationHistoryCard(consultation: c)),
           const SizedBox(height: AppTheme.spaceMD),
         ],
         // Completed Consultations

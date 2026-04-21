@@ -59,12 +59,32 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
 
   void _categorizeRequests(List<ConsultationRequest> allRequests) {
     setState(() {
-      _activeConsultations = allRequests
-          .where((r) => r.status == RequestStatus.accepted)
-          .toList();
-      _completedConsultations = allRequests
-          .where((r) => r.status == RequestStatus.completed)
-          .toList();
+      // Deduplicate by patientId - keep only the latest consultation per patient
+      final activeByPatient = <String, ConsultationRequest>{};
+      final completedByPatient = <String, ConsultationRequest>{};
+
+      for (final req in allRequests) {
+        if (req.status == RequestStatus.accepted) {
+          // Keep the latest (most recent) active consultation for each patient
+          if (!activeByPatient.containsKey(req.patientId) ||
+              req.requestedAt.isAfter(
+                activeByPatient[req.patientId]!.requestedAt,
+              )) {
+            activeByPatient[req.patientId] = req;
+          }
+        } else if (req.status == RequestStatus.completed) {
+          // Keep the latest completed consultation for each patient
+          if (!completedByPatient.containsKey(req.patientId) ||
+              req.requestedAt.isAfter(
+                completedByPatient[req.patientId]!.requestedAt,
+              )) {
+            completedByPatient[req.patientId] = req;
+          }
+        }
+      }
+
+      _activeConsultations = activeByPatient.values.toList();
+      _completedConsultations = completedByPatient.values.toList();
       _isLoading = false;
     });
   }
@@ -250,7 +270,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                           emptySubtitle:
                               'Completed consultations will appear here.',
                           emptyIcon: Icons.history,
-                          showActions: false,
+                          showActions: true,
                         ),
                       ),
                     ],
@@ -417,19 +437,22 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
             const SizedBox(height: AppTheme.spaceMD),
             Row(
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _completeConsultation(consultation),
-                    icon: const Icon(Icons.check_circle_outline, size: 18),
-                    label: const Text('Mark Completed'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.success,
-                      side: const BorderSide(color: AppTheme.success),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                // Show Mark Completed button only for active (accepted) consultations
+                if (consultation.status == RequestStatus.accepted) ...[
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _completeConsultation(consultation),
+                      icon: const Icon(Icons.check_circle_outline, size: 18),
+                      label: const Text('Mark Completed'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.success,
+                        side: const BorderSide(color: AppTheme.success),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: AppTheme.spaceMD),
+                  const SizedBox(width: AppTheme.spaceMD),
+                ],
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () => _openChat(consultation),

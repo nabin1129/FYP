@@ -41,12 +41,32 @@ class _DoctorChatOverviewPageState extends State<DoctorChatOverviewPage> {
 
   void _categorizeRequests(List<ConsultationRequest> allRequests) {
     setState(() {
-      _activeConsultations = allRequests
-          .where((r) => r.status == RequestStatus.accepted)
-          .toList();
-      _completedConsultations = allRequests
-          .where((r) => r.status == RequestStatus.completed)
-          .toList();
+      // Deduplicate by patientId - keep only the latest consultation per patient
+      final activeByPatient = <String, ConsultationRequest>{};
+      final completedByPatient = <String, ConsultationRequest>{};
+
+      for (final req in allRequests) {
+        if (req.status == RequestStatus.accepted) {
+          // Keep the latest (most recent) active consultation for each patient
+          if (!activeByPatient.containsKey(req.patientId) ||
+              req.requestedAt.isAfter(
+                activeByPatient[req.patientId]!.requestedAt,
+              )) {
+            activeByPatient[req.patientId] = req;
+          }
+        } else if (req.status == RequestStatus.completed) {
+          // Keep the latest completed consultation for each patient
+          if (!completedByPatient.containsKey(req.patientId) ||
+              req.requestedAt.isAfter(
+                completedByPatient[req.patientId]!.requestedAt,
+              )) {
+            completedByPatient[req.patientId] = req;
+          }
+        }
+      }
+
+      _activeConsultations = activeByPatient.values.toList();
+      _completedConsultations = completedByPatient.values.toList();
       _isLoading = false;
     });
   }

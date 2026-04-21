@@ -4,6 +4,7 @@ import 'package:netracare/features/tests/tests.dart';
 import 'package:netracare/services/api_service.dart';
 import 'package:netracare/models/consultation/consultation_model.dart';
 import 'package:netracare/services/consultation_service.dart';
+import 'package:netracare/services/doctor_api_service.dart';
 import 'package:netracare/services/notification_service.dart';
 import 'package:netracare/widgets/notification/notification_bell.dart';
 import 'package:netracare/features/consultation/consultation.dart';
@@ -24,6 +25,7 @@ class _DashboardPageState extends State<DashboardPage> {
   int _eyeHealthScore = 0;
   int _pendingTests = 3;
   bool _eyeHealthLoading = true;
+  int _unreadMessageCount = 0;
 
   final ConsultationService _consultationService = ConsultationService();
   final NotificationService _notificationService = NotificationService();
@@ -39,11 +41,53 @@ class _DashboardPageState extends State<DashboardPage> {
       _loadNextConsultation(),
       _loadNotificationCount(),
       _loadEyeHealthSummary(),
+      _loadUnreadMessageCount(),
     ]);
 
     // Initialize notification polling for user role
     _notificationService.setRole(NotificationRole.user);
     _notificationService.initialize();
+  }
+
+  Future<void> _loadUnreadMessageCount() async {
+    try {
+      final consultations = await _consultationService
+          .getAllConsultationsAsync();
+      int unreadCount = 0;
+
+      for (final consultation in consultations) {
+        // Only check consultations that are scheduled or pending (active)
+        if (consultation.status == ConsultationStatus.scheduled ||
+            consultation.status == ConsultationStatus.pending) {
+          try {
+            // Fetch messages for this consultation
+            final messages = await DoctorApiService.getConsultationMessages(
+              consultationId: consultation.id,
+            );
+
+            // Count unread messages from doctor (messages not read by patient)
+            for (final msg in messages) {
+              final isRead = msg['is_read'] ?? false;
+              final senderType =
+                  msg['sender_type'] ?? msg['isFromDoctor'] ?? false;
+
+              // Count unread messages from doctor
+              if (!isRead && senderType == 'doctor') {
+                unreadCount++;
+              }
+            }
+          } catch (_) {
+            // Skip consultations where we can't fetch messages
+          }
+        }
+      }
+
+      if (mounted) {
+        setState(() => _unreadMessageCount = unreadCount);
+      }
+    } catch (_) {
+      // Ignore errors
+    }
   }
 
   Future<void> _loadNextConsultation() async {
@@ -170,15 +214,45 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       actions: [
         const NotificationBell(),
-        IconButton(
-          icon: const Icon(Icons.chat_bubble_outline),
-          tooltip: 'Chat',
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const DoctorConsultationPage()),
-            );
-          },
+        Stack(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.chat_bubble_outline),
+              tooltip: 'Chat',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const DoctorConsultationPage(),
+                  ),
+                ).then((_) => _loadUnreadMessageCount());
+              },
+            ),
+            if (_unreadMessageCount > 0)
+              Positioned(
+                right: 2,
+                top: 2,
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: AppTheme.error,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppTheme.surface, width: 2),
+                  ),
+                  child: Center(
+                    child: Text(
+                      _unreadMessageCount > 9 ? '9+' : '$_unreadMessageCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
         Padding(
           padding: const EdgeInsets.only(right: 16),

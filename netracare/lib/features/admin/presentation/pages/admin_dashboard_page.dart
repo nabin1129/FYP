@@ -4,6 +4,7 @@ import 'package:netracare/services/admin_service.dart';
 import 'admin_analytics_page.dart';
 import 'admin_doctors_page.dart';
 import 'admin_notifications_page.dart';
+import 'admin_medical_records_page.dart';
 import 'admin_users_page.dart';
 
 /// Admin Dashboard — Page 1: Overview with stats & quick navigation
@@ -396,6 +397,23 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 onTap: () => _goToNotifications(),
               ),
             ),
+          ],
+        ),
+        const SizedBox(height: AppTheme.spaceSM),
+        Row(
+          children: [
+            Expanded(
+              child: _buildNavCard(
+                title: 'Medical Records',
+                subtitle: 'View and manage records',
+                icon: Icons.folder_shared_outlined,
+                color: const Color(0xFF8B5CF6),
+                bgColor: const Color(0xFFF3E8FF),
+                onTap: () => _goToMedicalRecords(),
+              ),
+            ),
+            const SizedBox(width: AppTheme.spaceSM),
+            const Expanded(child: SizedBox()),
           ],
         ),
       ],
@@ -817,6 +835,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const AdminNotificationsPage()),
+    ).then((_) => _loadData());
+  }
+
+  void _goToMedicalRecords() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AdminMedicalRecordsPage()),
     ).then((_) => _loadData());
   }
 

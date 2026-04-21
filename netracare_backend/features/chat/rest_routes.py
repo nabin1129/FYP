@@ -9,6 +9,7 @@ from db_model import db
 from models.consultation import ConsultationMessage
 
 from .auth import ChatAuthError, extract_bearer_from_request, resolve_actor_from_token
+from .firebase_auth import create_chat_firebase_custom_token, firebase_uid_for_actor
 from .service import (
     ChatServiceError,
     consultation_room_id,
@@ -107,3 +108,51 @@ class ChatHistoryResource(Resource):
             return {"message": str(exc)}, 403
         except Exception as exc:
             return {"message": f"Failed to load history: {str(exc)}"}, 500
+
+
+firebase_token_request_model = chat_ns.model(
+    "ChatFirebaseTokenRequest",
+    {
+        "consultation_id": fields.Integer(required=True, description="Consultation id"),
+    },
+)
+
+
+@chat_ns.route("/firebase/token")
+class ChatFirebaseTokenResource(Resource):
+    """Issue scoped Firebase custom token for chat history access."""
+
+    @chat_ns.doc(security="Bearer")
+    @chat_ns.expect(firebase_token_request_model)
+    def post(self):
+        try:
+            actor = resolve_actor_from_token(extract_bearer_from_request())
+            if actor.role not in {"doctor", "patient"}:
+                return {"message": "Only doctor/patient chat actors are allowed"}, 403
+
+            data = request.get_json() or {}
+            consultation_id = int(data.get("consultation_id") or 0)
+            if not consultation_id:
+                return {"message": "consultation_id is required"}, 400
+
+            consultation = ensure_consultation_access(actor, consultation_id)
+            custom_token = create_chat_firebase_custom_token(actor, consultation.id)
+            if not custom_token:
+                return {
+                    "message": "Firebase chat auth is not configured on server"
+                }, 503
+
+            return {
+                "firebase_custom_token": custom_token,
+                "uid": firebase_uid_for_actor(actor),
+                "consultation_id": consultation.id,
+                "role": actor.role,
+            }, 200
+        except ChatAuthError as exc:
+            return {"message": str(exc)}, 401
+        except ChatServiceError as exc:
+            return {"message": str(exc)}, 403
+        except (TypeError, ValueError):
+            return {"message": "consultation_id must be an integer"}, 400
+        except Exception as exc:
+            return {"message": f"Failed to generate Firebase token: {str(exc)}"}, 500

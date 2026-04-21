@@ -111,6 +111,7 @@ def register_chat_socket_events(socketio: SocketIO) -> None:
                 consultation,
                 content=(data or {}).get("content", ""),
                 message_type=(data or {}).get("message_type", "text"),
+                attachments=(data or {}).get("attachments") or [],
             )
 
             room_id = consultation_room_id(consultation.id)

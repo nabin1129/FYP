@@ -133,6 +133,22 @@ class ApiConfig {
 
   // Doctor's Patient Management
   static const String doctorPatientsEndpoint = '/api/doctors/patients';
+  static const String doctorMedicalRecordsEndpoint =
+      '/api/medical-records/doctor';
+  static const String patientMedicalRecordsEndpoint =
+      '/api/medical-records/patient';
+  static const String adminMedicalRecordsEndpoint =
+      '/api/medical-records/admin';
+  static const String medicalRecordUploadEndpoint =
+      '/api/medical-records/upload';
+  static const String adminMedicalRecordUploadEndpoint =
+      '/api/medical-records/admin/upload';
+
+  static String doctorMedicalRecordDetailEndpoint(int recordId) =>
+      '/api/medical-records/doctor/$recordId';
+
+  static String adminMedicalRecordDetailEndpoint(int recordId) =>
+      '/api/medical-records/admin/$recordId';
 
   // Consultations
   static const String bookConsultationEndpoint = '/api/consultations/book';
@@ -282,6 +298,7 @@ class ApiConfig {
   // Chat
   // ========================================
   static const String chatRoomsEndpoint = '/api/chat/rooms';
+  static const String chatFirebaseTokenEndpoint = '/api/chat/firebase/token';
 
   static String chatRoomMessagesEndpoint(int consultationId) =>
       '/api/chat/rooms/$consultationId/messages';

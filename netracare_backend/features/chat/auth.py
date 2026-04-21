@@ -45,6 +45,9 @@ def resolve_actor_from_token(token: str) -> ChatActor:
     except jwt.InvalidTokenError as exc:
         raise ChatAuthError("Invalid token") from exc
 
+    if payload.get("type") == "admin":
+        raise ChatAuthError("Admin tokens are not allowed for chat")
+
     if payload.get("type") == "doctor":
         doctor_id = payload.get("doctor_id")
         if not doctor_id:
@@ -58,7 +61,12 @@ def resolve_actor_from_token(token: str) -> ChatActor:
     if not user_id:
         raise ChatAuthError("Invalid user token")
 
-    user = db.session.get(User, int(user_id))
+    try:
+        user_id_int = int(user_id)
+    except (TypeError, ValueError) as exc:
+        raise ChatAuthError("Invalid user token") from exc
+
+    user = db.session.get(User, user_id_int)
     if not user:
         raise ChatAuthError("User not found")
 
