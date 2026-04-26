@@ -65,27 +65,29 @@ class _MedicalRecordsPageState extends State<MedicalRecordsPage>
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.textDark),
+          icon: Icon(Icons.arrow_back, color: colors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Medical Records',
           style: TextStyle(
-            color: AppTheme.textDark,
+            color: colors.textPrimary,
             fontWeight: FontWeight.w600,
           ),
         ),
         bottom: TabBar(
           controller: _tabController,
-          labelColor: AppTheme.categoryBlue,
-          unselectedLabelColor: AppTheme.textSecondary,
-          indicatorColor: AppTheme.categoryBlue,
+          labelColor: colors.primary,
+          unselectedLabelColor: colors.textSecondary,
+          indicatorColor: colors.primary,
           isScrollable: true,
           tabs: const [
             Tab(text: 'Scan Reports'),
@@ -97,7 +99,7 @@ class _MedicalRecordsPageState extends State<MedicalRecordsPage>
         ),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(color: colors.primary))
           : TabBarView(
               controller: _tabController,
               children: [
@@ -120,8 +122,10 @@ class _RecordsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     if (records.isEmpty) {
-      return _buildEmptyView();
+      return _buildEmptyView(colors);
     }
 
     return ListView.builder(
@@ -134,7 +138,7 @@ class _RecordsList extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyView() {
+  Widget _buildEmptyView(AppColors colors) {
     IconData icon;
     String title;
     String subtitle;
@@ -177,14 +181,14 @@ class _RecordsList extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 80, color: AppTheme.border),
+            Icon(icon, size: 80, color: colors.border),
             const SizedBox(height: 16),
             Text(
               title,
               style: TextStyle(
                 fontSize: AppTheme.fontXL,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
             const SizedBox(height: 8),
@@ -192,7 +196,7 @@ class _RecordsList extends StatelessWidget {
               subtitle,
               style: TextStyle(
                 fontSize: AppTheme.fontBody,
-                color: Colors.grey.shade500,
+                color: colors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -211,6 +215,8 @@ class _MedicalRecordCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     final date = record['date'] != null
         ? DateFormat('MMM dd, yyyy').format(DateTime.parse(record['date']))
         : 'Unknown';
@@ -233,27 +239,27 @@ class _MedicalRecordCard extends StatelessWidget {
     switch (type) {
       case 'scan':
         icon = Icons.medical_services;
-        iconColor = AppTheme.error;
+        iconColor = colors.error;
         break;
       case 'prescription':
         icon = Icons.receipt_long;
-        iconColor = AppTheme.categoryPurple;
+        iconColor = colors.categoryPurple;
         break;
       case 'lab':
         icon = Icons.biotech;
-        iconColor = const Color(0xFF06B6D4);
+        iconColor = colors.info;
         break;
       case 'clinical':
         icon = Icons.assignment;
-        iconColor = const Color(0xFF8B5CF6);
+        iconColor = colors.categoryIndigo;
         break;
       case 'test':
         icon = Icons.science;
-        iconColor = const Color(0xFF10B981);
+        iconColor = colors.success;
         break;
       default:
         icon = Icons.folder;
-        iconColor = AppTheme.textSecondary;
+        iconColor = colors.textSecondary;
     }
 
     return Card(
@@ -261,7 +267,7 @@ class _MedicalRecordCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: AppTheme.border),
+        side: BorderSide(color: colors.border),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -291,10 +297,10 @@ class _MedicalRecordCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: AppTheme.textDark,
+                              color: colors.textPrimary,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -307,17 +313,15 @@ class _MedicalRecordCard extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(
-                                0xFF06B6D4,
-                              ).withValues(alpha: 0.1),
+                              color: colors.info.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Dr.',
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFF06B6D4),
+                                color: colors.info,
                               ),
                             ),
                           ),
@@ -351,14 +355,14 @@ class _MedicalRecordCard extends StatelessWidget {
                         Icon(
                           Icons.calendar_today,
                           size: 14,
-                          color: AppTheme.textSecondary,
+                          color: colors.textSecondary,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           date,
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppTheme.textSecondary,
+                            color: colors.textSecondary,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -366,7 +370,7 @@ class _MedicalRecordCard extends StatelessWidget {
                           Icon(
                             Icons.person,
                             size: 14,
-                            color: AppTheme.textSecondary,
+                            color: colors.textSecondary,
                           ),
                           const SizedBox(width: 4),
                           Expanded(
@@ -374,7 +378,7 @@ class _MedicalRecordCard extends StatelessWidget {
                               'From $doctor',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: AppTheme.textSecondary,
+                                color: colors.textSecondary,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -387,7 +391,7 @@ class _MedicalRecordCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Icon(Icons.chevron_right, color: AppTheme.border),
+              Icon(Icons.chevron_right, color: colors.border),
             ],
           ),
         ),

@@ -11,13 +11,16 @@ class ConsultationHistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.spaceMD),
       padding: const EdgeInsets.all(AppTheme.spaceMD),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: colors.medicalTestSurface,
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        boxShadow: AppTheme.cardShadow,
+        border: Border.all(color: colors.border),
+        boxShadow: AppTheme.adaptiveCardShadow(context),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,18 +35,18 @@ class ConsultationHistoryCard extends StatelessWidget {
                   children: [
                     Text(
                       consultation.doctorName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: AppTheme.fontLG,
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.textPrimary,
+                        color: colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: AppTheme.spaceXS),
                     Text(
                       consultation.date,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: AppTheme.fontSM,
-                        color: AppTheme.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                   ],
@@ -80,15 +83,15 @@ class ConsultationHistoryCard extends StatelessWidget {
                     ? Icons.local_hospital_outlined
                     : Icons.chat_bubble_outline,
                 size: 16,
-                color: AppTheme.textLight,
+                color: colors.textLight,
               ),
               const SizedBox(width: 4),
               Flexible(
                 child: Text(
                   consultation.type.toString(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: AppTheme.fontSM,
-                    color: AppTheme.textSecondary,
+                    color: colors.textSecondary,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -100,14 +103,14 @@ class ConsultationHistoryCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppTheme.spaceSM),
             decoration: BoxDecoration(
-              color: AppTheme.surfaceLight,
+              color: colors.medicalTestSurfaceMuted,
               borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
             ),
             child: Text(
               consultation.notes,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: AppTheme.fontSM,
-                color: AppTheme.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
           ),
@@ -120,8 +123,8 @@ class ConsultationHistoryCard extends StatelessWidget {
               icon: const Icon(Icons.chat_bubble_outline, size: 18),
               label: const Text('Chat with Doctor'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
-                foregroundColor: Colors.white,
+                backgroundColor: colors.primary,
+                foregroundColor: colors.surface,
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),

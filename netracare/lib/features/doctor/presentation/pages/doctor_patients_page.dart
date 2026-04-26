@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
+import 'package:netracare/features/shared/widgets/shared_widgets.dart';
 import 'package:netracare/services/doctor_service.dart';
 import 'package:netracare/models/doctor/patient_model.dart';
 import 'patient_detail_page.dart';
@@ -92,9 +93,11 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppTheme.primary),
+      return Center(
+        child: CircularProgressIndicator(color: colors.primary),
       );
     }
 
@@ -112,9 +115,11 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
   }
 
   Widget _buildSearchAndFilter() {
+    final colors = context.appColors;
+
     return Container(
       padding: const EdgeInsets.all(AppTheme.spaceMD),
-      color: AppTheme.surface,
+      color: colors.surface,
       child: Column(
         children: [
           // Header with Title and All Users Button
@@ -140,7 +145,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                 icon: const Icon(Icons.people, size: 18),
                 label: const Text('All Users'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
+                  backgroundColor: colors.primary,
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppTheme.spaceSM,
                     vertical: AppTheme.spaceSM,
@@ -154,35 +159,21 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
           TextField(
             controller: _searchController,
             onChanged: _onSearchChanged,
-            decoration: InputDecoration(
+            decoration: AppTheme.inputDecoration(
+              label: '',
+              prefixIcon: Icons.search,
+            ).copyWith(
               hintText: 'Search patients...',
-              hintStyle: const TextStyle(color: AppTheme.textLight),
-              prefixIcon: const Icon(
-                Icons.search,
-                color: AppTheme.textSecondary,
-              ),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(
-                        Icons.clear,
-                        color: AppTheme.textSecondary,
-                      ),
+                      icon: Icon(Icons.clear, color: colors.textSecondary),
                       onPressed: () {
                         _searchController.clear();
                         _onSearchChanged('');
                       },
                     )
                   : null,
-              filled: true,
-              fillColor: AppTheme.background,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spaceMD,
-                vertical: AppTheme.spaceSM,
-              ),
+              fillColor: colors.background,
             ),
           ),
           const SizedBox(height: AppTheme.spaceSM),
@@ -207,6 +198,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
   }
 
   Widget _buildFilterChip(HealthStatus? status, String label) {
+    final colors = context.appColors;
     final isSelected = _selectedStatus == status;
     Color chipColor;
 
@@ -221,7 +213,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
         chipColor = AppTheme.error;
         break;
       case null:
-        chipColor = AppTheme.primary;
+        chipColor = colors.primary;
         break;
     }
 
@@ -230,21 +222,23 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
       selected: isSelected,
       onSelected: (_) => _onFilterChanged(isSelected ? null : status),
       selectedColor: chipColor.withValues(alpha: 0.2),
-      backgroundColor: AppTheme.surfaceLight,
+      backgroundColor: colors.surfaceLight,
       labelStyle: TextStyle(
-        color: isSelected ? chipColor : AppTheme.textSecondary,
+        color: isSelected ? chipColor : colors.textSecondary,
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
       ),
       checkmarkColor: chipColor,
       side: BorderSide(
         color: isSelected
             ? chipColor
-            : AppTheme.textLight.withValues(alpha: 0.3),
+            : colors.textLight.withValues(alpha: 0.3),
       ),
     );
   }
 
   Widget _buildEmptyState() {
+    final colors = context.appColors;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -252,15 +246,15 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
           Icon(
             Icons.search_off,
             size: 64,
-            color: AppTheme.textLight.withValues(alpha: 0.5),
+            color: colors.textLight.withValues(alpha: 0.5),
           ),
           const SizedBox(height: AppTheme.spaceMD),
-          const Text(
+          Text(
             'No patients found',
             style: TextStyle(
               fontSize: AppTheme.fontXL,
               fontWeight: FontWeight.w500,
-              color: AppTheme.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
           const SizedBox(height: AppTheme.spaceSM),
@@ -268,7 +262,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
             _searchQuery.isNotEmpty
                 ? 'Try a different search term'
                 : 'No patients match the selected filter',
-            style: const TextStyle(color: AppTheme.textLight),
+            style: TextStyle(color: colors.textLight),
           ),
         ],
       ),
@@ -289,13 +283,11 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
   }
 
   Widget _buildPatientCard(Patient patient) {
-    return Container(
+    final colors = context.appColors;
+
+    return AppCard(
       margin: const EdgeInsets.only(bottom: AppTheme.spaceSM),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        boxShadow: AppTheme.cardShadow,
-      ),
+      border: Border.all(color: colors.border.withValues(alpha: 0.7)),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -315,11 +307,11 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                 // Avatar
                 CircleAvatar(
                   radius: 26,
-                  backgroundColor: AppTheme.testIconBackground,
+                  backgroundColor: colors.testIconBackground,
                   child: Text(
                     patient.initials,
-                    style: const TextStyle(
-                      color: AppTheme.primary,
+                    style: TextStyle(
+                      color: colors.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: AppTheme.fontLG,
                     ),
@@ -333,18 +325,18 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                     children: [
                       Text(
                         patient.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: AppTheme.fontLG,
-                          color: AppTheme.textPrimary,
+                          color: colors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Last test: ${patient.lastTestAgo}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: AppTheme.fontSM,
-                          color: AppTheme.textSecondary,
+                          color: colors.textSecondary,
                         ),
                       ),
                     ],
@@ -360,10 +352,10 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                           patient.healthScore > 0
                               ? '${patient.healthScore}'
                               : '—',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: AppTheme.fontXXL,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimary,
+                            color: colors.textPrimary,
                           ),
                         ),
                         const SizedBox(width: 4),
@@ -377,7 +369,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                               ? AppTheme.success
                               : patient.trend == 'down'
                               ? AppTheme.error
-                              : AppTheme.textSecondary,
+                              : colors.textSecondary,
                           size: 20,
                         ),
                       ],

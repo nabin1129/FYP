@@ -11,6 +11,8 @@ class ConsultationHistoryTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     if (consultations.isEmpty) {
       return Center(
         child: Column(
@@ -19,30 +21,26 @@ class ConsultationHistoryTab extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppTheme.spaceLG),
               decoration: BoxDecoration(
-                color: AppTheme.testIconBackground,
+                color: colors.testIconBackground,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.history,
-                size: 48,
-                color: AppTheme.primary,
-              ),
+              child: Icon(Icons.history, size: 48, color: colors.primary),
             ),
             const SizedBox(height: AppTheme.spaceMD),
-            const Text(
+            Text(
               'No consultation history',
               style: TextStyle(
                 fontSize: AppTheme.fontLG,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             const SizedBox(height: AppTheme.spaceXS),
-            const Text(
+            Text(
               'Your past consultations will appear here',
               style: TextStyle(
                 fontSize: AppTheme.fontBody,
-                color: AppTheme.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
           ],
@@ -69,12 +67,12 @@ class ConsultationHistoryTab extends StatelessWidget {
       children: [
         // Upcoming (Scheduled/Booked) Consultations
         if (scheduled.isNotEmpty) ...[
-          const Text(
+          Text(
             'Upcoming (Booked)',
             style: TextStyle(
               fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: AppTheme.spaceSM),
@@ -83,12 +81,12 @@ class ConsultationHistoryTab extends StatelessWidget {
         ],
         // Pending Requests
         if (pending.isNotEmpty) ...[
-          const Text(
+          Text(
             'Pending Requests',
             style: TextStyle(
               fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: AppTheme.spaceSM),
@@ -97,12 +95,12 @@ class ConsultationHistoryTab extends StatelessWidget {
         ],
         // Missed Consultations
         if (missed.isNotEmpty) ...[
-          const Text(
+          Text(
             'Missed',
             style: TextStyle(
               fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.bold,
-              color: AppTheme.error,
+              color: colors.error,
             ),
           ),
           const SizedBox(height: AppTheme.spaceSM),
@@ -111,12 +109,12 @@ class ConsultationHistoryTab extends StatelessWidget {
         ],
         // Completed Consultations
         if (completed.isNotEmpty) ...[
-          const Text(
+          Text(
             'Completed',
             style: TextStyle(
               fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: AppTheme.spaceSM),

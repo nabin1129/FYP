@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:netracare/config/app_theme.dart';
+import 'package:netracare/features/shared/widgets/shared_widgets.dart';
 import 'package:netracare/services/doctor_service.dart';
 import 'package:netracare/models/doctor/doctor_analytics_model.dart';
 import 'package:netracare/models/doctor/patient_model.dart';
@@ -52,9 +53,11 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppTheme.primary),
+      return Center(
+        child: CircularProgressIndicator(color: colors.primary),
       );
     }
 
@@ -87,12 +90,11 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   }
 
   Widget _buildWelcomeHeader() {
-    return Container(
+    final colors = context.appColors;
+
+    return AppContainer(
       padding: const EdgeInsets.all(AppTheme.spaceMD),
-      decoration: BoxDecoration(
-        gradient: AppTheme.primaryGradient,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-      ),
+      gradient: colors.primaryGradient,
       child: Row(
         children: [
           Container(
@@ -203,14 +205,11 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Analytics Overview',
-          style: TextStyle(
-            fontSize: AppTheme.fontXL,
+          AppText(
+            'Analytics Overview',
+            role: AppTextRole.subtitle,
             fontWeight: FontWeight.bold,
-            color: AppTheme.textPrimary,
           ),
-        ),
         const SizedBox(height: AppTheme.spaceMD),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -241,21 +240,22 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   }
 
   void _showFullScreenChart(String title, Widget chartContent) {
+    final colors = context.appColors;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => Scaffold(
-          backgroundColor: AppTheme.background,
+          backgroundColor: colors.background,
           appBar: AppBar(
-            backgroundColor: AppTheme.surface,
+            backgroundColor: colors.surface,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.close, color: AppTheme.textPrimary),
+              icon: Icon(Icons.close, color: colors.textPrimary),
               onPressed: () => Navigator.pop(context),
             ),
             title: Text(
               title,
-              style: const TextStyle(
-                color: AppTheme.textPrimary,
+              style: TextStyle(
+                color: colors.textPrimary,
                 fontSize: AppTheme.fontXL,
                 fontWeight: FontWeight.bold,
               ),
@@ -611,28 +611,20 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   }
 
   Widget _buildHealthTrendChart() {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceMD),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        boxShadow: AppTheme.cardShadow,
-      ),
+    final colors = context.appColors;
+
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              AppText(
                 'Health Score Trend',
-                style: TextStyle(
-                  fontSize: AppTheme.fontBody,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textPrimary,
-                ),
+                fontWeight: FontWeight.w600,
               ),
-              Icon(Icons.fullscreen, size: 18, color: AppTheme.textSecondary),
+              Icon(Icons.fullscreen, size: 18, color: colors.textSecondary),
             ],
           ),
           const SizedBox(height: AppTheme.spaceMD),
@@ -643,28 +635,20 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   }
 
   Widget _buildDistributionChart() {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceMD),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        boxShadow: AppTheme.cardShadow,
-      ),
+    final colors = context.appColors;
+
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              AppText(
                 'Patient Distribution',
-                style: TextStyle(
-                  fontSize: AppTheme.fontBody,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textPrimary,
-                ),
+                fontWeight: FontWeight.w600,
               ),
-              Icon(Icons.fullscreen, size: 18, color: AppTheme.textSecondary),
+              Icon(Icons.fullscreen, size: 18, color: colors.textSecondary),
             ],
           ),
           const SizedBox(height: AppTheme.spaceMD),
@@ -695,23 +679,14 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   }
 
   Widget _buildTestStatistics() {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceMD),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        boxShadow: AppTheme.cardShadow,
-      ),
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          const AppText(
             'Test Statistics',
-            style: TextStyle(
-              fontSize: AppTheme.fontLG,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
-            ),
+            role: AppTextRole.subtitle,
+            fontWeight: FontWeight.bold,
           ),
           const SizedBox(height: AppTheme.spaceMD),
           ..._analytics.testStats.map((stat) => _buildTestStatRow(stat)),
@@ -790,19 +765,18 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   }
 
   Widget _buildRecentPatients() {
+    final colors = context.appColors;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            const AppText(
               'Recent Patients',
-              style: TextStyle(
-                fontSize: AppTheme.fontXL,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary,
-              ),
+              role: AppTextRole.subtitle,
+              fontWeight: FontWeight.bold,
             ),
             TextButton(
               onPressed: () {
@@ -813,12 +787,9 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
           ],
         ),
         const SizedBox(height: AppTheme.spaceSM),
-        Container(
-          decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-            boxShadow: AppTheme.cardShadow,
-          ),
+        AppCard(
+          padding: EdgeInsets.zero,
+          border: Border.all(color: colors.border.withValues(alpha: 0.7)),
           child: Column(
             children: _recentPatients.map((patient) {
               final isLast = patient == _recentPatients.last;
@@ -961,13 +932,10 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceMD),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        boxShadow: AppTheme.cardShadow,
-      ),
+    final colors = context.appColors;
+
+    return AppCard(
+      border: Border.all(color: colors.border.withValues(alpha: 0.7)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -984,10 +952,10 @@ class _StatCard extends StatelessWidget {
               ),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: AppTheme.fontHeading,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
             ],
@@ -995,9 +963,9 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: AppTheme.spaceSM),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: AppTheme.fontSM,
-              color: AppTheme.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
           const SizedBox(height: 4),

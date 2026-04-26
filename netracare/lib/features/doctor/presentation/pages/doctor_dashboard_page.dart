@@ -51,18 +51,20 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: AppTheme.background,
-        body: const Center(
+        backgroundColor: colors.background,
+        body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(color: AppTheme.primary),
+              CircularProgressIndicator(color: colors.primary),
               SizedBox(height: AppTheme.spaceMD),
               Text(
                 'Loading dashboard...',
-                style: TextStyle(color: AppTheme.textSecondary),
+                style: TextStyle(color: colors.textSecondary),
               ),
             ],
           ),
@@ -71,7 +73,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
     }
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.background,
       appBar: _buildAppBar(),
       body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: _buildBottomNav(),
@@ -79,6 +81,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
   }
 
   PreferredSizeWidget _buildAppBar() {
+    final colors = context.appColors;
     String title;
     final List<Widget> commonActions = [
       const NotificationBell(),
@@ -117,20 +120,16 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
     }
 
     return AppBar(
-      backgroundColor: AppTheme.surface,
+      backgroundColor: colors.surface,
       elevation: 0,
       leading: Padding(
         padding: const EdgeInsets.all(10),
         child: Container(
           decoration: BoxDecoration(
-            color: AppTheme.testIconBackground,
+            color: colors.testIconBackground,
             borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
           ),
-          child: const Icon(
-            Icons.medical_services,
-            color: AppTheme.primary,
-            size: 20,
-          ),
+          child: Icon(Icons.medical_services, color: colors.primary, size: 20),
         ),
       ),
       title: Column(
@@ -138,8 +137,8 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
+            style: TextStyle(
+              color: colors.textPrimary,
               fontSize: AppTheme.fontXL,
               fontWeight: FontWeight.bold,
             ),
@@ -148,8 +147,8 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
             _doctorService.doctorName.isNotEmpty
                 ? 'Dr. ${_doctorService.doctorName}'
                 : 'Doctor',
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
+            style: TextStyle(
+              color: colors.textSecondary,
               fontSize: AppTheme.fontSM,
             ),
           ),
@@ -164,10 +163,10 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
               horizontal: AppTheme.spaceSM,
               vertical: AppTheme.spaceSM,
             ),
-            child: const CircleAvatar(
+            child: CircleAvatar(
               radius: 18,
-              backgroundColor: AppTheme.testIconBackground,
-              child: Icon(Icons.person, color: AppTheme.primary, size: 20),
+              backgroundColor: colors.testIconBackground,
+              child: Icon(Icons.person, color: colors.primary, size: 20),
             ),
           ),
         ),
@@ -176,9 +175,11 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
   }
 
   Widget _buildBottomNav() {
+    final colors = context.appColors;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: colors.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -223,6 +224,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
     String label,
   ) {
     final isSelected = _selectedIndex == index;
+    final colors = context.appColors;
 
     return InkWell(
       onTap: () => setState(() => _selectedIndex = index),
@@ -235,7 +237,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppTheme.primary.withValues(alpha: 0.1)
+              ? colors.primary.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         ),
@@ -243,15 +245,15 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
           children: [
             Icon(
               isSelected ? activeIcon : icon,
-              color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+              color: isSelected ? colors.primary : colors.textSecondary,
               size: 22,
             ),
             if (isSelected) ...[
               const SizedBox(width: AppTheme.spaceSM),
               Text(
                 label,
-                style: const TextStyle(
-                  color: AppTheme.primary,
+                style: TextStyle(
+                  color: colors.primary,
                   fontWeight: FontWeight.w600,
                   fontSize: AppTheme.fontSM,
                 ),
@@ -312,6 +314,8 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
   }
 
   void _showProfileMenu() {
+    final colors = context.appColors;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -328,55 +332,53 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
               width: 70,
               height: 70,
               decoration: BoxDecoration(
-                color: AppTheme.testIconBackground,
+                color: colors.testIconBackground,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.person,
-                color: AppTheme.primary,
-                size: 36,
-              ),
+              child: Icon(Icons.person, color: colors.primary, size: 36),
             ),
             const SizedBox(height: AppTheme.spaceMD),
             Text(
               _doctorService.doctorName.isNotEmpty
                   ? 'Dr. ${_doctorService.doctorName}'
                   : 'Doctor',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: AppTheme.fontXL,
                 fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             Text(
               _doctorService.doctorSpecialization.isNotEmpty
                   ? _doctorService.doctorSpecialization
                   : 'Ophthalmologist',
-              style: const TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: colors.textSecondary),
             ),
             const SizedBox(height: AppTheme.spaceLG),
             ListTile(
-              leading: const Icon(
-                Icons.settings,
-                color: AppTheme.textSecondary,
-              ),
+              leading: Icon(Icons.settings, color: colors.textSecondary),
               title: const Text('Settings'),
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
-              leading: const Icon(
-                Icons.help_outline,
-                color: AppTheme.textSecondary,
+              leading: Icon(
+                Icons.accessibility_new_outlined,
+                color: colors.textSecondary,
               ),
+              title: const Text('Accessibility'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/accessibility-settings');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.help_outline, color: colors.textSecondary),
               title: const Text('Help & Support'),
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
-              leading: const Icon(Icons.logout, color: AppTheme.error),
-              title: const Text(
-                'Logout',
-                style: TextStyle(color: AppTheme.error),
-              ),
+              leading: Icon(Icons.logout, color: colors.error),
+              title: Text('Logout', style: TextStyle(color: colors.error)),
               onTap: () {
                 Navigator.pop(context);
                 _showLogoutDialog();
@@ -389,6 +391,8 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
   }
 
   void _showLogoutDialog() {
+    final colors = context.appColors;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -416,7 +420,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
               navigator.pushNamedAndRemoveUntil('/login', (route) => false);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.error,
+              backgroundColor: colors.error,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppTheme.radiusMedium),

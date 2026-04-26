@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
+import 'package:netracare/features/shared/widgets/shared_widgets.dart';
 import 'package:netracare/models/consultation/doctor_model.dart';
 import 'package:netracare/models/consultation/consultation_model.dart';
 import 'package:netracare/services/consultation_service.dart';
@@ -92,26 +93,28 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage>
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.surface,
+        backgroundColor: colors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+          icon: Icon(Icons.arrow_back, color: colors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Doctor Consultation',
           style: TextStyle(
-            color: AppTheme.textPrimary,
+            color: colors.textPrimary,
             fontSize: AppTheme.fontXXL,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: AppTheme.primary),
+            icon: Icon(Icons.refresh, color: colors.primary),
             onPressed: _isLoading ? null : _refreshData,
           ),
         ],
@@ -119,20 +122,20 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage>
           preferredSize: const Size.fromHeight(1),
           child: Container(
             height: 1,
-            color: AppTheme.textLight.withValues(alpha: 0.1),
+            color: colors.border.withValues(alpha: 0.5),
           ),
         ),
       ),
       body: _isLoading
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(color: AppTheme.primary),
+                  CircularProgressIndicator(color: colors.primary),
                   SizedBox(height: AppTheme.spaceMD),
                   Text(
                     'Loading consultations...',
-                    style: TextStyle(color: AppTheme.textSecondary),
+                    style: TextStyle(color: colors.textSecondary),
                   ),
                 ],
               ),
@@ -141,29 +144,26 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage>
               children: [
                 // Page Header
                 Container(
-                  color: AppTheme.surface,
+                  color: colors.surface,
                   padding: const EdgeInsets.fromLTRB(
                     AppTheme.spaceMD,
                     AppTheme.spaceSM,
                     AppTheme.spaceMD,
                     AppTheme.spaceMD,
                   ),
-                  child: const Text(
+                  child: AppText(
                     'Connect with eye care specialists for personalized advice',
-                    style: TextStyle(
-                      fontSize: AppTheme.fontBody,
-                      color: AppTheme.textSecondary,
-                    ),
+                    role: AppTextRole.bodySecondary,
                   ),
                 ),
                 // Tab Bar
                 Container(
-                  color: AppTheme.surface,
+                  color: colors.surface,
                   child: TabBar(
                     controller: _tabController,
-                    labelColor: AppTheme.primary,
-                    unselectedLabelColor: AppTheme.textSecondary,
-                    indicatorColor: AppTheme.primary,
+                    labelColor: colors.primary,
+                    unselectedLabelColor: colors.textSecondary,
+                    indicatorColor: colors.primary,
                     indicatorWeight: 2,
                     labelStyle: const TextStyle(
                       fontSize: AppTheme.fontBody,

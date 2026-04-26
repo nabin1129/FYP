@@ -1,24 +1,30 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+
 import 'package:netracare/config/app_theme.dart';
+import 'package:netracare/features/shared/widgets/shared_widgets.dart';
 import 'package:netracare/models/consultation/chat_message_model.dart';
 import 'package:netracare/models/consultation/message_delivery_status.dart';
+
 import 'chat_attachment_widget.dart';
 
-/// Reusable Chat Bubble Widget
 class ChatBubble extends StatelessWidget {
-  final ChatMessage message;
-
-  /// True when this message was sent by the current viewer (always on the right).
-  /// Falls back to the legacy `user` enum check when not provided.
-  final bool? isMine;
-
   const ChatBubble({super.key, required this.message, this.isMine});
+
+  final ChatMessage message;
+  final bool? isMine;
 
   @override
   Widget build(BuildContext context) {
-    final isUser = isMine ?? (message.sender == MessageSender.user);
+    final colors = context.appColors;
+    final mine = isMine ?? (message.sender == MessageSender.user);
+    final bubbleColor = mine ? colors.primary : colors.surfaceLight;
+    final textColor = mine ? Colors.white : colors.textPrimary;
+    final metadataColor = mine
+        ? Colors.white.withValues(alpha: 0.78)
+        : colors.textLight;
+
     IconData? statusIcon;
-    if (isUser) {
+    if (mine) {
       switch (message.status) {
         case MessageDeliveryStatus.pending:
           statusIcon = Icons.access_time;
@@ -38,7 +44,7 @@ class ChatBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppTheme.spaceSM),
       child: Row(
-        mainAxisAlignment: isUser
+        mainAxisAlignment: mine
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         children: [
@@ -52,48 +58,42 @@ class ChatBubble extends StatelessWidget {
                 vertical: AppTheme.spaceSM,
               ),
               decoration: BoxDecoration(
-                color: isUser ? AppTheme.primary : AppTheme.surfaceLight,
+                color: bubbleColor,
+                border: mine
+                    ? null
+                    : Border.all(color: colors.border.withValues(alpha: 0.7)),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(AppTheme.radiusMedium),
                   topRight: const Radius.circular(AppTheme.radiusMedium),
                   bottomLeft: Radius.circular(
-                    isUser ? AppTheme.radiusMedium : AppTheme.radiusSmall,
+                    mine ? AppTheme.radiusMedium : AppTheme.radiusSmall,
                   ),
                   bottomRight: Radius.circular(
-                    isUser ? AppTheme.radiusSmall : AppTheme.radiusMedium,
+                    mine ? AppTheme.radiusSmall : AppTheme.radiusMedium,
                   ),
                 ),
               ),
               child: Column(
-                crossAxisAlignment: isUser
+                crossAxisAlignment: mine
                     ? CrossAxisAlignment.end
                     : CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (message.message.isNotEmpty)
-                    Text(
-                      message.message,
-                      style: TextStyle(
-                        fontSize: AppTheme.fontBody,
-                        color: isUser ? Colors.white : AppTheme.textPrimary,
-                      ),
-                    ),
-                  // Render attachments if present
+                    AppText(message.message, color: textColor),
                   if (message.attachments != null &&
                       message.attachments!.isNotEmpty) ...[
                     if (message.message.isNotEmpty)
                       const SizedBox(height: AppTheme.spaceSM),
-                    ...message.attachments!.map((attachment) {
-                      return Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: AppTheme.spaceXS,
-                        ),
+                    ...message.attachments!.map(
+                      (attachment) => Padding(
+                        padding: const EdgeInsets.only(bottom: AppTheme.spaceXS),
                         child: ChatAttachmentWidget(
                           attachment: attachment,
-                          isMine: isUser,
+                          isMine: mine,
                         ),
-                      );
-                    }),
+                      ),
+                    ),
                   ],
                   const SizedBox(height: 4),
                   Row(
@@ -103,20 +103,12 @@ class ChatBubble extends StatelessWidget {
                         message.time,
                         style: TextStyle(
                           fontSize: AppTheme.fontXS,
-                          color: isUser
-                              ? Colors.white.withValues(alpha: 0.7)
-                              : AppTheme.textLight,
+                          color: metadataColor,
                         ),
                       ),
                       if (statusIcon != null) ...[
                         const SizedBox(width: 6),
-                        Icon(
-                          statusIcon,
-                          size: 14,
-                          color: isUser
-                              ? Colors.white.withValues(alpha: 0.8)
-                              : AppTheme.textLight,
-                        ),
+                        Icon(statusIcon, size: 14, color: metadataColor),
                       ],
                     ],
                   ),

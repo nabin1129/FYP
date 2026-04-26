@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/features/tests/tests.dart';
 import 'package:netracare/services/api_service.dart';
@@ -177,6 +177,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final List<Widget> pages = [
       _homePage(),
       _reportsPage(),
@@ -184,7 +185,7 @@ class _DashboardPageState extends State<DashboardPage> {
     ];
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.background,
       appBar: _buildAppBar(),
       body: pages[selectedIndex],
       bottomNavigationBar: _buildBottomNav(),
@@ -195,9 +196,11 @@ class _DashboardPageState extends State<DashboardPage> {
   // APP BAR
   // ---------------------------
   PreferredSizeWidget _buildAppBar() {
+    final colors = context.appColors;
+
     return AppBar(
       automaticallyImplyLeading: false,
-      backgroundColor: AppTheme.surface,
+      backgroundColor: colors.surface,
       elevation: 0,
       titleSpacing: 16,
       title: Row(
@@ -236,9 +239,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   width: 20,
                   height: 20,
                   decoration: BoxDecoration(
-                    color: AppTheme.error,
+                    color: colors.error,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppTheme.surface, width: 2),
+                    border: Border.all(color: colors.surface, width: 2),
                   ),
                   child: Center(
                     child: Text(
@@ -262,7 +265,7 @@ class _DashboardPageState extends State<DashboardPage> {
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                gradient: AppTheme.primaryGradient,
+                gradient: colors.primaryGradient,
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.person, color: Colors.white, size: 20),
@@ -274,12 +277,14 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   void _showProfileMenu() {
+    final colors = context.appColors;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
-        decoration: const BoxDecoration(
-          color: AppTheme.surface,
+        decoration: BoxDecoration(
+          color: colors.surface,
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(AppTheme.radiusLarge),
           ),
@@ -292,7 +297,7 @@ class _DashboardPageState extends State<DashboardPage> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppTheme.textLight,
+                color: colors.textLight,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -301,26 +306,26 @@ class _DashboardPageState extends State<DashboardPage> {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                gradient: AppTheme.primaryGradient,
+                gradient: colors.primaryGradient,
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.person, color: Colors.white, size: 32),
             ),
             const SizedBox(height: AppTheme.spaceMD),
-            const Text(
+            Text(
               'My Account',
               style: TextStyle(
                 fontSize: AppTheme.fontXL,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             const SizedBox(height: AppTheme.spaceLG),
             const Divider(),
             ListTile(
-              leading: const Icon(
+              leading: Icon(
                 Icons.settings_outlined,
-                color: AppTheme.textSecondary,
+                color: colors.textSecondary,
               ),
               title: const Text('Settings'),
               onTap: () {
@@ -329,19 +334,24 @@ class _DashboardPageState extends State<DashboardPage> {
               },
             ),
             ListTile(
-              leading: const Icon(
-                Icons.help_outline,
-                color: AppTheme.textSecondary,
+              leading: Icon(
+                Icons.accessibility_new_outlined,
+                color: colors.textSecondary,
               ),
+              title: const Text('Accessibility'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/accessibility-settings');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.help_outline, color: colors.textSecondary),
               title: const Text('Help & Support'),
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
-              leading: const Icon(Icons.logout, color: AppTheme.error),
-              title: const Text(
-                'Logout',
-                style: TextStyle(color: AppTheme.error),
-              ),
+              leading: Icon(Icons.logout, color: colors.error),
+              title: Text('Logout', style: TextStyle(color: colors.error)),
               onTap: () {
                 Navigator.pop(context);
                 _showLogoutDialog();
@@ -355,6 +365,8 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   void _showLogoutDialog() {
+    final colors = context.appColors;
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -375,7 +387,7 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.error,
+              backgroundColor: colors.error,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
@@ -400,9 +412,11 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildBottomNav() {
+    final colors = context.appColors;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: colors.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -447,6 +461,7 @@ class _DashboardPageState extends State<DashboardPage> {
     String label,
   ) {
     final isSelected = selectedIndex == index;
+    final colors = context.appColors;
 
     return InkWell(
       onTap: () => setState(() => selectedIndex = index),
@@ -459,7 +474,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppTheme.primary.withValues(alpha: 0.1)
+              ? colors.primary.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         ),
@@ -467,15 +482,15 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             Icon(
               isSelected ? activeIcon : icon,
-              color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+              color: isSelected ? colors.primary : colors.textSecondary,
               size: 22,
             ),
             if (isSelected) ...[
               const SizedBox(width: AppTheme.spaceSM),
               Text(
                 label,
-                style: const TextStyle(
-                  color: AppTheme.primary,
+                style: TextStyle(
+                  color: colors.primary,
                   fontWeight: FontWeight.w600,
                   fontSize: AppTheme.fontSM,
                 ),
@@ -584,6 +599,8 @@ class _DashboardPageState extends State<DashboardPage> {
   // COMPONENTS
   // ---------------------------
   Widget _upcomingCheckup() {
+    final colors = context.appColors;
+
     return InkWell(
       onTap: nextConsultation != null
           ? () {
@@ -600,13 +617,13 @@ class _DashboardPageState extends State<DashboardPage> {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: nextConsultation != null
-              ? AppTheme.testIconBackground
-              : AppTheme.surfaceLight,
+              ? colors.testIconBackground
+              : colors.surfaceLight,
           borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
           border: Border.all(
             color: nextConsultation != null
-                ? AppTheme.primaryLight.withValues(alpha: 0.3)
-                : AppTheme.textLight.withValues(alpha: 0.2),
+                ? colors.primaryLight.withValues(alpha: 0.3)
+                : colors.textLight.withValues(alpha: 0.2),
           ),
         ),
         child: Row(
@@ -617,8 +634,8 @@ class _DashboardPageState extends State<DashboardPage> {
                   : Icons.calendar_today_outlined,
               size: 38,
               color: nextConsultation != null
-                  ? AppTheme.primary
-                  : AppTheme.textLight,
+                  ? colors.primary
+                  : colors.textLight,
             ),
             const SizedBox(width: 15),
             Expanded(
@@ -626,39 +643,39 @@ class _DashboardPageState extends State<DashboardPage> {
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           "Upcoming Consultation",
                           style: TextStyle(
                             fontSize: AppTheme.fontBody,
-                            color: AppTheme.textSecondary,
+                            color: colors.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           nextConsultation!.date,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: AppTheme.fontXL,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimary,
+                            color: colors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           nextConsultation!.doctorName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: AppTheme.fontSM,
-                            color: AppTheme.primary,
+                            color: colors.primary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     )
-                  : const Text(
+                  : Text(
                       "No Upcoming Consultation\nBook a consultation with a doctor",
                       style: TextStyle(
                         fontSize: AppTheme.fontBody,
                         fontWeight: FontWeight.w500,
-                        color: AppTheme.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
             ),
@@ -666,14 +683,14 @@ class _DashboardPageState extends State<DashboardPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha: 0.1),
+                  color: colors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Icon(
                   nextConsultation!.type == ConsultationType.physical
                       ? Icons.local_hospital_outlined
                       : Icons.chat_bubble_outline,
-                  color: AppTheme.primary,
+                  color: colors.primary,
                   size: 20,
                 ),
               ),
@@ -684,11 +701,12 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _eyeHealthStatus() {
+    final colors = context.appColors;
     final statusColor = _eyeHealthScore >= 80
-        ? AppTheme.success
+        ? colors.success
         : _eyeHealthScore >= 60
-        ? AppTheme.warning
-        : AppTheme.error;
+        ? colors.warning
+        : colors.error;
 
     final pendingText = _pendingTests > 0
         ? '$_pendingTests test${_pendingTests == 1 ? '' : 's'} pending'
@@ -703,9 +721,9 @@ class _DashboardPageState extends State<DashboardPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        boxShadow: AppTheme.cardShadow,
+        boxShadow: AppTheme.adaptiveCardShadow(context),
       ),
       child: Row(
         children: [
@@ -734,19 +752,19 @@ class _DashboardPageState extends State<DashboardPage> {
               children: [
                 Text(
                   _eyeHealthLoading ? 'Loading eye health...' : statusText,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: AppTheme.fontBody,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   _eyeHealthLoading ? 'Please wait' : pendingText,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: AppTheme.fontBody,
                     fontWeight: FontWeight.w500,
-                    color: AppTheme.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
               ],
@@ -758,11 +776,13 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _doctorConsultation() {
+    final colors = context.appColors;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        gradient: AppTheme.primaryGradient,
+        gradient: colors.primaryGradient,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -791,7 +811,8 @@ class _DashboardPageState extends State<DashboardPage> {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
+                backgroundColor: colors.surface,
+                foregroundColor: colors.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                 ),
@@ -807,10 +828,10 @@ class _DashboardPageState extends State<DashboardPage> {
                   _loadNextConsultation();
                 });
               },
-              child: const Text(
+              child: Text(
                 "Book Consultation",
                 style: TextStyle(
-                  color: AppTheme.primary,
+                  color: colors.primary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -837,13 +858,15 @@ class _DashboardPageState extends State<DashboardPage> {
     String description, {
     required VoidCallback onStart,
   }) {
+    final colors = context.appColors;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        boxShadow: AppTheme.cardShadow,
+        boxShadow: AppTheme.adaptiveCardShadow(context),
       ),
       child: Row(
         children: [
@@ -852,10 +875,10 @@ class _DashboardPageState extends State<DashboardPage> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppTheme.testIconBackground,
+              color: colors.testIconBackground,
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             ),
-            child: Icon(icon, size: 24, color: AppTheme.testIconColor),
+            child: Icon(icon, size: 24, color: colors.testIconColor),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -864,18 +887,18 @@ class _DashboardPageState extends State<DashboardPage> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: AppTheme.fontLG,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 5),
                 Text(
                   description,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: AppTheme.fontSM,
-                    color: AppTheme.textSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
               ],
@@ -884,8 +907,8 @@ class _DashboardPageState extends State<DashboardPage> {
           TextButton(
             onPressed: onStart,
             style: TextButton.styleFrom(
-              foregroundColor: AppTheme.testIconColor,
-              backgroundColor: AppTheme.testIconBackground,
+              foregroundColor: colors.testIconColor,
+              backgroundColor: colors.testIconBackground,
               padding: const EdgeInsets.symmetric(
                 horizontal: AppTheme.spaceMD,
                 vertical: AppTheme.spaceSM,

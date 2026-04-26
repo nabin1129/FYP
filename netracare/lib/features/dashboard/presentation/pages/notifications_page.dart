@@ -60,24 +60,26 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.surface,
+        backgroundColor: colors.surface,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Notifications',
           style: TextStyle(
-            color: AppTheme.textPrimary,
+            color: colors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
             tooltip: 'Mark all as read',
-            icon: const Icon(
+            icon: Icon(
               Icons.mark_email_read_outlined,
-              color: AppTheme.textSecondary,
+              color: colors.textPrimary,
             ),
             onPressed: _notifications.isEmpty ? null : _markAllRead,
           ),
@@ -86,7 +88,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
               _unreadOnly
                   ? Icons.visibility_off_outlined
                   : Icons.visibility_outlined,
-              color: AppTheme.textSecondary,
+              color: colors.textPrimary,
             ),
             tooltip: _unreadOnly ? 'Show all' : 'Show unread only',
             onPressed: () {
@@ -95,21 +97,24 @@ class _NotificationsPageState extends State<NotificationsPage> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.refresh, color: AppTheme.textSecondary),
+            icon: Icon(Icons.refresh, color: colors.textPrimary),
             onPressed: _refresh,
           ),
         ],
       ),
       body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppTheme.primary),
-            )
+          ? const Center(child: CircularProgressIndicator())
           : _error != null
           ? _buildError()
           : _notifications.isEmpty
-          ? const Center(child: Text('No notifications'))
+          ? Center(
+              child: Text(
+                'No notifications',
+                style: TextStyle(color: colors.textPrimary),
+              ),
+            )
           : RefreshIndicator(
-              color: AppTheme.primary,
+              color: colors.primary,
               onRefresh: _refresh,
               child: ListView.separated(
                 padding: const EdgeInsets.all(AppTheme.spaceMD),
@@ -142,13 +147,18 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   Widget _buildError() {
+    final colors = context.appColors;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, size: 48, color: AppTheme.error),
+          Icon(Icons.error_outline, size: 48, color: colors.error),
           const SizedBox(height: 12),
-          Text(_error ?? 'Failed to load notifications'),
+          Text(
+            _error ?? 'Failed to load notifications',
+            style: TextStyle(color: colors.textPrimary),
+          ),
           const SizedBox(height: 12),
           ElevatedButton.icon(
             onPressed: _refresh,

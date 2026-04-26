@@ -3,6 +3,7 @@ import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/features/auth/auth.dart';
 import 'package:netracare/features/profile/profile.dart';
 import 'package:netracare/features/reports/reports.dart';
+import 'package:netracare/features/shared/widgets/shared_widgets.dart';
 import 'package:netracare/features/tests/tests.dart';
 import 'package:netracare/services/api_service.dart';
 import 'package:netracare/models/user_model.dart';
@@ -112,10 +113,11 @@ class _ProfilePageState extends State<ProfilePage> {
   // ---------------- UI ----------------
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     // LOADING
     if (isLoading) {
-      return const Scaffold(
-        backgroundColor: AppTheme.background,
+      return Scaffold(
+        backgroundColor: colors.background,
         body: Center(child: CircularProgressIndicator()),
       );
     }
@@ -123,23 +125,23 @@ class _ProfilePageState extends State<ProfilePage> {
     // ERROR (Show generic error for non-auth errors)
     if (errorMessage != null) {
       return Scaffold(
-        backgroundColor: AppTheme.background,
+        backgroundColor: colors.background,
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.error_outline,
                   size: 64,
-                  color: AppTheme.error,
+                  color: colors.error,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   errorMessage!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppTheme.error),
+                  style: TextStyle(color: colors.error),
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
@@ -161,9 +163,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
     // SUCCESS
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: colors.background,
         elevation: 0,
         toolbarHeight: 0,
       ),
@@ -177,21 +179,16 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  AppText(
                     "Profile",
-                    style: TextStyle(
-                      fontSize: AppTheme.fontHeading,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textDark,
-                    ),
+                    role: AppTextRole.title,
+                    color: colors.textDark,
+                    fontWeight: FontWeight.bold,
                   ),
                   const SizedBox(height: 4),
-                  Text(
+                  AppText(
                     "Manage your account settings",
-                    style: TextStyle(
-                      fontSize: AppTheme.fontBody,
-                      color: AppTheme.textSecondary,
-                    ),
+                    role: AppTextRole.bodySecondary,
                   ),
                 ],
               ),
@@ -235,7 +232,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     style: TextStyle(
                       fontSize: AppTheme.fontXL,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textSubtle,
+                      color: colors.textSubtle,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -280,6 +277,18 @@ class _ProfilePageState extends State<ProfilePage> {
                           Navigator.pushNamed(context, '/notifications');
                         },
                       ),
+                      const Divider(height: 1, indent: 56),
+                      SettingsTile(
+                        icon: Icons.accessibility_new_outlined,
+                        iconColor: AppTheme.primary,
+                        title: "Accessibility",
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/accessibility-settings',
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ],
@@ -299,7 +308,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     style: TextStyle(
                       fontSize: AppTheme.fontXL,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textSubtle,
+                      color: colors.textSubtle,
                     ),
                   ),
                   const SizedBox(height: 12),

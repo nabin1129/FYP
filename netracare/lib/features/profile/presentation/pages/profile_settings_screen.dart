@@ -147,19 +147,21 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: AppTheme.surfaceLight,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
+        backgroundColor: colors.surface,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF2563EB)),
+          icon: Icon(Icons.arrow_back, color: colors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Personal Information',
           style: TextStyle(
-            color: AppTheme.textDark,
+            color: colors.textPrimary,
             fontSize: AppTheme.fontXL,
             fontWeight: FontWeight.w600,
           ),
@@ -171,11 +173,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           padding: const EdgeInsets.all(16),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colors.surface,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: Colors.black.withValues(alpha: 0.08),
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
@@ -337,6 +339,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   Widget _buildProfilePhoto() {
     final hasImage = _imageFile != null || _profileImageUrl != null;
+    final colors = context.appColors;
     // First letter available for avatar fallback
     final _ = _nameController.text.isNotEmpty
         ? _nameController.text[0].toUpperCase()
@@ -348,12 +351,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           children: [
             CircleAvatar(
               radius: 40,
-              backgroundColor: const Color(0xFFDCEEFE),
+              backgroundColor: colors.primary.withValues(alpha: 0.14),
               backgroundImage: _imageFile != null
                   ? FileImage(_imageFile!)
                   : null,
               child: !hasImage
-                  ? Icon(Icons.person, size: 40, color: const Color(0xFF2563EB))
+                  ? Icon(Icons.person, size: 40, color: colors.primary)
                   : null,
             ),
             Positioned(
@@ -364,14 +367,14 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2563EB),
+                    color: colors.primary,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(color: colors.surface, width: 2),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.camera_alt,
                     size: 16,
-                    color: Colors.white,
+                    color: colors.surface,
                   ),
                 ),
               ),
@@ -381,10 +384,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         const SizedBox(height: 8),
         TextButton(
           onPressed: _pickImage,
-          child: const Text(
+          child: Text(
             'Change Photo',
             style: TextStyle(
-              color: Color(0xFF2563EB),
+              color: colors.primary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -394,14 +397,16 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   }
 
   Widget _buildSaveButton() {
+    final colors = context.appColors;
+
     return SizedBox(
       width: double.infinity,
       height: 48,
       child: ElevatedButton(
         onPressed: _isLoading ? null : _saveProfile,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2563EB),
-          disabledBackgroundColor: const Color(0xFF93C5FD),
+          backgroundColor: colors.primary,
+          disabledBackgroundColor: colors.primary.withValues(alpha: 0.45),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           elevation: 2,
         ),

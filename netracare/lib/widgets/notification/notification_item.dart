@@ -17,38 +17,40 @@ class NotificationItem extends StatelessWidget {
     this.onDelete,
   });
 
-  Color get _accentColor {
-    switch (notification.type) {
-      case 'consultation_request':
-        return AppTheme.info;
-      case 'consultation_scheduled':
-        return AppTheme.primary;
-      case 'new_message':
-        return AppTheme.success;
-      case 'test_shared':
-        return AppTheme.warning;
-      default:
-        return AppTheme.info;
-    }
-  }
-
-  IconData get _icon {
-    switch (notification.type) {
-      case 'consultation_request':
-        return Icons.local_hospital_outlined;
-      case 'consultation_scheduled':
-        return Icons.calendar_today;
-      case 'new_message':
-        return Icons.chat_bubble_outline;
-      case 'test_shared':
-        return Icons.assignment;
-      default:
-        return Icons.notifications_outlined;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    Color accentColor() {
+      switch (notification.type) {
+        case 'consultation_request':
+          return colors.info;
+        case 'consultation_scheduled':
+          return colors.primary;
+        case 'new_message':
+          return colors.success;
+        case 'test_shared':
+          return colors.warning;
+        default:
+          return colors.info;
+      }
+    }
+
+    IconData icon() {
+      switch (notification.type) {
+        case 'consultation_request':
+          return Icons.local_hospital_outlined;
+        case 'consultation_scheduled':
+          return Icons.calendar_today;
+        case 'new_message':
+          return Icons.chat_bubble_outline;
+        case 'test_shared':
+          return Icons.assignment;
+        default:
+          return Icons.notifications_outlined;
+      }
+    }
+
     return Dismissible(
       key: ValueKey(notification.id),
       direction: DismissDirection.endToStart,
@@ -56,10 +58,10 @@ class NotificationItem extends StatelessWidget {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: AppTheme.spaceMD),
         decoration: BoxDecoration(
-          color: AppTheme.error.withValues(alpha: 0.1),
+          color: colors.error.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         ),
-        child: const Icon(Icons.delete_outline, color: AppTheme.error),
+        child: Icon(Icons.delete_outline, color: colors.error),
       ),
       onDismissed: (_) => onDelete?.call(),
       child: GestureDetector(
@@ -69,13 +71,13 @@ class NotificationItem extends StatelessWidget {
           padding: const EdgeInsets.all(AppTheme.spaceMD),
           decoration: BoxDecoration(
             color: notification.isRead
-                ? AppTheme.surface
-                : AppTheme.info.withValues(alpha: 0.08),
+                ? colors.surface
+                : colors.info.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             border: Border.all(
               color: notification.isRead
-                  ? AppTheme.border
-                  : AppTheme.info.withValues(alpha: 0.2),
+                  ? colors.border
+                  : colors.info.withValues(alpha: 0.2),
             ),
           ),
           child: Row(
@@ -86,10 +88,10 @@ class NotificationItem extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: _accentColor.withValues(alpha: 0.1),
+                  color: accentColor().withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
-                child: Icon(_icon, color: _accentColor, size: 20),
+                child: Icon(icon(), color: accentColor(), size: 20),
               ),
               const SizedBox(width: AppTheme.spaceMD),
 
@@ -107,7 +109,7 @@ class NotificationItem extends StatelessWidget {
                               fontWeight: notification.isRead
                                   ? FontWeight.w500
                                   : FontWeight.w600,
-                              color: AppTheme.textPrimary,
+                              color: colors.textPrimary,
                               fontSize: AppTheme.fontBody,
                             ),
                             maxLines: 1,
@@ -120,7 +122,7 @@ class NotificationItem extends StatelessWidget {
                             width: 8,
                             height: 8,
                             decoration: BoxDecoration(
-                              color: _accentColor,
+                              color: accentColor(),
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -130,9 +132,9 @@ class NotificationItem extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       notification.message,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: AppTheme.fontSM,
-                        color: AppTheme.textSecondary,
+                        color: colors.textSecondary,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -142,21 +144,21 @@ class NotificationItem extends StatelessWidget {
                       children: [
                         Text(
                           notification.timeAgo,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: AppTheme.fontXS,
-                            color: AppTheme.textSecondary,
+                            color: colors.textSecondary,
                           ),
                         ),
                         const Spacer(),
                         if (!notification.isRead)
                           GestureDetector(
                             onTap: onMarkRead,
-                            child: const Padding(
+                            child: Padding(
                               padding: EdgeInsets.all(4),
                               child: Icon(
                                 Icons.check_circle_outline,
                                 size: 18,
-                                color: AppTheme.textSecondary,
+                                color: colors.textSecondary,
                               ),
                             ),
                           ),

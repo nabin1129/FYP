@@ -95,6 +95,7 @@ class _NotificationBellState extends State<NotificationBell>
   }
 
   void _showOverlay() {
+    final colors = context.appColors;
     final renderBox = _bellKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
@@ -138,6 +139,7 @@ class _NotificationBellState extends State<NotificationBell>
                     elevation: 8,
                     shadowColor: Colors.black26,
                     borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                    color: colors.surface,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(
                         AppTheme.radiusMedium,

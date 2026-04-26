@@ -42,13 +42,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.background,
       appBar: _buildAppBar(),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppTheme.primary),
-            )
+          ? Center(child: CircularProgressIndicator(color: colors.primary))
           : _error != null
           ? _buildErrorView()
           : RefreshIndicator(
@@ -82,15 +82,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Widget _buildErrorView() {
+    final colors = context.appColors;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.cloud_off, size: 56, color: AppTheme.textLight),
+          Icon(Icons.cloud_off, size: 56, color: colors.textLight),
           const SizedBox(height: AppTheme.spaceSM),
-          const Text(
+          Text(
             'Failed to load data',
-            style: TextStyle(color: AppTheme.textSecondary),
+            style: TextStyle(color: colors.textSecondary),
           ),
           const SizedBox(height: AppTheme.spaceMD),
           ElevatedButton.icon(
@@ -98,7 +100,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             icon: const Icon(Icons.refresh, size: 18),
             label: const Text('Retry'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primary,
+              backgroundColor: colors.primary,
               foregroundColor: Colors.white,
             ),
           ),
@@ -108,16 +110,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   PreferredSizeWidget _buildAppBar() {
+    final colors = context.appColors;
     const titles = ['Admin Dashboard', 'Users', 'Doctors'];
     return AppBar(
-      backgroundColor: AppTheme.surface,
+      backgroundColor: colors.surface,
       elevation: 0,
       automaticallyImplyLeading: false,
       leading: Padding(
         padding: const EdgeInsets.all(10),
         child: Container(
           decoration: BoxDecoration(
-            gradient: AppTheme.primaryGradient,
+            gradient: colors.primaryGradient,
             borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
           ),
           child: const Icon(
@@ -132,16 +135,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         children: [
           Text(
             titles[_selectedIndex],
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
+            style: TextStyle(
+              color: colors.textPrimary,
               fontSize: AppTheme.fontXL,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const Text(
+          Text(
             'Administrator',
             style: TextStyle(
-              color: AppTheme.textSecondary,
+              color: colors.textSecondary,
               fontSize: AppTheme.fontSM,
             ),
           ),
@@ -159,7 +162,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                gradient: AppTheme.primaryGradient,
+                gradient: colors.primaryGradient,
                 shape: BoxShape.circle,
               ),
               child: const Center(
@@ -180,12 +183,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Widget _buildWelcomeBanner() {
+    final colors = context.appColors;
+
     return Container(
       padding: const EdgeInsets.all(AppTheme.spaceMD),
       decoration: BoxDecoration(
-        gradient: AppTheme.primaryGradient,
+        gradient: colors.primaryGradient,
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        boxShadow: AppTheme.elevatedShadow,
+        boxShadow: AppTheme.adaptiveElevatedShadow(context),
       ),
       child: Row(
         children: [
@@ -886,9 +891,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Widget _buildBottomNav() {
+    final colors = context.appColors;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: colors.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -933,6 +940,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     String label,
   ) {
     final isSelected = _selectedIndex == index;
+    final colors = context.appColors;
     return InkWell(
       onTap: () {
         if (index == 0) setState(() => _selectedIndex = 0);
@@ -948,7 +956,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppTheme.primary.withValues(alpha: 0.1)
+              ? colors.primary.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         ),
@@ -956,15 +964,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           children: [
             Icon(
               isSelected ? activeIcon : icon,
-              color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+              color: isSelected ? colors.primary : colors.textSecondary,
               size: 22,
             ),
             if (isSelected) ...[
               const SizedBox(width: AppTheme.spaceSM),
               Text(
                 label,
-                style: const TextStyle(
-                  color: AppTheme.primary,
+                style: TextStyle(
+                  color: colors.primary,
                   fontWeight: FontWeight.w600,
                   fontSize: AppTheme.fontSM,
                 ),
@@ -977,6 +985,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   void _showProfileMenu() {
+    final colors = context.appColors;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -993,7 +1003,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppTheme.textLight.withValues(alpha: 0.3),
+                color: colors.textLight.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -1002,7 +1012,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               width: 70,
               height: 70,
               decoration: BoxDecoration(
-                gradient: AppTheme.primaryGradient,
+                gradient: colors.primaryGradient,
                 shape: BoxShape.circle,
               ),
               child: const Center(
@@ -1017,33 +1027,38 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               ),
             ),
             const SizedBox(height: AppTheme.spaceSM),
-            const Text(
+            Text(
               'Administrator',
               style: TextStyle(
                 fontSize: AppTheme.fontXL,
                 fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
-            const Text(
+            Text(
               'Netra Care Platform',
-              style: TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: colors.textSecondary),
             ),
             const SizedBox(height: AppTheme.spaceLG),
             ListTile(
-              leading: const Icon(
-                Icons.help_outline,
-                color: AppTheme.textSecondary,
+              leading: Icon(
+                Icons.accessibility_new_outlined,
+                color: colors.textSecondary,
               ),
+              title: const Text('Accessibility'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/accessibility-settings');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.help_outline, color: colors.textSecondary),
               title: const Text('Help & Support'),
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
-              leading: const Icon(Icons.logout, color: AppTheme.error),
-              title: const Text(
-                'Logout',
-                style: TextStyle(color: AppTheme.error),
-              ),
+              leading: Icon(Icons.logout, color: colors.error),
+              title: Text('Logout', style: TextStyle(color: colors.error)),
               onTap: () {
                 Navigator.pop(context);
                 _showLogoutDialog();
@@ -1056,6 +1071,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   void _showLogoutDialog() {
+    final colors = context.appColors;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1070,7 +1087,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
+            style: ElevatedButton.styleFrom(backgroundColor: colors.error),
             onPressed: () {
               Navigator.pop(context);
               Navigator.pushNamedAndRemoveUntil(
