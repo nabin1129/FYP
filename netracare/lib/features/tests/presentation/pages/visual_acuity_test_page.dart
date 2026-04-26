@@ -67,12 +67,12 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
         });
         // Show brief notice to user
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
+          SnackBar(
+            content: const Text(
               'Distance monitoring unavailable. Test will proceed without distance validation.',
             ),
-            duration: Duration(seconds: 3),
-            backgroundColor: AppTheme.warning,
+            duration: const Duration(seconds: 3),
+            backgroundColor: context.appColors.warning,
           ),
         );
         _initTest();
@@ -92,7 +92,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Test initialization failed: $e'),
-            backgroundColor: AppTheme.error,
+            backgroundColor: context.appColors.error,
           ),
         );
       }
@@ -282,6 +282,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
   }
 
   Widget _resultRow(String label, String value, {Color? color}) {
+    final colors = context.appColors;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -297,7 +298,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
           style: TextStyle(
             fontSize: AppTheme.fontLG,
             fontWeight: FontWeight.bold,
-            color: color ?? AppTheme.textPrimary,
+            color: color ?? colors.textPrimary,
           ),
         ),
       ],
@@ -305,17 +306,18 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
   }
 
   Color _getSeverityColor(String severity) {
+    final colors = context.appColors;
     switch (severity) {
       case "Normal":
-        return AppTheme.success;
+        return colors.success;
       case "Mild Vision Loss":
-        return AppTheme.warning;
+        return colors.warning;
       case "Moderate Vision Loss":
-        return AppTheme.warning;
+        return colors.warning;
       case "Severe Vision Loss":
-        return AppTheme.error;
+        return colors.error;
       default:
-        return AppTheme.textSecondary;
+        return colors.textSecondary;
     }
   }
 
@@ -356,23 +358,24 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final isMobile = MediaQuery.of(context).size.width < 600;
 
     if (isLoadingCalibration) {
       return Scaffold(
-        backgroundColor: AppTheme.background,
+        backgroundColor: colors.background,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const CircularProgressIndicator(),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Preparing Visual Acuity Test...',
                 style: TextStyle(
                   fontSize: AppTheme.fontLG,
                   fontWeight: FontWeight.w500,
-                  color: AppTheme.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -380,7 +383,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                 'Loading distance calibration',
                 style: TextStyle(
                   fontSize: AppTheme.fontBody,
-                  color: Colors.grey[600],
+                  color: colors.textSecondary,
                 ),
               ),
             ],
@@ -390,17 +393,17 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
     }
 
     Widget testContent = Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
         title: const Text("Visual Acuity Test"),
-        backgroundColor: Colors.white,
+        backgroundColor: colors.surface,
         elevation: 1,
-        titleTextStyle: const TextStyle(
-          color: AppTheme.textPrimary,
+        titleTextStyle: TextStyle(
           fontSize: AppTheme.fontXXL,
           fontWeight: FontWeight.w600,
+          color: colors.textPrimary,
         ),
-        iconTheme: const IconThemeData(color: AppTheme.textPrimary),
+        iconTheme: IconThemeData(color: colors.textPrimary),
       ),
       body: cameraReady
           ? SingleChildScrollView(
@@ -415,11 +418,11 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: colors.surface,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
+                            color: Colors.black.withValues(alpha: 0.08),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -430,12 +433,12 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                              Text(
                                 "Progress",
                                 style: TextStyle(
                                   fontSize: AppTheme.fontBody,
                                   fontWeight: FontWeight.w600,
-                                  color: AppTheme.textSecondary,
+                                  color: colors.textSecondary,
                                 ),
                               ),
                               Container(
@@ -444,17 +447,15 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primary.withValues(
-                                    alpha: 0.1,
-                                  ),
+                                  color: colors.primary.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
                                   "$total/10",
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: AppTheme.fontBody,
                                     fontWeight: FontWeight.bold,
-                                    color: AppTheme.primary,
+                                    color: colors.primary,
                                   ),
                                 ),
                               ),
@@ -466,9 +467,9 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                             child: LinearProgressIndicator(
                               value: total / 10,
                               minHeight: 8,
-                              backgroundColor: AppTheme.border,
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                AppTheme.primary,
+                              backgroundColor: colors.border,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                colors.primary,
                               ),
                             ),
                           ),
@@ -485,13 +486,13 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                       ),
                       decoration: BoxDecoration(
                         color: calibration != null
-                            ? AppTheme.success.withValues(alpha: 0.1)
-                            : AppTheme.warning.withValues(alpha: 0.1),
+                            ? colors.success.withValues(alpha: 0.1)
+                            : colors.warning.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: calibration != null
-                              ? AppTheme.success.withValues(alpha: 0.3)
-                              : AppTheme.warning.withValues(alpha: 0.3),
+                              ? colors.success.withValues(alpha: 0.3)
+                              : colors.warning.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -504,8 +505,8 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                                 : Icons.info_outline,
                             size: 16,
                             color: calibration != null
-                                ? AppTheme.success
-                                : AppTheme.warning,
+                                ? colors.success
+                                : colors.warning,
                           ),
                           const SizedBox(width: 8),
                           Flexible(
@@ -517,8 +518,8 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                                 fontSize: AppTheme.fontSM,
                                 fontWeight: FontWeight.w500,
                                 color: calibration != null
-                                    ? AppTheme.success
-                                    : AppTheme.warning,
+                                    ? colors.success
+                                    : colors.warning,
                               ),
                             ),
                           ),
@@ -530,10 +531,11 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
 
                     // Letter Display Area
                     Container(
+                      color: colors.surface,
                       width: double.infinity,
                       height: MediaQuery.of(context).size.height * 0.35,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: colors.surface,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -557,23 +559,23 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppTheme.primary.withValues(alpha: 0.08),
+                        color: colors.primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: AppTheme.primary.withValues(alpha: 0.2),
+                          color: colors.primary.withValues(alpha: 0.2),
                           width: 1,
                         ),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.info, color: AppTheme.primary, size: 20),
+                          Icon(Icons.info, color: colors.primary, size: 20),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               widget.variant.answerPrompt,
                               style: TextStyle(
                                 fontSize: AppTheme.fontSM,
-                                color: AppTheme.primary,
+                                color: colors.primary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -586,18 +588,18 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
 
                     // Answer Buttons
                     if (isSubmitting)
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 16),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            AppTheme.primary,
+                            colors.primary,
                           ),
                         ),
                       ),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: colors.surface,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -614,7 +616,7 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                             style: TextStyle(
                               fontSize: AppTheme.fontBody,
                               fontWeight: FontWeight.w600,
-                              color: AppTheme.textSecondary,
+                              color: colors.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -636,13 +638,9 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                                   borderRadius: BorderRadius.circular(12),
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: AppTheme.primary.withValues(
-                                        alpha: 0.08,
-                                      ),
+                                      color: colors.primary.withValues(alpha: 0.08),
                                       border: Border.all(
-                                        color: AppTheme.primary.withValues(
-                                          alpha: 0.3,
-                                        ),
+                                        color: colors.primary.withValues(alpha: 0.3),
                                         width: 2,
                                       ),
                                       borderRadius: BorderRadius.circular(12),
@@ -650,10 +648,10 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                                     child: Center(
                                       child: Text(
                                         _optionLabel(option),
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: AppTheme.fontTitle,
                                           fontWeight: FontWeight.bold,
-                                          color: AppTheme.primary,
+                                          color: colors.primary,
                                           fontFamily: 'Courier New',
                                           letterSpacing: 1,
                                         ),
@@ -673,9 +671,9 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                 ),
               ),
             )
-          : const Center(
+          : Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
+                valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
               ),
             ),
     );

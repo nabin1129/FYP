@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/features/tests/presentation/pages/pupil_reflex_test_page.dart';
+import 'package:netracare/features/tests/presentation/widgets/test_widgets.dart';
 
 class PupilReflexPage extends StatefulWidget {
   const PupilReflexPage({super.key});
@@ -43,12 +44,13 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Stack(
           children: [
-            // Back button
             Positioned(
               top: 10,
               left: 10,
@@ -57,8 +59,6 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
                 onPressed: goBack,
               ),
             ),
-
-            // Main Card
             Center(
               child: Container(
                 width: double.infinity,
@@ -66,7 +66,7 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
                 margin: const EdgeInsets.all(16),
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: const [
                     BoxShadow(
@@ -94,45 +94,18 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.testIconBackground,
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.flash_on,
-            size: 32,
-            color: AppTheme.testIconColor,
-          ),
-        ),
-        const SizedBox(height: 20),
-        const Text(
-          "Pupil & Eye Movement Tests",
-          style: TextStyle(
-            fontSize: AppTheme.fontTitle,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.textDark,
-          ),
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          "Comprehensive test to evaluate pupil reflexes and eye movements in one session.",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: AppTheme.fontBody,
-            color: AppTheme.textSecondary,
-            height: 1.5,
-          ),
+        const TestIconHeader(
+          icon: Icons.flash_on,
+          iconSize: 32,
+          title: 'Pupil & Eye Movement Tests',
+          description:
+              'Comprehensive test to evaluate pupil reflexes and eye movements in one session.',
         ),
         const SizedBox(height: 24),
-
-        // Comprehensive Pupil & Eye Movement Test
         _testOptionCard(
           icon: Icons.flash_on,
           title: 'Pupil Reflex & Nystagmus Test',
-          description:
-              'Comprehensive test for pupil response and eye movements',
+          description: 'Comprehensive test for pupil response and eye movements',
           onTap: proceed,
         ),
       ],
@@ -146,25 +119,27 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
     required VoidCallback onTap,
     bool isNew = false,
   }) {
+    final colors = context.appColors;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.background,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: colors.border),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTheme.testIconBackground,
+                color: colors.testIconBackground,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: AppTheme.testIconColor, size: 24),
+              child: Icon(icon, color: colors.testIconColor, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -178,10 +153,10 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
                           title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: AppTheme.fontLG,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.textDark,
+                            color: colors.textDark,
                           ),
                         ),
                       ),
@@ -193,7 +168,7 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.green,
+                            color: colors.success,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: const Text(
@@ -211,18 +186,18 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
                   const SizedBox(height: 4),
                   Text(
                     description,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: AppTheme.fontSM,
-                      color: AppTheme.textSecondary,
+                      color: colors.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios,
               size: 16,
-              color: AppTheme.textSecondary,
+              color: colors.textSecondary,
             ),
           ],
         ),
@@ -235,136 +210,70 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.testIconBackground,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(Icons.videocam, size: 32, color: AppTheme.testIconColor),
+        const TestIconHeader(
+          icon: Icons.videocam,
+          iconSize: 32,
+          title: 'Camera Setup',
+          description:
+              "We'll need access to your camera to observe your pupil reactions during the test.",
         ),
         const SizedBox(height: 20),
-        const Text(
-          "Camera Setup",
-          style: TextStyle(
-            fontSize: AppTheme.fontTitle,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.textDark,
-          ),
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          "We'll need access to your camera to observe your pupil reactions during the test.",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: AppTheme.fontBody,
-            color: AppTheme.textSecondary,
-            height: 1.5,
-          ),
-        ),
-        const SizedBox(height: 20),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.amber[50],
-            border: Border.all(color: Colors.amber[200]!),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.info_rounded, color: Colors.amber[600], size: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  "Your camera will only be used during this test. No recordings are saved or shared.",
-                  style: TextStyle(
-                    fontSize: AppTheme.fontBody,
-                    color: Colors.amber[900],
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
-          ),
+        const TestWarningBox(
+          message:
+              'Your camera will only be used during this test. No recordings are saved or shared.',
+          icon: Icons.info_rounded,
         ),
         const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: proceed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primary,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              "Continue",
-              style: TextStyle(
-                fontSize: AppTheme.fontLG,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
+        TestPrimaryButton(label: 'Continue', onPressed: proceed),
       ],
     );
   }
 
   // ============ WARNING SCREEN ============
   Widget _warningUI() {
+    final colors = context.appColors;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.amber.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            Icons.warning_rounded,
-            size: 32,
-            color: Colors.amber[600],
-          ),
+        TestIconHeader(
+          icon: Icons.warning_rounded,
+          iconSize: 32,
+          title: 'Before You Begin',
+          iconBgColor: colors.warningBg,
+          iconColor: colors.warning,
         ),
         const SizedBox(height: 20),
-        const Text(
-          "Before You Begin",
-          style: TextStyle(
-            fontSize: AppTheme.fontTitle,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.textDark,
-          ),
+
+        TestCheckItem(
+          text: 'Find a dimly lit, quiet room',
+          textColor: colors.textSecondary,
         ),
-        const SizedBox(height: 20),
-        _checkItem('Find a dimly lit, quiet room'),
         const SizedBox(height: 12),
-        _checkItem(
-          'Position yourself approximately 1 arm\'s length from your device',
+        TestCheckItem(
+          text: "Position yourself approximately 1 arm's length from your device",
+          textColor: colors.textSecondary,
         ),
         const SizedBox(height: 20),
+
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppTheme.error.withValues(alpha: 0.1),
-            border: Border.all(color: AppTheme.error.withValues(alpha: 0.3)),
+            color: colors.errorBg,
+            border: Border.all(color: colors.error.withValues(alpha: 0.3)),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.error_rounded, color: AppTheme.error, size: 20),
+              Icon(Icons.error_rounded, color: colors.error, size: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  "This test will use brief flashes of light. Do not take this test if you have photosensitive epilepsy.",
+                  'This test will use brief flashes of light. Do not take this test if you have photosensitive epilepsy.',
                   style: TextStyle(
                     fontSize: AppTheme.fontBody,
-                    color: Colors.red[900],
+                    color: colors.error,
                     height: 1.4,
                   ),
                 ),
@@ -373,46 +282,10 @@ class _PupilReflexPageState extends State<PupilReflexPage> {
           ),
         ),
         const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: startTest,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.success,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              "Start Test",
-              style: TextStyle(
-                fontSize: AppTheme.fontLG,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _checkItem(String text) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(Icons.check_circle, size: 20, color: AppTheme.success),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: AppTheme.fontBody,
-              color: AppTheme.textSubtle,
-              height: 1.4,
-            ),
-          ),
+        TestPrimaryButton(
+          label: 'Start Test',
+          onPressed: startTest,
+          color: colors.success,
         ),
       ],
     );

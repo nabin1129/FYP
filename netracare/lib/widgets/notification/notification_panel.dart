@@ -97,8 +97,9 @@ class _NotificationPanelState extends State<NotificationPanel>
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Container(
-      color: AppTheme.surface,
+      color: colors.surface,
       child: Column(
         children: [
           _buildHeader(),
@@ -109,6 +110,7 @@ class _NotificationPanelState extends State<NotificationPanel>
   }
 
   Widget _buildHeader() {
+    final colors = context.appColors;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppTheme.spaceMD,
@@ -120,20 +122,20 @@ class _NotificationPanelState extends State<NotificationPanel>
         children: [
           Row(
             children: [
-              const Text(
+              Text(
                 'Notifications',
                 style: TextStyle(
                   fontSize: AppTheme.fontXL,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               const Spacer(),
               if (_unreadCount > 0)
                 GestureDetector(
                   onTap: _markAllAsRead,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: AppTheme.spaceSM,
                       vertical: AppTheme.spaceXS,
                     ),
@@ -141,7 +143,7 @@ class _NotificationPanelState extends State<NotificationPanel>
                       'Mark all read',
                       style: TextStyle(
                         fontSize: AppTheme.fontSM,
-                        color: AppTheme.primary,
+                        color: colors.primary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -157,11 +159,12 @@ class _NotificationPanelState extends State<NotificationPanel>
   }
 
   Widget _buildBody() {
+    final colors = context.appColors;
     if (_isLoading && _notifications.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(AppTheme.spaceLG),
-          child: CircularProgressIndicator(color: AppTheme.primary),
+          padding: const EdgeInsets.all(AppTheme.spaceLG),
+          child: CircularProgressIndicator(color: colors.primary),
         ),
       );
     }
@@ -176,13 +179,13 @@ class _NotificationPanelState extends State<NotificationPanel>
               Icon(
                 Icons.notifications_off_outlined,
                 size: 48,
-                color: AppTheme.textSecondary.withValues(alpha: 0.3),
+                color: colors.textSecondary.withValues(alpha: 0.3),
               ),
               const SizedBox(height: AppTheme.spaceMD),
-              const Text(
+              Text(
                 'No notifications yet',
                 style: TextStyle(
-                  color: AppTheme.textSecondary,
+                  color: colors.textSecondary,
                   fontSize: AppTheme.fontBody,
                 ),
               ),

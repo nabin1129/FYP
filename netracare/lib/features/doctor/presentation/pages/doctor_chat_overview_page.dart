@@ -86,33 +86,34 @@ class _DoctorChatOverviewPageState extends State<DoctorChatOverviewPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.surface,
+        backgroundColor: colors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+          icon: Icon(Icons.arrow_back, color: colors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Chat',
           style: TextStyle(
-            color: AppTheme.textPrimary,
+            color: colors.textPrimary,
             fontSize: AppTheme.fontXXL,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: AppTheme.primary),
+            icon: Icon(Icons.refresh, color: colors.primary),
             onPressed: _isLoading ? null : _loadDataAsync,
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppTheme.primary),
+          ? Center(
+              child: CircularProgressIndicator(color: colors.primary),
             )
           : RefreshIndicator(
               onRefresh: _loadDataAsync,
@@ -122,6 +123,7 @@ class _DoctorChatOverviewPageState extends State<DoctorChatOverviewPage> {
   }
 
   Widget _buildChatList() {
+    final colors = context.appColors;
     if (_activeConsultations.isEmpty && _completedConsultations.isEmpty) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -135,23 +137,23 @@ class _DoctorChatOverviewPageState extends State<DoctorChatOverviewPage> {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(AppTheme.spaceLG),
-                    decoration: const BoxDecoration(
-                      color: AppTheme.testIconBackground,
+                    decoration: BoxDecoration(
+                      color: colors.testIconBackground,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.chat_bubble_outline,
                       size: 48,
-                      color: AppTheme.primary,
+                      color: colors.primary,
                     ),
                   ),
                   const SizedBox(height: AppTheme.spaceMD),
-                  const Text(
+                  Text(
                     'No chats available',
                     style: TextStyle(
                       fontSize: AppTheme.fontLG,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimary,
+                      color: colors.textPrimary,
                     ),
                   ),
                 ],
@@ -167,12 +169,12 @@ class _DoctorChatOverviewPageState extends State<DoctorChatOverviewPage> {
       padding: const EdgeInsets.all(AppTheme.spaceMD),
       children: [
         if (_activeConsultations.isNotEmpty) ...[
-          const Text(
+          Text(
             'Active Chats',
             style: TextStyle(
               fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: AppTheme.spaceSM),
@@ -181,12 +183,12 @@ class _DoctorChatOverviewPageState extends State<DoctorChatOverviewPage> {
         if (_completedConsultations.isNotEmpty) ...[
           if (_activeConsultations.isNotEmpty)
             const SizedBox(height: AppTheme.spaceSM),
-          const Text(
+          Text(
             'Completed Patients',
             style: TextStyle(
               fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: AppTheme.spaceSM),
@@ -197,16 +199,17 @@ class _DoctorChatOverviewPageState extends State<DoctorChatOverviewPage> {
   }
 
   Widget _buildConsultationCard(ConsultationRequest consultation) {
+    final colors = context.appColors;
     final isCompleted = consultation.status == RequestStatus.completed;
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.spaceMD),
       padding: const EdgeInsets.all(AppTheme.spaceMD),
       decoration: BoxDecoration(
-        color: isCompleted ? AppTheme.surfaceLight : AppTheme.surface,
+        color: isCompleted ? colors.surfaceLight : colors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        boxShadow: AppTheme.cardShadow,
-        border: isCompleted ? Border.all(color: AppTheme.border) : null,
+        boxShadow: AppTheme.adaptiveCardShadow(context),
+        border: isCompleted ? Border.all(color: colors.border) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,16 +227,16 @@ class _DoctorChatOverviewPageState extends State<DoctorChatOverviewPage> {
                         fontSize: AppTheme.fontLG,
                         fontWeight: FontWeight.bold,
                         color: isCompleted
-                            ? AppTheme.textSecondary
-                            : AppTheme.textPrimary,
+                            ? colors.textSecondary
+                            : colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: AppTheme.spaceXS),
                     Text(
                       consultation.requestedAgo,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: AppTheme.fontSM,
-                        color: AppTheme.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                   ],
@@ -250,14 +253,14 @@ class _DoctorChatOverviewPageState extends State<DoctorChatOverviewPage> {
                     ? Icons.local_hospital_outlined
                     : Icons.chat_bubble_outline,
                 size: 16,
-                color: AppTheme.textLight,
+                color: colors.textLight,
               ),
               const SizedBox(width: 4),
               Text(
                 consultation.requestType == 'physical' ? 'Physical' : 'Chat',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: AppTheme.fontSM,
-                  color: AppTheme.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
             ],
@@ -270,7 +273,7 @@ class _DoctorChatOverviewPageState extends State<DoctorChatOverviewPage> {
               icon: const Icon(Icons.chat, size: 18),
               label: const Text('Open Chat'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
+                backgroundColor: colors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
@@ -282,11 +285,12 @@ class _DoctorChatOverviewPageState extends State<DoctorChatOverviewPage> {
   }
 
   Widget _buildStatusBadge(RequestStatus status) {
+    final colors = context.appColors;
     final color = switch (status) {
-      RequestStatus.pending => AppTheme.warning,
-      RequestStatus.accepted => AppTheme.success,
-      RequestStatus.rejected => AppTheme.error,
-      RequestStatus.completed => AppTheme.textSecondary,
+      RequestStatus.pending => colors.warning,
+      RequestStatus.accepted => colors.success,
+      RequestStatus.rejected => colors.error,
+      RequestStatus.completed => colors.textSecondary,
     };
 
     final label = switch (status) {

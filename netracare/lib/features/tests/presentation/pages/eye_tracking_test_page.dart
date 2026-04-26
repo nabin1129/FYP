@@ -19,20 +19,19 @@ class EyeTrackingTestPage extends StatefulWidget {
 
 class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
     with SingleTickerProviderStateMixin {
-  // â”€â”€â”€ Camera â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // -----------
   CameraController? _cameraController;
   bool _isCameraReady = false;
 
-  // â”€â”€â”€ Engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Eye tracking engine
   EyeTrackingEngine? _engine;
   bool _faceDetected = false;
   int _noFaceSeconds = 0;
   Timer? _noFaceTimer;
 
-  // â”€â”€â”€ Animation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Animation -----------
   late AnimationController _animationController;
 
-  // â”€â”€â”€ Test State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   static const int totalPhases = 5;
   static const List<String> _phaseNames = [
     'calibration',
@@ -107,9 +106,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
     }
   }
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // CAMERA INITIALIZATION
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   Future<void> _initializeCamera() async {
     try {
@@ -161,14 +158,12 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
       if (!mounted) return;
       setState(() {
         _isInitializing = false;
-        _statusMessage = 'Camera error: ${e.toString().split(':').last.trim()}';
+        _statusMessage = 'Camera unavailable. Please check permissions and try again.';
       });
     }
   }
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // TEST CONTROL
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   Future<void> _startTest() async {
     if (!_isCameraReady || _cameraController == null) return;
@@ -429,9 +424,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
     });
   }
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // CAMERA FRAME PROCESSING
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   bool _isProcessingFrame = false;
   int _frameSkip = 0;
@@ -513,12 +506,11 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
     }
   }
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // BUILD
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return PopScope(
       canPop: _isTestComplete || !_isTestRunning,
       onPopInvokedWithResult: (didPop, _) async {
@@ -529,7 +521,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
         }
       },
       child: Scaffold(
-        backgroundColor: AppTheme.background,
+        backgroundColor: colors.background,
         appBar: _isTestRunning
             ? null
             : AppBar(
@@ -557,7 +549,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
     );
   }
 
-  // â”€â”€â”€ Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Loading -----------
 
   Widget _buildLoading() {
     return Center(
@@ -574,8 +566,6 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
       ),
     );
   }
-
-  // â”€â”€â”€ Ready Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Widget _buildReadyScreen() {
     return Column(
@@ -688,7 +678,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
     );
   }
 
-  // â”€â”€â”€ Test Running â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Test Running
 
   Widget _buildTestRunning() {
     return Stack(
@@ -775,7 +765,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
                 width: 100,
                 child: LinearProgressIndicator(
                   value: _phaseProgress,
-                  backgroundColor: Colors.white24,
+                  backgroundColor: AppTheme.border,
                   valueColor: const AlwaysStoppedAnimation<Color>(
                     AppTheme.primary,
                   ),
@@ -895,9 +885,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
     }
   }
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // RESULTS
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   Widget _buildResults() {
     final r = _result!;
@@ -1265,9 +1253,7 @@ class _EyeTrackingTestPageState extends State<EyeTrackingTestPage>
     }
   }
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // SAVE / RETRY
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   Future<void> _saveResults(EyeTrackingTestResult r) async {
     setState(() => _isSaving = true);

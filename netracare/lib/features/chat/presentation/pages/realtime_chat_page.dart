@@ -115,7 +115,7 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: AppTheme.error,
+          backgroundColor: context.appColors.error,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -138,7 +138,7 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to initialize chat: $e'),
-          backgroundColor: AppTheme.error,
+          backgroundColor: context.appColors.error,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -395,7 +395,7 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
           horizontal: AppTheme.spaceSM,
           vertical: AppTheme.spaceSM,
         ),
-        side: BorderSide(color: AppTheme.primary.withValues(alpha: 0.5)),
+        side: BorderSide(color: context.appColors.primary.withValues(alpha: 0.5)),
       ),
     );
   }
@@ -442,20 +442,21 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.surface,
+        backgroundColor: colors.surface,
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+          icon: Icon(Icons.arrow_back, color: colors.textPrimary),
         ),
         title: Row(
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: AppTheme.testIconBackground,
+              backgroundColor: colors.testIconBackground,
               backgroundImage:
                   (widget.avatarUrl != null && widget.avatarUrl!.isNotEmpty)
                   ? NetworkImage(widget.avatarUrl!)
@@ -463,8 +464,8 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
               child: (widget.avatarUrl == null || widget.avatarUrl!.isEmpty)
                   ? Text(
                       _initials(widget.title),
-                      style: const TextStyle(
-                        color: AppTheme.primary,
+                      style: TextStyle(
+                        color: colors.primary,
                         fontWeight: FontWeight.w700,
                       ),
                     )
@@ -478,8 +479,8 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
                   Text(
                     widget.title,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppTheme.textPrimary,
+                    style: TextStyle(
+                      color: colors.textPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -489,7 +490,7 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
                         : _subtitleForConnectionState(),
                     style: TextStyle(
                       color: _typingText.isNotEmpty
-                          ? AppTheme.primary
+                          ? colors.primary
                           : _subtitleColorForConnectionState(),
                       fontSize: AppTheme.fontSM,
                     ),
@@ -504,9 +505,9 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
         actions: [
           if (widget.onMarkCompleted != null)
             IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.check_circle_outline,
-                color: AppTheme.success,
+                color: colors.success,
               ),
               tooltip: 'Mark Completed',
               onPressed: () async {
@@ -514,7 +515,7 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
               },
             ),
           IconButton(
-            icon: const Icon(Icons.refresh, color: AppTheme.textPrimary),
+            icon: Icon(Icons.refresh, color: colors.textPrimary),
             onPressed: _chatService.refreshHistory,
           ),
         ],
@@ -526,7 +527,7 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
               _connectionState == ChatConnectionState.disconnected)
             Container(
               width: double.infinity,
-              color: AppTheme.warning,
+              color: colors.warning,
               padding: const EdgeInsets.symmetric(
                 horizontal: AppTheme.spaceMD,
                 vertical: AppTheme.spaceXS,
@@ -538,20 +539,20 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
             ),
           Expanded(
             child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: AppTheme.primary),
+                ? Center(
+                    child: CircularProgressIndicator(color: colors.primary),
                   )
                 : RefreshIndicator(
                     onRefresh: _chatService.refreshHistory,
                     child: _messages.isEmpty
                         ? ListView(
-                            children: const [
-                              SizedBox(height: 120),
+                            children: [
+                              const SizedBox(height: 120),
                               Center(
                                 child: Text(
                                   'No messages yet',
                                   style: TextStyle(
-                                    color: AppTheme.textSecondary,
+                                    color: colors.textSecondary,
                                   ),
                                 ),
                               ),
@@ -594,10 +595,10 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
                       vertical: AppTheme.spaceSM,
                     ),
                     decoration: BoxDecoration(
-                      color: AppTheme.surfaceLight,
+                      color: colors.surfaceLight,
                       border: Border(
                         top: BorderSide(
-                          color: AppTheme.primary.withValues(alpha: 0.2),
+                          color: colors.primary.withValues(alpha: 0.2),
                         ),
                       ),
                     ),
@@ -648,10 +649,10 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
                       vertical: AppTheme.spaceSM,
                     ),
                     decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.08),
+                      color: colors.primary.withValues(alpha: 0.08),
                       border: Border(
                         top: BorderSide(
-                          color: AppTheme.primary.withValues(alpha: 0.2),
+                          color: colors.primary.withValues(alpha: 0.2),
                         ),
                       ),
                     ),
@@ -688,7 +689,7 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
                     horizontal: AppTheme.spaceMD,
                     vertical: AppTheme.spaceSM,
                   ),
-                  decoration: const BoxDecoration(color: AppTheme.surface),
+                  decoration: BoxDecoration(color: colors.surface),
                   child: Row(
                     children: [
                       // Attachment toggle button
@@ -700,7 +701,7 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
                             _isShowingAttachmentPanel
                                 ? Icons.close
                                 : Icons.attach_file_outlined,
-                            color: AppTheme.primary,
+                            color: colors.primary,
                           ),
                           onPressed: _showAttachmentPanel,
                         ),
@@ -713,7 +714,7 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
                           decoration: InputDecoration(
                             hintText: 'Type a message',
                             filled: true,
-                            fillColor: AppTheme.surfaceLight,
+                            fillColor: colors.surfaceLight,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(
                                 AppTheme.radiusLarge,
@@ -735,7 +736,7 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
                           style: ElevatedButton.styleFrom(
                             shape: const CircleBorder(),
                             padding: EdgeInsets.zero,
-                            backgroundColor: AppTheme.primary,
+                            backgroundColor: colors.primary,
                           ),
                           onPressed: _send,
                           child: const Icon(Icons.send, color: Colors.white),
@@ -768,15 +769,16 @@ class _RealtimeChatPageState extends State<RealtimeChatPage> {
   }
 
   Color _subtitleColorForConnectionState() {
+    final colors = context.appColors;
     switch (_connectionState) {
       case ChatConnectionState.connected:
-        return AppTheme.success;
+        return colors.success;
       case ChatConnectionState.connecting:
       case ChatConnectionState.reconnecting:
-        return AppTheme.warning;
+        return colors.warning;
       case ChatConnectionState.failed:
       case ChatConnectionState.disconnected:
-        return AppTheme.error;
+        return colors.error;
     }
   }
 

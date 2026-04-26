@@ -97,10 +97,10 @@ class DoctorCard extends StatelessWidget {
                     // Rating and Experience
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.star,
                           size: 16,
-                          color: AppTheme.warning,
+                          color: colors.warning,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -182,10 +182,10 @@ class DoctorCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.verified_user,
                       size: 16,
-                      color: AppTheme.success,
+                      color: colors.success,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -237,8 +237,8 @@ class DoctorCard extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: doctor.availability.contains('Today')
-                      ? AppTheme.success.withValues(alpha: 0.1)
-                      : AppTheme.warning.withValues(alpha: 0.1),
+                      ? colors.success.withValues(alpha: 0.1)
+                      : colors.warning.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Row(
@@ -248,8 +248,8 @@ class DoctorCard extends StatelessWidget {
                       Icons.circle,
                       size: 8,
                       color: doctor.availability.contains('Today')
-                          ? AppTheme.success
-                          : AppTheme.warning,
+                          ? colors.success
+                          : colors.warning,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -258,8 +258,8 @@ class DoctorCard extends StatelessWidget {
                         fontSize: AppTheme.fontSM,
                         fontWeight: FontWeight.w600,
                         color: doctor.availability.contains('Today')
-                            ? AppTheme.success
-                            : AppTheme.warning,
+                            ? colors.success
+                            : colors.warning,
                       ),
                     ),
                   ],

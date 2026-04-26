@@ -215,8 +215,8 @@ class _NotificationBellState extends State<NotificationBell>
                 ? Container(
                     key: ValueKey(_unreadCount),
                     padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: AppTheme.error,
+                    decoration: BoxDecoration(
+                      color: context.appColors.error,
                       shape: BoxShape.circle,
                     ),
                     constraints: const BoxConstraints(

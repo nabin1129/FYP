@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
+import 'package:netracare/features/tests/presentation/widgets/test_widgets.dart';
 import 'package:camera/camera.dart';
 import 'dart:async';
 import 'dart:io';
@@ -101,7 +102,8 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          errorMessage = 'Camera initialization failed: ${e.toString()}';
+          errorMessage =
+              'Camera unavailable. Please check permissions and try again.';
         });
       }
     }
@@ -110,8 +112,14 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
   Future<void> _initializeCamera() async {
     if (cameras == null || cameras!.isEmpty) return;
 
+    // Prefer front camera for face-based tests
+    final selectedCamera = cameras!.firstWhere(
+      (c) => c.lensDirection == CameraLensDirection.front,
+      orElse: () => cameras!.first,
+    );
+
     _cameraController = CameraController(
-      cameras![0],
+      selectedCamera,
       ResolutionPreset.medium,
       enableAudio: false,
       imageFormatGroup: ImageFormatGroup.yuv420,
@@ -125,7 +133,8 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          errorMessage = 'Failed to initialize camera: $e';
+          errorMessage =
+              'Camera unavailable. Please check permissions and try again.';
         });
       }
     }
@@ -332,10 +341,11 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
   }
 
   void _showError(String message) {
+    final colors = context.appColors;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: AppTheme.error,
+        backgroundColor: colors.error,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -348,7 +358,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.warning_amber, color: AppTheme.warning),
+            Icon(Icons.warning_amber, color: context.appColors.warning),
             const SizedBox(width: 8),
             const Text('Session Expired'),
           ],
@@ -421,7 +431,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result['message'] ?? 'Results saved successfully!'),
-            backgroundColor: AppTheme.success,
+            backgroundColor: context.appColors.success,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -436,7 +446,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to save: $errorMsg'),
-            backgroundColor: AppTheme.error,
+            backgroundColor: context.appColors.error,
             duration: const Duration(seconds: 4),
           ),
         );
@@ -473,26 +483,33 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
 
   @override
   void dispose() {
-    _blinkEngine?.dispose();
     _testTimer?.cancel();
     _durationTimer?.cancel();
-    _cameraController?.dispose();
+    if (_cameraController != null) {
+      if (_cameraController!.value.isStreamingImages) {
+        _cameraController!.stopImageStream().catchError((_) {});
+      }
+      _cameraController!.dispose();
+    }
+    _blinkEngine?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colors.surface,
         elevation: 1,
-        titleTextStyle: const TextStyle(
-          color: AppTheme.textPrimary,
+        titleTextStyle: TextStyle(
+          color: colors.textPrimary,
           fontSize: AppTheme.fontXXL,
           fontWeight: FontWeight.w600,
         ),
-        iconTheme: const IconThemeData(color: AppTheme.textPrimary),
+        iconTheme: IconThemeData(color: colors.textPrimary),
         title: const Text("Blink & Fatigue Detection"),
         centerTitle: true,
       ),
@@ -502,6 +519,8 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
 
   // ============ CAMERA UI ============
   Widget _buildCamera() {
+    final colors = context.appColors;
+
     if (errorMessage != null) {
       return Center(
         child: Padding(
@@ -509,7 +528,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: AppTheme.error),
+              Icon(Icons.error_outline, size: 64, color: colors.error),
               const SizedBox(height: 16),
               Text(
                 errorMessage!,
@@ -540,7 +559,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
         if (isProcessing)
           Positioned.fill(
             child: Container(
-              color: AppTheme.textSecondary,
+              color: colors.textSecondary,
               child: const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -565,7 +584,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
         if (testPhase == 1 && !isProcessing)
           Positioned.fill(
             child: Container(
-              color: AppTheme.textSecondary,
+              color: colors.textSecondary,
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(32),
@@ -588,9 +607,9 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                           height: 24,
                           child: LinearProgressIndicator(
                             value: progress / 100,
-                            backgroundColor: Colors.white24,
+                            backgroundColor: colors.border,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              AppTheme.primary,
+                              colors.primary,
                             ),
                           ),
                         ),
@@ -609,9 +628,9 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                       Container(
                         padding: EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: colors.surface.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white24),
+                          border: Border.all(color: colors.border),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -723,7 +742,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                     icon: const Icon(Icons.play_arrow),
                     label: const Text("Start Test (40s)"),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.warning,
+                      backgroundColor: colors.warning,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 32,
                         vertical: 16,
@@ -743,6 +762,8 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
 
   // ============ RESULTS UI ============
   Widget _buildResults() {
+    final colors = context.appColors;
+
     if (predictionResult == null) {
       return const Center(child: Text('No results available'));
     }
@@ -765,7 +786,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
     final isDrowsy =
         normalizedPrediction == 'drowsy' && drowsyProb >= _drowsyThreshold;
 
-    final statusColor = isDrowsy ? AppTheme.error : AppTheme.success;
+    final statusColor = isDrowsy ? colors.error : colors.success;
     final statusIcon = isDrowsy ? Icons.warning_amber : Icons.check_circle;
 
     return SingleChildScrollView(
@@ -826,23 +847,23 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.error.withValues(alpha: 0.1),
+                color: colors.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppTheme.error.withValues(alpha: 0.5),
+                  color: colors.error.withValues(alpha: 0.5),
                   width: 2,
                 ),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.warning, color: AppTheme.error, size: 28),
+                  Icon(Icons.warning, color: colors.error, size: 28),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'High fatigue detected! Consider taking a break.',
                       style: TextStyle(
                         fontSize: AppTheme.fontBody,
-                        color: AppTheme.error,
+                        color: colors.error,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -854,11 +875,11 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
           if (alertTriggered) const SizedBox(height: 24),
 
           // Confidence Score
-          _buildMetricCard(
+          TestMetricCard(
             title: 'Confidence Score',
             value: '${(confidence * 100).toStringAsFixed(1)}%',
             icon: Icons.psychology,
-            color: AppTheme.primary,
+            color: colors.primary,
           ),
 
           const SizedBox(height: 16),
@@ -872,20 +893,20 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
           Row(
             children: [
               Expanded(
-                child: _buildMetricCard(
+                child: TestMetricCard(
                   title: 'Blink Rate',
                   value: '${getBlinkRate()}/min',
                   icon: Icons.visibility,
-                  color: AppTheme.accent,
+                  color: colors.accent,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildMetricCard(
+                child: TestMetricCard(
                   title: 'Total Blinks',
                   value: (_blinkEngine?.blinkCount ?? blinkCount).toString(),
                   icon: Icons.remove_red_eye,
-                  color: AppTheme.warning,
+                  color: colors.warning,
                 ),
               ),
             ],
@@ -894,11 +915,11 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
           const SizedBox(height: 16),
 
           // Test Duration
-          _buildMetricCard(
+          TestMetricCard(
             title: 'Test Duration',
             value: '${testDuration}s',
             icon: Icons.timer,
-            color: AppTheme.info,
+            color: colors.info,
           ),
 
           const SizedBox(height: 24),
@@ -915,7 +936,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                     : (isSaved ? 'Results Saved' : 'Save Results'),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isSaved ? AppTheme.success : AppTheme.primary,
+                backgroundColor: isSaved ? colors.success : colors.primary,
                 disabledBackgroundColor: Colors.grey[400],
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -967,22 +988,22 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.success.withValues(alpha: 0.1),
+                color: colors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppTheme.success.withValues(alpha: 0.3),
+                  color: colors.success.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle, color: AppTheme.success),
+                  Icon(Icons.check_circle, color: colors.success),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Results saved to your profile. View history in Results page.',
                       style: TextStyle(
                         fontSize: AppTheme.fontSM,
-                        color: AppTheme.success,
+                        color: colors.success,
                       ),
                     ),
                   ),
@@ -994,71 +1015,8 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
     );
   }
 
-  Widget _buildMetricCard({
-    required String title,
-    required String value,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 28),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: AppTheme.fontBody,
-                    color: AppTheme.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: AppTheme.fontHeading,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildProbabilitiesCard(Map<String, dynamic> probabilities) {
+    final colors = context.appColors;
     final drowsyProb = (probabilities['drowsy'] as num).toDouble();
     final notDrowsyProb = (probabilities['notdrowsy'] as num).toDouble();
 
@@ -1066,7 +1024,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -1079,55 +1037,47 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Detection Probabilities',
             style: TextStyle(
               fontSize: AppTheme.fontLG,
               fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 20),
-
-          // Drowsy probability
           _buildProbabilityBar(
             label: 'Drowsy',
             probability: drowsyProb,
-            color: AppTheme.error,
+            color: colors.error,
           ),
-
           const SizedBox(height: 16),
-
-          // Not drowsy probability
           _buildProbabilityBar(
             label: 'Normal',
             probability: notDrowsyProb,
-            color: AppTheme.success,
+            color: colors.success,
           ),
-
           const SizedBox(height: 24),
-
-          // Save confirmation message
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppTheme.success.withValues(alpha: 0.1),
+              color: colors.success.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: AppTheme.success.withValues(alpha: 0.5),
+                color: colors.success.withValues(alpha: 0.5),
                 width: 1.5,
               ),
             ),
             child: Row(
               children: [
-                Icon(Icons.check_circle, color: AppTheme.success, size: 20),
+                Icon(Icons.check_circle, color: colors.success, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Results saved successfully!',
                     style: TextStyle(
                       fontSize: AppTheme.fontBody,
-                      color: AppTheme.success,
+                      color: colors.success,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -1135,10 +1085,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
               ],
             ),
           ),
-
           const SizedBox(height: 16),
-
-          // Action buttons
           Row(
             children: [
               Expanded(
@@ -1152,7 +1099,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
                   icon: const Icon(Icons.refresh, size: 20),
                   label: const Text('Test Again'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
+                    backgroundColor: colors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -1164,13 +1111,11 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                  onPressed: () => Navigator.of(context).pop(),
                   icon: const Icon(Icons.home, size: 20),
                   label: const Text('Return Home'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.success,
+                    backgroundColor: colors.success,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -1191,6 +1136,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
     required double probability,
     required Color color,
   }) {
+    final colors = context.appColors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1199,10 +1145,10 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
           children: [
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: AppTheme.fontBody,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             Text(
@@ -1221,7 +1167,7 @@ class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
           child: LinearProgressIndicator(
             value: probability,
             minHeight: 12,
-            backgroundColor: AppTheme.border,
+            backgroundColor: colors.border,
             valueColor: AlwaysStoppedAnimation(color),
           ),
         ),

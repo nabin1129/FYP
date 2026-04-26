@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/features/tests/presentation/pages/colour_vision_test_page.dart';
+import 'package:netracare/features/tests/presentation/widgets/test_widgets.dart';
 
 class ColourVisionPage extends StatefulWidget {
   const ColourVisionPage({super.key});
@@ -13,18 +14,12 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
   String step = 'intro'; // intro | setup
 
   void proceed() {
-    if (step == 'intro') {
-      setState(() => step = 'setup');
-    }
+    if (step == 'intro') setState(() => step = 'setup');
   }
 
   void goBack() {
     if (step != 'intro') {
-      setState(() {
-        if (step == 'setup') {
-          step = 'intro';
-        }
-      });
+      setState(() => step = 'intro');
     } else {
       Navigator.pop(context);
     }
@@ -39,12 +34,13 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Stack(
           children: [
-            // Back button
             Positioned(
               top: 10,
               left: 10,
@@ -53,8 +49,6 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
                 onPressed: goBack,
               ),
             ),
-
-            // Main Card
             Center(
               child: Container(
                 width: double.infinity,
@@ -62,7 +56,7 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
                 margin: const EdgeInsets.all(16),
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: const [
                     BoxShadow(
@@ -83,164 +77,104 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
 
   // ============ INTRO SCREEN ============
   Widget _introUI() {
+    final colors = context.appColors;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.testIconBackground,
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.palette,
-            size: 32,
-            color: AppTheme.testIconColor,
-          ),
-        ),
-        const SizedBox(height: 20),
-        const Text(
-          "Colour Vision Test",
-          style: TextStyle(
-            fontSize: AppTheme.fontTitle,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.textDark,
-          ),
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          "This test uses Ishihara plates to detect colour vision deficiencies, particularly red-green colour blindness.",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: AppTheme.fontBody,
-            color: AppTheme.textSecondary,
-            height: 1.5,
-          ),
+        const TestIconHeader(
+          icon: Icons.palette,
+          iconSize: 32,
+          title: 'Colour Vision Test',
+          description:
+              'This test uses Ishihara plates to detect colour vision deficiencies, particularly red-green colour blindness.',
         ),
         const SizedBox(height: 24),
+
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppTheme.testIconBackground,
+            color: colors.testIconBackground,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "Before you begin:",
+              Text(
+                'Before you begin:',
                 style: TextStyle(
                   fontSize: AppTheme.fontBody,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.testIconColor,
+                  color: colors.testIconColor,
                 ),
               ),
               const SizedBox(height: 12),
-              _checkItem(
-                "Ensure you are in a well-lit room with natural lighting if possible",
+              TestCheckItem(
+                text: 'Ensure you are in a well-lit room with natural lighting if possible',
+                textColor: colors.textPrimary,
               ),
               const SizedBox(height: 8),
-              _checkItem(
-                "Adjust your screen brightness to a comfortable level",
+              TestCheckItem(
+                text: 'Adjust your screen brightness to a comfortable level',
+                textColor: colors.textPrimary,
               ),
               const SizedBox(height: 8),
-              _checkItem(
-                "View the screen from approximately 75cm (arm's length)",
+              TestCheckItem(
+                text: "View the screen from approximately 75cm (arm's length)",
+                textColor: colors.textPrimary,
               ),
               const SizedBox(height: 8),
-              _alertItem(
-                "This is a screening test only. Consult an eye specialist for diagnosis",
+              TestCheckItem(
+                text: 'This is a screening test only. Consult an eye specialist for diagnosis',
+                icon: Icons.warning,
+                iconColor: colors.warning,
+                textColor: colors.textPrimary,
               ),
             ],
           ),
         ),
         const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: proceed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primary,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              "Continue",
-              style: TextStyle(
-                fontSize: AppTheme.fontLG,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
+        TestPrimaryButton(label: 'Continue', onPressed: proceed),
       ],
     );
   }
 
   // ============ SETUP SCREEN ============
   Widget _setupUI() {
+    final colors = context.appColors;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.testIconBackground,
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.info,
-            size: 32,
-            color: AppTheme.testIconColor,
-          ),
+        const TestIconHeader(
+          icon: Icons.info,
+          iconSize: 32,
+          title: 'Test Instructions',
+          description:
+              'You will see a series of Ishihara colour plates. For each plate, select the number you see as quickly as possible.',
         ),
         const SizedBox(height: 20),
-        const Text(
-          "Test Instructions",
-          style: TextStyle(
-            fontSize: AppTheme.fontTitle,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.textDark,
-          ),
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          "You will see a series of Ishihara colour plates. For each plate, select the number you see as quickly as possible.",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: AppTheme.fontBody,
-            color: AppTheme.textSecondary,
-            height: 1.5,
-          ),
-        ),
-        const SizedBox(height: 20),
+
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppTheme.testIconBackground,
+            color: colors.testIconBackground,
             border: Border.all(
-              color: AppTheme.primaryLight.withValues(alpha: 0.3),
+              color: colors.primaryLight.withValues(alpha: 0.3),
             ),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
-                Icons.lightbulb,
-                color: AppTheme.testIconColor,
-                size: 20,
-              ),
+              Icon(Icons.lightbulb, color: colors.testIconColor, size: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  "Make sure your screen is properly calibrated for accurate results.",
+                  'Make sure your screen is properly calibrated for accurate results.',
                   style: TextStyle(
                     fontSize: AppTheme.fontBody,
-                    color: AppTheme.textPrimary,
+                    color: colors.textPrimary,
                     height: 1.4,
                   ),
                 ),
@@ -249,66 +183,10 @@ class _ColourVisionPageState extends State<ColourVisionPage> {
           ),
         ),
         const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: startTest,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.success,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              "Start Test",
-              style: TextStyle(
-                fontSize: AppTheme.fontLG,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _checkItem(String text) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Icon(Icons.check_circle, size: 18, color: AppTheme.success),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: AppTheme.fontBody,
-              color: AppTheme.textPrimary,
-              height: 1.4,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _alertItem(String text) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Icon(Icons.warning, size: 18, color: AppTheme.warning),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: AppTheme.fontBody,
-              color: AppTheme.textPrimary,
-              height: 1.4,
-            ),
-          ),
+        TestPrimaryButton(
+          label: 'Start Test',
+          onPressed: startTest,
+          color: colors.success,
         ),
       ],
     );

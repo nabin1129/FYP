@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:netracare/config/app_theme.dart';
 import 'package:netracare/features/tests/presentation/pages/visual_acuity_test_page.dart';
 import 'package:netracare/features/tests/presentation/pages/visual_acuity_variant.dart';
+import 'package:netracare/features/tests/presentation/widgets/test_widgets.dart';
 
 class VisualAcuityPage extends StatefulWidget {
   const VisualAcuityPage({super.key});
@@ -47,12 +48,13 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Stack(
           children: [
-            // Back button
             Positioned(
               top: 10,
               left: 10,
@@ -61,8 +63,6 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
                 onPressed: goBack,
               ),
             ),
-
-            // Main Card
             Center(
               child: Container(
                 width: double.infinity,
@@ -70,7 +70,7 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
                 margin: const EdgeInsets.all(16),
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: const [
                     BoxShadow(
@@ -98,118 +98,62 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.testIconBackground,
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.remove_red_eye,
-            size: 56,
-            color: AppTheme.testIconColor,
-          ),
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          "Visual Acuity Test",
-          style: TextStyle(
-            fontSize: AppTheme.fontTitle,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 10),
-        const Text(
-          "This test measures how clearly you can see letters at different sizes, similar to a clinical eye chart.",
-          textAlign: TextAlign.center,
-          style: TextStyle(color: AppTheme.textSecondary, height: 1.5),
+        const TestIconHeader(
+          icon: Icons.remove_red_eye,
+          iconSize: 56,
+          title: 'Visual Acuity Test',
+          description:
+              'This test measures how clearly you can see letters at different sizes, similar to a clinical eye chart.',
         ),
         const SizedBox(height: 24),
-
-        // Key Information
-        _infoCard(
+        const TestInfoCard(
           icon: Icons.visibility,
-          title: "What to expect",
+          title: 'What to expect',
           description:
               "You'll identify letters displayed at decreasing sizes. Each correct answer reveals a smaller letter.",
         ),
         const SizedBox(height: 12),
-        _infoCard(
+        const TestInfoCard(
           icon: Icons.straighten,
-          title: "Distance Viewing",
+          title: 'Distance Viewing',
           description:
-              "Hold your phone at arm's length (30-40 cm away) from your eyes.",
+              'Hold your phone at arm\'s length (30-40 cm away) from your eyes.',
         ),
         const SizedBox(height: 12),
-        _infoCard(
+        const TestInfoCard(
           icon: Icons.lightbulb_outline,
-          title: "Good Lighting",
+          title: 'Good Lighting',
           description:
-              "Make sure you're in a well-lit area for accurate measurements.",
+              'Make sure you\'re in a well-lit area for accurate measurements.',
         ),
-
         const SizedBox(height: 28),
-
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: proceed,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              backgroundColor: AppTheme.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              "Continue Setup",
-              style: TextStyle(
-                fontSize: AppTheme.fontLG,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
+        TestPrimaryButton(label: 'Continue Setup', onPressed: proceed),
       ],
     );
   }
 
   // ============ SETUP SCREEN ============
   Widget _setupUI() {
+    final colors = context.appColors;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.testIconBackground,
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.checklist,
-            size: 56,
-            color: AppTheme.testIconColor,
-          ),
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          "Pre-Test Setup",
-          style: TextStyle(
-            fontSize: AppTheme.fontTitle,
-            fontWeight: FontWeight.bold,
-          ),
+        const TestIconHeader(
+          icon: Icons.checklist,
+          iconSize: 56,
+          title: 'Pre-Test Setup',
         ),
         const SizedBox(height: 24),
 
-        const Align(
+        Align(
           alignment: Alignment.centerLeft,
           child: Text(
             'Test type',
             style: TextStyle(
               fontSize: AppTheme.fontBody,
               fontWeight: FontWeight.w600,
-              color: AppTheme.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
         ),
@@ -222,22 +166,16 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
             return ChoiceChip(
               selected: isSelected,
               label: Text(variant.title),
-              onSelected: (_) {
-                setState(() {
-                  selectedVariant = variant;
-                });
-              },
-              selectedColor: AppTheme.primary.withValues(alpha: 0.14),
+              onSelected: (_) => setState(() => selectedVariant = variant),
+              selectedColor: colors.primary.withValues(alpha: 0.14),
               labelStyle: TextStyle(
-                color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+                color: isSelected ? colors.primary : colors.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
               side: BorderSide(
-                color: isSelected
-                    ? AppTheme.primary
-                    : AppTheme.border.withValues(alpha: 0.9),
+                color: isSelected ? colors.primary : colors.border,
               ),
-              backgroundColor: Colors.white,
+              backgroundColor: colors.surface,
             );
           }).toList(),
         ),
@@ -246,260 +184,84 @@ class _VisualAcuityPageState extends State<VisualAcuityPage> {
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppTheme.primary.withValues(alpha: 0.06),
+            color: colors.primary.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppTheme.primary.withValues(alpha: 0.12)),
+            border: Border.all(color: colors.primary.withValues(alpha: 0.12)),
           ),
           child: Text(
             selectedVariant.description,
-            style: const TextStyle(color: AppTheme.textSecondary, height: 1.4),
+            style: TextStyle(color: colors.textSecondary, height: 1.4),
           ),
         ),
         const SizedBox(height: 20),
 
-        // Setup Checklist
-        _checklistItem("Find a quiet, well-lit room"),
+        const TestChecklistItem(text: "Find a quiet, well-lit room"),
         const SizedBox(height: 12),
-        _checklistItem("Hold the phone at arm's length"),
+        const TestChecklistItem(text: "Hold the phone at arm's length"),
         const SizedBox(height: 12),
-        _checklistItem("Wear distance glasses if applicable"),
+        const TestChecklistItem(text: "Wear distance glasses if applicable"),
         const SizedBox(height: 12),
-        _checklistItem("Ensure clear view of the display"),
+        const TestChecklistItem(text: "Ensure clear view of the display"),
         const SizedBox(height: 12),
-        _checklistItem("Avoid screen glare"),
+        const TestChecklistItem(text: "Avoid screen glare"),
         const SizedBox(height: 24),
 
-        // Instructions Box
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.amber.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
-          ),
-          child: const Row(
-            children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.amber),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  "You'll be shown 10 prompts. Use the selected test type to answer each one accurately.",
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSM,
-                    color: AppTheme.warningDark,
-                  ),
-                ),
-              ),
-            ],
-          ),
+        const TestWarningBox(
+          message:
+              "You'll be shown 10 prompts. Use the selected test type to answer each one accurately.",
         ),
-
         const SizedBox(height: 28),
-
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: startTest,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              backgroundColor: AppTheme.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              "Start Test",
-              style: TextStyle(
-                fontSize: AppTheme.fontLG,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
+        TestPrimaryButton(label: 'Start Test', onPressed: startTest),
       ],
     );
   }
 
   // ============ PREPARATION SCREEN ============
   Widget _preparationUI() {
+    final colors = context.appColors;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.green.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.visibility_outlined,
-            size: 56,
-            color: Colors.green,
-          ),
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          "Ready to Begin",
-          style: TextStyle(
-            fontSize: AppTheme.fontTitle,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 10),
-        const Text(
-          "Follow the instructions carefully and identify each letter as it appears.",
-          textAlign: TextAlign.center,
-          style: TextStyle(color: AppTheme.textSecondary, height: 1.5),
+        TestIconHeader(
+          icon: Icons.visibility_outlined,
+          iconSize: 56,
+          title: 'Ready to Begin',
+          description:
+              'Follow the instructions carefully and identify each letter as it appears.',
+          iconBgColor: colors.success.withValues(alpha: 0.1),
+          iconColor: colors.success,
         ),
         const SizedBox(height: 24),
 
-        // Test Instructions
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppTheme.testIconBackground,
+            color: colors.testIconBackground,
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: AppTheme.primaryLight.withValues(alpha: 0.3),
+              color: colors.primaryLight.withValues(alpha: 0.3),
             ),
           ),
           child: Column(
             children: [
-              _instructionStep("1", "Read each letter carefully"),
+              const TestInstructionStep(number: '1', text: 'Read each letter carefully'),
               const SizedBox(height: 12),
-              _instructionStep("2", "Select the correct letter from options"),
+              const TestInstructionStep(
+                  number: '2', text: 'Select the correct letter from options'),
               const SizedBox(height: 12),
-              _instructionStep("3", "Letters get progressively smaller"),
+              const TestInstructionStep(
+                  number: '3', text: 'Letters get progressively smaller'),
               const SizedBox(height: 12),
-              _instructionStep("4", "Test completes after 10 letters"),
+              const TestInstructionStep(number: '4', text: 'Test completes after 10 letters'),
             ],
           ),
         ),
-
         const SizedBox(height: 28),
-
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: startTest,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              backgroundColor: Colors.green,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              "Start Visual Acuity Test",
-              style: TextStyle(
-                fontSize: AppTheme.fontLG,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ============ HELPER WIDGETS ============
-  Widget _infoCard({
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.border),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppTheme.testIconColor, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: AppTheme.fontBody,
-                  ),
-                ),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    fontSize: AppTheme.fontSM,
-                    color: AppTheme.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _checklistItem(String text) {
-    return Row(
-      children: [
-        Container(
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            color: Colors.green,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: const Icon(Icons.check, color: Colors.white, size: 16),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: AppTheme.fontBody,
-              color: AppTheme.textSubtle,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _instructionStep(String number, String description) {
-    return Row(
-      children: [
-        Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: AppTheme.primary,
-            borderRadius: BorderRadius.circular(50),
-          ),
-          child: Center(
-            child: Text(
-              number,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            description,
-            style: const TextStyle(
-              fontSize: AppTheme.fontBody,
-              color: AppTheme.textSubtle,
-            ),
-          ),
+        TestPrimaryButton(
+          label: 'Start Visual Acuity Test',
+          onPressed: startTest,
+          color: colors.success,
         ),
       ],
     );

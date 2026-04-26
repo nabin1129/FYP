@@ -194,10 +194,11 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
     return ((correct / ishiharaPlates.length) * 100).round();
   }
 
-  Map<String, dynamic> getResultMessage() {
+  Map<String, dynamic> getResultMessage(BuildContext context) {
+    final colors = context.appColors;
     // If backend diagnosis is available, use it
     if (backendDiagnosis != null) {
-      return getBackendResultMessage(backendDiagnosis!);
+      return getBackendResultMessage(context, backendDiagnosis!);
     }
 
     // Otherwise, use local score calculation
@@ -209,7 +210,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         'status': 'Normal Color Vision',
         'message':
             'Your colour vision appears to be normal. No deficiency detected.',
-        'color': AppTheme.success,
+        'color': colors.success,
         'icon': Icons.check_circle,
       };
     } else if (score >= 80) {
@@ -217,7 +218,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         'status': 'Borderline - Possible Mild Deficiency',
         'message':
             'Your results are borderline. Consider retaking the test in better lighting or consulting an eye specialist.',
-        'color': AppTheme.success,
+        'color': colors.success,
         'icon': Icons.info,
       };
     } else if (score >= 60) {
@@ -225,7 +226,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         'status': 'Mild Color Vision Deficiency',
         'message':
             'You may have mild colour vision deficiency. Consider consulting an eye specialist for detailed evaluation.',
-        'color': AppTheme.warning,
+        'color': colors.warning,
         'icon': Icons.warning,
       };
     } else if (score >= 40) {
@@ -233,7 +234,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         'status': 'Moderate Color Vision Deficiency',
         'message':
             'Moderate colour vision deficiency detected. We recommend consulting an eye specialist for proper diagnosis.',
-        'color': AppTheme.warning,
+        'color': colors.warning,
         'icon': Icons.warning_amber,
       };
     } else if (score >= 30) {
@@ -241,7 +242,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         'status': 'Severe Color Vision Deficiency',
         'message':
             'Significant colour vision deficiency detected. Please consult an eye care professional for comprehensive evaluation.',
-        'color': AppTheme.warning,
+        'color': colors.warning,
         'icon': Icons.error,
       };
     } else {
@@ -249,20 +250,21 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         'status': 'Total Color Blindness',
         'message':
             'Possible total color blindness detected. Immediate consultation with an eye care specialist is strongly recommended.',
-        'color': AppTheme.error,
+        'color': colors.error,
         'icon': Icons.error_outline,
       };
     }
   }
 
-  Map<String, dynamic> getBackendResultMessage(String diagnosis) {
+  Map<String, dynamic> getBackendResultMessage(BuildContext context, String diagnosis) {
+    final colors = context.appColors;
     // Handle Test Unreliable status
     if (diagnosis.contains('Unreliable') || diagnosis.contains('Retake')) {
       return {
         'status': diagnosis,
         'message':
             'The control plate was answered incorrectly. This may indicate poor lighting, screen issues, or misunderstanding of instructions. Please retake the test in better conditions.',
-        'color': AppTheme.warning,
+        'color': colors.warning,
         'icon': Icons.refresh,
       };
     }
@@ -273,7 +275,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         'status': diagnosis,
         'message':
             'Your colour vision appears to be normal. No deficiency detected.',
-        'color': AppTheme.success,
+        'color': colors.success,
         'icon': Icons.check_circle,
       };
     }
@@ -285,7 +287,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
           'status': diagnosis,
           'message':
               'Severe red-green color deficiency detected (Protanopia or Deuteranopia). You have difficulty distinguishing between red and green colors. Please consult an eye specialist.',
-          'color': AppTheme.error,
+          'color': colors.error,
           'icon': Icons.error,
         };
       } else if (diagnosis.contains('Moderate')) {
@@ -293,7 +295,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
           'status': diagnosis,
           'message':
               'Moderate red-green color deficiency detected. You may have difficulty with red and green colors. Consider consulting an eye specialist.',
-          'color': AppTheme.warning,
+          'color': colors.warning,
           'icon': Icons.warning_amber,
         };
       } else {
@@ -301,7 +303,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
           'status': diagnosis,
           'message':
               'Mild red-green color deficiency detected. You may have slight difficulty distinguishing red and green colors. Consider consulting an eye specialist for confirmation.',
-          'color': AppTheme.warning,
+          'color': colors.warning,
           'icon': Icons.warning,
         };
       }
@@ -314,7 +316,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
           'status': diagnosis,
           'message':
               'Severe blue-yellow color deficiency detected (Tritanopia). You have difficulty distinguishing between blue and yellow colors. Please consult an eye specialist.',
-          'color': AppTheme.error,
+          'color': colors.error,
           'icon': Icons.error,
         };
       } else if (diagnosis.contains('Moderate')) {
@@ -322,7 +324,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
           'status': diagnosis,
           'message':
               'Moderate blue-yellow color deficiency detected. You may have difficulty with blue and yellow colors. Consider consulting an eye specialist.',
-          'color': AppTheme.warning,
+          'color': colors.warning,
           'icon': Icons.warning_amber,
         };
       } else {
@@ -330,7 +332,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
           'status': diagnosis,
           'message':
               'Mild blue-yellow color deficiency detected. You may have slight difficulty distinguishing blue and yellow colors. Consider consulting an eye specialist for confirmation.',
-          'color': AppTheme.warning,
+          'color': colors.warning,
           'icon': Icons.warning,
         };
       }
@@ -342,7 +344,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         'status': diagnosis,
         'message':
             'Total color blindness (Monochromacy) detected. You may see only in shades of gray. Immediate consultation with an eye care specialist is strongly recommended.',
-        'color': AppTheme.error,
+        'color': colors.error,
         'icon': Icons.error_outline,
       };
     }
@@ -353,7 +355,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         'status': diagnosis,
         'message':
             'Your results are borderline. Consider retaking the test in better lighting or consulting an eye specialist.',
-        'color': AppTheme.success,
+        'color': colors.success,
         'icon': Icons.info,
       };
     }
@@ -363,7 +365,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
       'status': diagnosis,
       'message':
           'Color vision deficiency detected. Please consult an eye specialist for proper diagnosis and evaluation.',
-      'color': AppTheme.warning,
+      'color': colors.warning,
       'icon': Icons.warning,
     };
   }
@@ -396,27 +398,34 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         false;
   }
 
+  AppBar _buildAppBar(BuildContext context) {
+    final colors = context.appColors;
+    return AppBar(
+      title: const Text("Colour Vision Test"),
+      backgroundColor: colors.surface,
+      elevation: 1,
+      titleTextStyle: TextStyle(
+        color: colors.textPrimary,
+        fontSize: AppTheme.fontXXL,
+        fontWeight: FontWeight.w600,
+      ),
+      iconTheme: IconThemeData(color: colors.textPrimary),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     // Show loading state
     if (isLoading) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text("Colour Vision Test"),
-          backgroundColor: Colors.white,
-          elevation: 1,
-          titleTextStyle: const TextStyle(
-            color: AppTheme.textPrimary,
-            fontSize: AppTheme.fontXXL,
-            fontWeight: FontWeight.w600,
-          ),
-          iconTheme: const IconThemeData(color: AppTheme.textPrimary),
-        ),
-        backgroundColor: AppTheme.background,
-        body: Center(
+        appBar: _buildAppBar(context),
+        backgroundColor: colors.background,
+        body: const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
+            children: [
               CircularProgressIndicator(),
               SizedBox(height: 16),
               Text("Loading test plates..."),
@@ -429,23 +438,13 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
     // Show error state
     if (errorMessage != null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text("Colour Vision Test"),
-          backgroundColor: Colors.white,
-          elevation: 1,
-          titleTextStyle: const TextStyle(
-            color: AppTheme.textPrimary,
-            fontSize: AppTheme.fontXXL,
-            fontWeight: FontWeight.w600,
-          ),
-          iconTheme: const IconThemeData(color: AppTheme.textPrimary),
-        ),
-        backgroundColor: AppTheme.background,
+        appBar: _buildAppBar(context),
+        backgroundColor: colors.background,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: AppTheme.error),
+              Icon(Icons.error_outline, size: 64, color: colors.error),
               const SizedBox(height: 16),
               Text("Error: $errorMessage"),
               const SizedBox(height: 16),
@@ -470,20 +469,20 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppTheme.background,
+        backgroundColor: colors.background,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: colors.surface,
           elevation: 1,
-          titleTextStyle: const TextStyle(
-            color: AppTheme.textPrimary,
+          titleTextStyle: TextStyle(
+            color: colors.textPrimary,
             fontSize: AppTheme.fontXXL,
             fontWeight: FontWeight.w600,
           ),
-          iconTheme: const IconThemeData(color: AppTheme.textPrimary),
+          iconTheme: IconThemeData(color: colors.textPrimary),
           leading: isTestComplete
               ? null
               : IconButton(
-                  icon: const Icon(Icons.close, color: AppTheme.textPrimary),
+                  icon: Icon(Icons.close, color: colors.textPrimary),
                   onPressed: () => _showExitDialog(),
                 ),
           title: const Text("Colour Vision Test"),
@@ -496,6 +495,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
 
   // ============ TEST UI ============
   Widget _buildTest() {
+    final colors = context.appColors;
     final plate = ishiharaPlates[currentPlate];
     return SingleChildScrollView(
       child: Padding(
@@ -506,7 +506,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colors.surface,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
@@ -521,12 +521,12 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         "Progress",
                         style: TextStyle(
                           fontSize: AppTheme.fontBody,
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.textSecondary,
+                          color: colors.textSecondary,
                         ),
                       ),
                       Container(
@@ -535,15 +535,15 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.primary.withValues(alpha: 0.1),
+                          color: colors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           "${currentPlate + 1}/${ishiharaPlates.length}",
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: AppTheme.fontBody,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.primary,
+                            color: colors.primary,
                           ),
                         ),
                       ),
@@ -555,10 +555,8 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                     child: LinearProgressIndicator(
                       value: progress / 100,
                       minHeight: 8,
-                      backgroundColor: AppTheme.border,
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        AppTheme.primary,
-                      ),
+                      backgroundColor: colors.border,
+                      valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
                     ),
                   ),
                 ],
@@ -568,10 +566,10 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
             // Question Text
             Text(
               "What number do you see?",
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: AppTheme.fontXXL,
                 fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             const SizedBox(height: 24),
@@ -581,7 +579,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
               width: double.infinity,
               height: 300,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colors.surface,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
@@ -606,9 +604,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                               ? loadingProgress.cumulativeBytesLoaded /
                                     loadingProgress.expectedTotalBytes!
                               : null,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                            AppTheme.primary,
-                          ),
+                          valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
                         ),
                       );
                     },
@@ -616,8 +612,8 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                       _skipCurrentFailedPlate();
 
                       return Container(
-                        color: AppTheme.background,
-                        child: const Center(
+                        color: colors.background,
+                        child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -627,14 +623,14 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.5,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppTheme.primary,
+                                    colors.primary,
                                   ),
                                 ),
                               ),
-                              SizedBox(height: 10),
+                              const SizedBox(height: 10),
                               Text(
                                 'Skipping unavailable plate...',
-                                style: TextStyle(color: AppTheme.textSecondary),
+                                style: TextStyle(color: colors.textSecondary),
                               ),
                             ],
                           ),
@@ -651,7 +647,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colors.surface,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
@@ -663,12 +659,12 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
               ),
               child: Column(
                 children: [
-                  const Text(
+                  Text(
                     "Select your answer",
                     style: TextStyle(
                       fontSize: AppTheme.fontBody,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textSecondary,
+                      color: colors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -686,9 +682,9 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                           borderRadius: BorderRadius.circular(12),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: AppTheme.primary.withValues(alpha: 0.08),
+                              color: colors.primary.withValues(alpha: 0.08),
                               border: Border.all(
-                                color: AppTheme.primary.withValues(alpha: 0.3),
+                                color: colors.primary.withValues(alpha: 0.3),
                                 width: 2,
                               ),
                               borderRadius: BorderRadius.circular(12),
@@ -696,10 +692,10 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                             child: Center(
                               child: Text(
                                 option,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: AppTheme.fontHeading,
                                   fontWeight: FontWeight.bold,
-                                  color: AppTheme.primary,
+                                  color: colors.primary,
                                 ),
                               ),
                             ),
@@ -719,7 +715,8 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
 
   // ============ RESULTS UI ============
   Widget _buildResults() {
-    final resultMsg = getResultMessage();
+    final colors = context.appColors;
+    final resultMsg = getResultMessage(context);
     final score = calculateScore();
     int correct = 0;
     // Use minimum length to prevent index out of bounds
@@ -747,28 +744,28 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
             child: Icon(resultMsg['icon'], size: 64, color: resultMsg['color']),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             "Test Completed!",
             style: TextStyle(
               fontSize: AppTheme.fontHeading,
               fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             "Your colour vision test has been successfully completed.",
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: AppTheme.fontBody,
-              color: AppTheme.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
           const SizedBox(height: 32),
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colors.surface,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -781,26 +778,26 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "Results:",
                   style: TextStyle(
                     fontSize: AppTheme.fontLG,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 16),
                 _resultRow(
                   "Correct Answers",
                   "$correct / ${ishiharaPlates.length}",
-                  AppTheme.textPrimary,
+                  colors.textPrimary,
                 ),
                 const SizedBox(height: 12),
-                const Divider(color: AppTheme.divider),
+                Divider(color: colors.divider),
                 const SizedBox(height: 12),
-                _resultRow("Score", "$score%", AppTheme.primary),
+                _resultRow("Score", "$score%", colors.primary),
                 const SizedBox(height: 12),
-                const Divider(color: AppTheme.divider),
+                Divider(color: colors.divider),
                 const SizedBox(height: 12),
                 _resultRow(
                   "Status",
@@ -878,11 +875,11 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                     if (backendDiagnosis != null) {
                       message += "\nDiagnosis: $backendDiagnosis";
                     }
-                    Color bgColor = AppTheme.success;
+                    Color bgColor = colors.success;
 
                     if (response['warning'] != null) {
                       message = response['warning'];
-                      bgColor = AppTheme.warning;
+                      bgColor = colors.warning;
                     }
 
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -907,7 +904,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(response['medical_disclaimer']),
-                              backgroundColor: AppTheme.textSubtle,
+                              backgroundColor: colors.textSubtle,
                               duration: const Duration(seconds: 6),
                             ),
                           );
@@ -920,7 +917,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text("Failed to save results: $e"),
-                        backgroundColor: AppTheme.error,
+                        backgroundColor: colors.error,
                         duration: const Duration(seconds: 3),
                       ),
                     );
@@ -928,7 +925,7 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
+                backgroundColor: colors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -959,17 +956,17 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
               },
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                side: const BorderSide(color: AppTheme.primary),
+                side: BorderSide(color: colors.primary),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 "Retry Test",
                 style: TextStyle(
                   fontSize: AppTheme.fontLG,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.primary,
+                  color: colors.primary,
                 ),
               ),
             ),
@@ -982,17 +979,17 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                   Navigator.popUntil(context, (route) => route.isFirst),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                side: BorderSide(color: AppTheme.textSecondary),
+                side: BorderSide(color: colors.textSecondary),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 "Back to Home",
                 style: TextStyle(
                   fontSize: AppTheme.fontLG,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
             ),
@@ -1004,15 +1001,16 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
   }
 
   Widget _resultRow(String label, String value, Color valueColor) {
+    final colors = context.appColors;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: AppTheme.fontLG,
             fontWeight: FontWeight.w500,
-            color: AppTheme.textPrimary,
+            color: colors.textPrimary,
           ),
         ),
         Text(

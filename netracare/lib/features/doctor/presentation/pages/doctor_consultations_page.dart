@@ -92,6 +92,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
   Future<void> _completeConsultation(ConsultationRequest request) async {
     final messenger = ScaffoldMessenger.of(context);
 
+    final colors = context.appColors;
     final shouldComplete = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -109,7 +110,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.success),
+            style: ElevatedButton.styleFrom(backgroundColor: colors.success),
             child: const Text('Confirm'),
           ),
         ],
@@ -125,16 +126,16 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
 
       if (!mounted) return;
       messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Consultation marked as completed'),
-          backgroundColor: AppTheme.success,
+        SnackBar(
+          content: const Text('Consultation marked as completed'),
+          backgroundColor: colors.success,
         ),
       );
       _loadDataAsync();
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.error),
+        SnackBar(content: Text('Error: $e'), backgroundColor: colors.error),
       );
     }
   }
@@ -154,30 +155,31 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.surface,
+        backgroundColor: colors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+          icon: Icon(Icons.arrow_back, color: colors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Consultations',
           style: TextStyle(
-            color: AppTheme.textPrimary,
+            color: colors.textPrimary,
             fontSize: AppTheme.fontXXL,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: AppTheme.primary),
+            icon: Icon(Icons.refresh, color: colors.primary),
             onPressed: _isLoading ? null : _loadDataAsync,
           ),
           IconButton(
-            icon: const Icon(Icons.calendar_month, color: AppTheme.primary),
+            icon: Icon(Icons.calendar_month, color: colors.primary),
             tooltip: 'Manage assigned slots',
             onPressed: () {
               Navigator.push(
@@ -193,20 +195,20 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
           preferredSize: const Size.fromHeight(1),
           child: Container(
             height: 1,
-            color: AppTheme.textLight.withValues(alpha: 0.1),
+            color: colors.textLight.withValues(alpha: 0.1),
           ),
         ),
       ),
       body: _isLoading
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(color: AppTheme.primary),
-                  SizedBox(height: AppTheme.spaceMD),
+                  CircularProgressIndicator(color: colors.primary),
+                  const SizedBox(height: AppTheme.spaceMD),
                   Text(
                     'Loading consultations...',
-                    style: TextStyle(color: AppTheme.textSecondary),
+                    style: TextStyle(color: colors.textSecondary),
                   ),
                 ],
               ),
@@ -214,28 +216,28 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
           : Column(
               children: [
                 Container(
-                  color: AppTheme.surface,
+                  color: colors.surface,
                   padding: const EdgeInsets.fromLTRB(
                     AppTheme.spaceMD,
                     AppTheme.spaceSM,
                     AppTheme.spaceMD,
                     AppTheme.spaceMD,
                   ),
-                  child: const Text(
+                  child: Text(
                     'Manage active patient chats and review completed consultations.',
                     style: TextStyle(
                       fontSize: AppTheme.fontBody,
-                      color: AppTheme.textSecondary,
+                      color: colors.textSecondary,
                     ),
                   ),
                 ),
                 Material(
-                  color: AppTheme.surface,
+                  color: colors.surface,
                   child: TabBar(
                     controller: _tabController,
-                    labelColor: AppTheme.primary,
-                    unselectedLabelColor: AppTheme.textSecondary,
-                    indicatorColor: AppTheme.primary,
+                    labelColor: colors.primary,
+                    unselectedLabelColor: colors.textSecondary,
+                    indicatorColor: colors.primary,
                     indicatorWeight: 2,
                     labelStyle: const TextStyle(
                       fontSize: AppTheme.fontBody,
@@ -288,6 +290,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
     required IconData emptyIcon,
     required bool showActions,
   }) {
+    final colors = context.appColors;
     if (consultations.isEmpty) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -301,28 +304,28 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                 children: [
                   Container(
                     padding: const EdgeInsets.all(AppTheme.spaceLG),
-                    decoration: const BoxDecoration(
-                      color: AppTheme.testIconBackground,
+                    decoration: BoxDecoration(
+                      color: colors.testIconBackground,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(emptyIcon, size: 48, color: AppTheme.primary),
+                    child: Icon(emptyIcon, size: 48, color: colors.primary),
                   ),
                   const SizedBox(height: AppTheme.spaceMD),
                   Text(
                     emptyTitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: AppTheme.fontLG,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimary,
+                      color: colors.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: AppTheme.spaceXS),
                   Text(
                     emptySubtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: AppTheme.fontBody,
-                      color: AppTheme.textSecondary,
+                      color: colors.textSecondary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -351,13 +354,14 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
     required ConsultationRequest consultation,
     required bool showActions,
   }) {
+    final colors = context.appColors;
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.spaceMD),
       padding: const EdgeInsets.all(AppTheme.spaceMD),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        boxShadow: AppTheme.cardShadow,
+        boxShadow: AppTheme.adaptiveCardShadow(context),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -371,18 +375,18 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                   children: [
                     Text(
                       consultation.patientName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: AppTheme.fontLG,
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.textPrimary,
+                        color: colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: AppTheme.spaceXS),
                     Text(
                       consultation.requestedAgo,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: AppTheme.fontSM,
-                        color: AppTheme.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                   ],
@@ -399,15 +403,15 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                     ? Icons.local_hospital_outlined
                     : Icons.chat_bubble_outline,
                 size: 16,
-                color: AppTheme.textLight,
+                color: colors.textLight,
               ),
               const SizedBox(width: 4),
               Flexible(
                 child: Text(
                   consultation.requestType == 'physical' ? 'Physical' : 'Chat',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: AppTheme.fontSM,
-                    color: AppTheme.textSecondary,
+                    color: colors.textSecondary,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -421,14 +425,14 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
               width: double.infinity,
               padding: const EdgeInsets.all(AppTheme.spaceSM),
               decoration: BoxDecoration(
-                color: AppTheme.surfaceLight,
+                color: colors.surfaceLight,
                 borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
               child: Text(
                 consultation.message!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: AppTheme.fontSM,
-                  color: AppTheme.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
             ),
@@ -445,8 +449,8 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                       icon: const Icon(Icons.check_circle_outline, size: 18),
                       label: const Text('Mark Completed'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.success,
-                        side: const BorderSide(color: AppTheme.success),
+                        foregroundColor: colors.success,
+                        side: BorderSide(color: colors.success),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
@@ -459,7 +463,7 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
                     icon: const Icon(Icons.chat, size: 18),
                     label: const Text('Chat'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primary,
+                      backgroundColor: colors.primary,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
@@ -498,15 +502,16 @@ class _DoctorConsultationsPageState extends State<DoctorConsultationsPage>
   }
 
   Color _statusColor(RequestStatus status) {
+    final colors = context.appColors;
     switch (status) {
       case RequestStatus.pending:
-        return AppTheme.warning;
+        return colors.warning;
       case RequestStatus.accepted:
-        return AppTheme.success;
+        return colors.success;
       case RequestStatus.rejected:
-        return AppTheme.error;
+        return colors.error;
       case RequestStatus.completed:
-        return AppTheme.textSecondary;
+        return colors.textSecondary;
     }
   }
 
