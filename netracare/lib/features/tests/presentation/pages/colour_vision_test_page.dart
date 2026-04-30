@@ -3,6 +3,12 @@ import 'package:netracare/config/app_theme.dart';
 import 'dart:async';
 import 'package:netracare/services/api_service.dart';
 
+class _AffectedColor {
+  final String name;
+  final Color color;
+  const _AffectedColor(this.name, this.color);
+}
+
 class IshiharaPlate {
   final int id;
   final int plateNumber;
@@ -50,8 +56,9 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
   List<String> answers = [];
   double progress = 0;
   bool isTestComplete = false;
-  String? backendDiagnosis; // Stores the specific diagnosis from backend
+  String? backendDiagnosis;
   bool resultsSaved = false;
+  bool _isAnalyzing = false;
 
   @override
   void initState() {
@@ -115,6 +122,48 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
           });
         }
       });
+    }
+  }
+
+  Future<void> _submitResults() async {
+    if (_isAnalyzing || resultsSaved) return;
+
+    setState(() => _isAnalyzing = true);
+
+    try {
+      final testDuration = testStartTime != null
+          ? DateTime.now().difference(testStartTime!).inSeconds.toDouble()
+          : null;
+
+      final plateImages = ishiharaPlates
+          .map((p) => p.imagePath.split('/').last)
+          .toList();
+
+      final response = await ApiService.submitColorVisionTest(
+        plateIds: ishiharaPlates.map((p) => p.plateNumber).toList(),
+        plateImages: plateImages,
+        userAnswers: answers,
+        score: calculateScore(),
+        testDuration: testDuration,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        backendDiagnosis = response['severity'] as String?;
+        resultsSaved = true;
+        _isAnalyzing = false;
+      });
+
+      // After successful save, navigate back to home/root
+      if (mounted) {
+        Navigator.popUntil(context, (route) => route.isFirst);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isAnalyzing = false);
+      // Silent fail — local score fallback is shown instead
+      debugPrint('Colour vision auto-submit failed: $e');
     }
   }
 
@@ -256,7 +305,10 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
     }
   }
 
-  Map<String, dynamic> getBackendResultMessage(BuildContext context, String diagnosis) {
+  Map<String, dynamic> getBackendResultMessage(
+    BuildContext context,
+    String diagnosis,
+  ) {
     final colors = context.appColors;
     // Handle Test Unreliable status
     if (diagnosis.contains('Unreliable') || diagnosis.contains('Retake')) {
@@ -604,7 +656,9 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
                               ? loadingProgress.cumulativeBytesLoaded /
                                     loadingProgress.expectedTotalBytes!
                               : null,
-                          valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            colors.primary,
+                          ),
                         ),
                       );
                     },
@@ -808,6 +862,8 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
             ),
           ),
           const SizedBox(height: 24),
+          _buildDeficiencyTypeCard(context),
+          const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -827,120 +883,87 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
             ),
           ),
           const SizedBox(height: 32),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () async {
-                try {
-                  final testDuration = testStartTime != null
-                      ? DateTime.now()
-                            .difference(testStartTime!)
-                            .inSeconds
-                            .toDouble()
-                      : null;
-
-                  // Extract image filenames from image paths
-                  final plateImages = ishiharaPlates.map((p) {
-                    final path = p.imagePath;
-                    return path.split('/').last; // Get filename from path
-                  }).toList();
-
-                  // Debug: Print what we're sending
-                  debugPrint('===== SUBMITTING COLOR VISION TEST =====');
-                  debugPrint(
-                    'Plate IDs: ${ishiharaPlates.map((p) => p.plateNumber).toList()}',
-                  );
-                  debugPrint('Plate Images: $plateImages');
-                  debugPrint('User Answers: $answers');
-                  debugPrint('Score: ${calculateScore()}');
-                  debugPrint('==========================================');
-
-                  final response = await ApiService.submitColorVisionTest(
-                    plateIds: ishiharaPlates.map((p) => p.plateNumber).toList(),
-                    plateImages: plateImages,
-                    userAnswers: answers,
-                    score: calculateScore(),
-                    testDuration: testDuration,
-                  );
-
-                  if (mounted) {
-                    // Store the backend diagnosis
-                    setState(() {
-                      backendDiagnosis = response['severity'];
-                      resultsSaved = true;
-                    });
-
-                    // Show warning if control plate failed
-                    String message = "Results saved successfully!";
-                    if (backendDiagnosis != null) {
-                      message += "\nDiagnosis: $backendDiagnosis";
-                    }
-                    Color bgColor = colors.success;
-
-                    if (response['warning'] != null) {
-                      message = response['warning'];
-                      bgColor = colors.warning;
-                    }
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(message),
-                        backgroundColor: bgColor,
-                        duration: const Duration(seconds: 3),
-                      ),
-                    );
-
-                    // Navigate to home page after short delay
-                    Future.delayed(const Duration(seconds: 3), () {
-                      if (mounted) {
-                        Navigator.popUntil(context, (route) => route.isFirst);
-                      }
-                    });
-
-                    // Show medical disclaimer
-                    if (response['medical_disclaimer'] != null) {
-                      Future.delayed(const Duration(seconds: 4), () {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(response['medical_disclaimer']),
-                              backgroundColor: colors.textSubtle,
-                              duration: const Duration(seconds: 6),
-                            ),
-                          );
-                        }
-                      });
-                    }
-                  }
-                } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Failed to save results: $e"),
-                        backgroundColor: colors.error,
-                        duration: const Duration(seconds: 3),
-                      ),
-                    );
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+          if (_isAnalyzing)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: colors.border),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Saving results...',
+                    style: TextStyle(
+                      fontSize: AppTheme.fontBody,
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else if (resultsSaved)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: colors.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: colors.success.withValues(alpha: 0.4),
                 ),
               ),
-              child: const Text(
-                "Save Results",
-                style: TextStyle(
-                  fontSize: AppTheme.fontLG,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.check_circle, size: 18, color: colors.success),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Results saved to your history',
+                    style: TextStyle(
+                      fontSize: AppTheme.fontBody,
+                      fontWeight: FontWeight.w600,
+                      color: colors.success,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _submitResults,
+                icon: const Icon(Icons.save_outlined, size: 18),
+                label: const Text(
+                  'Save Results',
+                  style: TextStyle(
+                    fontSize: AppTheme.fontLG,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ),
-          ),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
@@ -995,6 +1018,215 @@ class _ColourVisionTestPageState extends State<ColourVisionTestPage> {
             ),
           ),
           const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeficiencyTypeCard(BuildContext context) {
+    final colors = context.appColors;
+
+    if (_isAnalyzing) {
+      return Container(
+        padding: const EdgeInsets.all(AppTheme.spaceMD),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: colors.border),
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: colors.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Analysing your results...',
+              style: TextStyle(
+                fontSize: AppTheme.fontBody,
+                color: colors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final diagnosis = backendDiagnosis;
+
+    // Determine category from diagnosis string
+    final String typeLabel;
+    final String typeSubtitle;
+    final Color typeColor;
+    final IconData typeIcon;
+    final List<_AffectedColor> affected;
+    final String practicalTip;
+
+    if (diagnosis == null ||
+        diagnosis.contains('Normal') ||
+        diagnosis.contains('Borderline') ||
+        diagnosis.contains('Unreliable')) {
+      typeLabel = 'Normal / Inconclusive';
+      typeSubtitle = 'No significant colour deficiency pattern';
+      typeColor = colors.success;
+      typeIcon = Icons.check_circle_outline;
+      affected = [];
+      practicalTip =
+          'Your colour vision is within the normal range. No lifestyle adjustments are needed.';
+    } else if (diagnosis.contains('Red-Green')) {
+      typeLabel = 'Red-Green Deficiency';
+      typeSubtitle = diagnosis.contains('Severe')
+          ? 'Protanopia / Deuteranopia'
+          : 'Protanomaly / Deuteranomaly';
+      typeColor = colors.error;
+      typeIcon = Icons.palette_outlined;
+      affected = [
+        _AffectedColor('Red', const Color(0xFFE53935)),
+        _AffectedColor('Green', const Color(0xFF43A047)),
+      ];
+      practicalTip =
+          'May struggle with traffic lights, ripe fruit, and colour-coded maps. Labelling apps and high-contrast modes help.';
+    } else if (diagnosis.contains('Blue-Yellow')) {
+      typeLabel = 'Blue-Yellow Deficiency';
+      typeSubtitle = 'Tritanopia / Tritanomaly';
+      typeColor = const Color(0xFF1565C0);
+      typeIcon = Icons.palette_outlined;
+      affected = [
+        _AffectedColor('Blue', const Color(0xFF1E88E5)),
+        _AffectedColor('Yellow', const Color(0xFFFDD835)),
+      ];
+      practicalTip =
+          'May confuse blue/green and yellow/violet. Blue-light filter glasses and accessible UI themes can help.';
+    } else {
+      // Total / Monochromacy
+      typeLabel = 'Monochromacy (Total)';
+      typeSubtitle = 'Achromatopsia — no colour perception';
+      typeColor = colors.textSecondary;
+      typeIcon = Icons.contrast;
+      affected = [_AffectedColor('All Colours', colors.textSecondary)];
+      practicalTip =
+          'Sees only shades of grey. High-contrast interfaces, tinted lenses, and an eye specialist consultation are strongly recommended.';
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spaceMD),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: typeColor.withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: typeColor.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(typeIcon, size: 20, color: typeColor),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      typeLabel,
+                      style: TextStyle(
+                        fontSize: AppTheme.fontLG,
+                        fontWeight: FontWeight.bold,
+                        color: typeColor,
+                      ),
+                    ),
+                    Text(
+                      typeSubtitle,
+                      style: TextStyle(
+                        fontSize: AppTheme.fontSM,
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (affected.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Divider(color: colors.divider, height: 1),
+            const SizedBox(height: 12),
+            Text(
+              'Affected Colours',
+              style: TextStyle(
+                fontSize: AppTheme.fontSM,
+                fontWeight: FontWeight.w600,
+                color: colors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: affected.map((_AffectedColor c) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: c.color,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: colors.border, width: 1),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      c.name,
+                      style: TextStyle(
+                        fontSize: AppTheme.fontSM,
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
+          ],
+          const SizedBox(height: 12),
+          Divider(color: colors.divider, height: 1),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.lightbulb_outline, size: 16, color: colors.warning),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  practicalTip,
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSM,
+                    color: colors.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );

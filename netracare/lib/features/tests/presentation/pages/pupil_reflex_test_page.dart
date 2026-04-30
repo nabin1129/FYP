@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:netracare/utils/permission_helper.dart';
 import 'package:netracare/services/pupil_reflex_service.dart';
+import 'package:netracare/widgets/device_pre_check_dialog.dart';
 
 class PupilReflexTestPage extends StatefulWidget {
   const PupilReflexTestPage({super.key});
@@ -63,6 +64,18 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
+    _runPreCheckThenInit();
+  }
+
+  Future<void> _runPreCheckThenInit() async {
+    await Future.microtask(() {});
+    if (!mounted) return;
+    final ok = await showDevicePreCheckDialog(context);
+    if (!mounted) return;
+    if (!ok) {
+      Navigator.pop(context);
+      return;
+    }
     _initializeCameras();
   }
 
@@ -626,14 +639,30 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
 
   @override
   void dispose() {
-    if (_cameraController != null) {
-      if (_isRecording) {
-        _cameraController!.stopVideoRecording().catchError((_) {});
-      }
-      _cameraController!.dispose();
-    }
+    unawaited(_shutdownCamera());
     _flashAnimationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _shutdownCamera() async {
+    final controller = _cameraController;
+    if (controller == null) {
+      return;
+    }
+
+    try {
+      if (_isRecording && controller.value.isRecordingVideo) {
+        await controller.stopVideoRecording();
+      }
+    } catch (_) {
+      // Best effort cleanup during dispose.
+    }
+
+    try {
+      await controller.dispose();
+    } catch (_) {
+      // Ignore camera teardown errors while the page is closing.
+    }
   }
 
   Future<bool> _showExitDialog() async {
@@ -719,7 +748,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
       children: [
         // Background
         Container(
-          color: AppTheme.background,
+          color: colors.background,
           width: double.infinity,
           height: double.infinity,
         ),
@@ -732,7 +761,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
               height: MediaQuery.of(context).size.height * 0.6,
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: AppTheme.primary.withValues(alpha: 0.3),
+                  color: colors.primary.withValues(alpha: 0.3),
                   width: 2,
                 ),
                 borderRadius: BorderRadius.circular(12),
@@ -804,7 +833,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                   height: MediaQuery.of(context).size.height * 0.6,
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: AppTheme.primary.withValues(alpha: 0.3),
+                      color: colors.primary.withValues(alpha: 0.3),
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -816,33 +845,53 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                           borderRadius: BorderRadius.circular(10),
                           child: CameraPreview(_cameraController!),
                         )
-                      : Container(color: AppTheme.testDark),
+                      : Container(color: colors.testDark),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(AppTheme.spaceMD),
                   decoration: BoxDecoration(
-                    color: colors.textSecondary,
+                    color: colors.surface,
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: colors.border),
+                    boxShadow: AppTheme.adaptiveCardShadow(context),
                   ),
-                  child: const Column(
+                  child: Row(
                     children: [
-                      Icon(Icons.remove_red_eye, color: Colors.white, size: 32),
-                      SizedBox(height: 8),
-                      Text(
-                        'Nystagmus Detection',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: AppTheme.fontXL,
-                          fontWeight: FontWeight.bold,
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: colors.primary.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.remove_red_eye,
+                          color: colors.primary,
+                          size: 22,
                         ),
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Keep looking at camera for 10 seconds',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: AppTheme.fontBody,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Nystagmus Detection',
+                              style: TextStyle(
+                                color: colors.textPrimary,
+                                fontSize: AppTheme.fontBody,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Keep looking at the camera for 10 seconds',
+                              style: TextStyle(
+                                color: colors.textSecondary,
+                                fontSize: AppTheme.fontSM,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -895,10 +944,10 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: AppTheme.primary.withValues(alpha: 0.1),
+                    color: colors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(60),
                     border: Border.all(
-                      color: AppTheme.primary.withValues(alpha: 0.3),
+                      color: colors.primary.withValues(alpha: 0.3),
                       width: 2,
                     ),
                   ),
@@ -956,7 +1005,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                       child: LinearProgressIndicator(
                         value: progress / 100,
                         backgroundColor: Colors.white30,
-                        valueColor: AlwaysStoppedAnimation(AppTheme.success),
+                        valueColor: AlwaysStoppedAnimation(colors.success),
                       ),
                     ),
                   ),
@@ -1008,7 +1057,8 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                     icon: const Icon(Icons.play_arrow),
                     label: const Text("Start Test"),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.success,
+                      backgroundColor: colors.success,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 32,
                         vertical: 12,
@@ -1023,13 +1073,14 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton.icon(
+                    child: ElevatedButton.icon(
                       onPressed: _restartTestPage,
-                      icon: const Icon(Icons.restart_alt),
+                      icon: const Icon(Icons.restart_alt, size: 20),
                       label: const Text('Restart'),
-                      style: OutlinedButton.styleFrom(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colors.primary,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: const BorderSide(color: AppTheme.primary),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -1038,15 +1089,14 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: OutlinedButton.icon(
+                    child: ElevatedButton.icon(
                       onPressed: _handleExitPressed,
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(Icons.close, size: 20),
                       label: const Text('Exit'),
-                      style: OutlinedButton.styleFrom(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colors.error,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide(
-                          color: AppTheme.textSecondary.withValues(alpha: 0.6),
-                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -1074,10 +1124,10 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.success.withValues(alpha: 0.1),
+              color: colors.success.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.check_circle, size: 48, color: AppTheme.success),
+            child: Icon(Icons.check_circle, size: 48, color: colors.success),
           ),
           const SizedBox(height: 24),
           Text(
@@ -1161,7 +1211,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colors.surface,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
@@ -1240,13 +1290,13 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.accent.withValues(alpha: 0.1),
+                color: colors.accent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.fact_check, color: AppTheme.accent),
+                  Icon(Icons.fact_check, color: colors.accent),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -1295,13 +1345,13 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.primary.withValues(alpha: 0.1),
+                color: colors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.medical_information, color: AppTheme.primary),
+                  Icon(Icons.medical_information, color: colors.primary),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -1312,7 +1362,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                           style: TextStyle(
                             fontSize: AppTheme.fontBody,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryDark,
+                            color: colors.primaryDark,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -1320,7 +1370,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                           diagnosis!,
                           style: TextStyle(
                             fontSize: AppTheme.fontSM,
-                            color: AppTheme.primaryDark,
+                            color: colors.primaryDark,
                           ),
                         ),
                       ],
@@ -1336,7 +1386,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.success.withValues(alpha: 0.1),
+                color: colors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -1382,7 +1432,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.success.withValues(alpha: 0.1),
+                color: colors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -1422,19 +1472,19 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha: 0.1),
+              color: colors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, color: AppTheme.primary),
+                Icon(Icons.info_outline, color: colors.primary),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'Normal pupil reaction time: 0.2-0.4s. Results may vary based on lighting conditions.',
                     style: TextStyle(
                       fontSize: AppTheme.fontSM,
-                      color: AppTheme.primaryDark,
+                      color: colors.primaryDark,
                     ),
                   ),
                 ),
@@ -1447,8 +1497,9 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
             child: ElevatedButton(
               onPressed: isSaving ? null : _saveResults,
               style: ElevatedButton.styleFrom(
-                backgroundColor: isSaved ? AppTheme.success : AppTheme.primary,
-                disabledBackgroundColor: Colors.grey[400],
+                backgroundColor: isSaved ? colors.success : colors.primary,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: colors.textLight,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -1512,7 +1563,8 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
               },
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                side: const BorderSide(color: AppTheme.primary),
+                foregroundColor: colors.primary,
+                side: BorderSide(color: colors.primary),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -1535,8 +1587,9 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                   Navigator.popUntil(context, (route) => route.isFirst),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
+                foregroundColor: colors.textSecondary,
                 side: BorderSide(
-                  color: AppTheme.textSecondary.withValues(alpha: 0.5),
+                  color: colors.textSecondary.withValues(alpha: 0.5),
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -1547,7 +1600,7 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
                 style: TextStyle(
                   fontSize: AppTheme.fontLG,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.textSecondary.withValues(alpha: 0.7),
+                  color: colors.textSecondary.withValues(alpha: 0.7),
                 ),
               ),
             ),
@@ -1559,27 +1612,22 @@ class _PupilReflexTestPageState extends State<PupilReflexTestPage>
   }
 
   Color _getReactionTimeColor() {
-    if (pupilReactionTime < 0.3) {
-      return AppTheme.success;
-    } else if (pupilReactionTime < 0.4) {
-      return AppTheme.primary;
-    } else {
-      return AppTheme.warning;
-    }
+    final colors = context.appColors;
+    if (pupilReactionTime < 0.3) return colors.success;
+    if (pupilReactionTime < 0.4) return colors.primary;
+    return colors.warning;
   }
 
   Color _getAmplitudeColor() {
-    if (constrictionAmplitude == "Excellent") {
-      return AppTheme.success;
-    } else if (constrictionAmplitude == "Normal") {
-      return AppTheme.primary;
-    } else {
-      return AppTheme.warning;
-    }
+    final colors = context.appColors;
+    if (constrictionAmplitude == "Excellent") return colors.success;
+    if (constrictionAmplitude == "Normal") return colors.primary;
+    return colors.warning;
   }
 
   Color _getSymmetryColor() {
-    return symmetry == "Equal" ? AppTheme.success : AppTheme.warning;
+    final colors = context.appColors;
+    return symmetry == "Equal" ? colors.success : colors.warning;
   }
 
   Widget _resultRow(

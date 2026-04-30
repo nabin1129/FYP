@@ -6,12 +6,14 @@ from flask import request, send_from_directory
 from flask_restx import Namespace, Resource, fields
 from db_model import db, ColourVisionTest, User
 from core.security import token_required
+from models.notification import Notification
 from features.colour_vision.model import (
-    validate_answers, 
-    calculate_score, 
-    classify_result, 
+    validate_answers,
+    calculate_score,
+    classify_result,
+    classify_severity_tier,
     get_plate_metadata,
-    get_all_plate_numbers
+    get_all_plate_numbers,
 )
 import random
 from pathlib import Path
@@ -189,7 +191,9 @@ class ColourVisionTests(Resource):
             
             # Classify result with specific deficiency type diagnosis
             severity = classify_result(score, control_plate_failed, missed_plate_types)
-            
+            error_count = len(plate_ids) - correct_count
+            severity_tier = classify_severity_tier(error_count)
+
             # Create test record
             test = ColourVisionTest(
                 user_id=current_user.id,
@@ -197,36 +201,36 @@ class ColourVisionTests(Resource):
                 correct_count=correct_count,
                 score=score,
                 severity=severity,
-                test_duration=test_duration
+                test_duration=test_duration,
             )
-            
+
             # Set JSON data
             test.set_plate_data(plate_ids, plate_images)
             test.set_answers(user_answers, correct_answers)
-            
-            # Debug: Verify data is set
-            print(f"===== SAVING COLOR VISION TEST =====")
-            print(f"User ID: {current_user.id}")
-            print(f"Plate IDs: {plate_ids}")
-            print(f"User Answers: {user_answers}")
-            print(f"Correct Answers: {correct_answers}")
-            print(f"After set_answers - User: {test.get_user_answers()}")
-            print(f"After set_answers - Correct: {test.get_correct_answers()}")
-            print(f"=====================================")
-            
+
             # Save to database
             db.session.add(test)
             db.session.commit()
-            
+
+            notif = Notification.create_result_ready(
+                patient_id=current_user.id,
+                test_type='Colour Vision',
+                test_id=test.id,
+            )
+            db.session.add(notif)
+            db.session.commit()
+
             # Return result with optional warning
             result = test.to_dict()
+            result['error_count'] = error_count
+            result['severity_tier'] = severity_tier
             if validation.get('warning'):
                 result['warning'] = validation['warning']
             result['medical_disclaimer'] = (
                 "NOTE: This is a screening test using synthetic images, not medical-grade Ishihara plates. "
                 "Results are for educational purposes only. Consult an eye care professional for proper diagnosis."
             )
-            
+
             return result, 201
             
         except KeyError as e:
@@ -246,18 +250,6 @@ class ColourVisionTests(Resource):
                 .all()
             
             result = [test.to_dict() for test in tests]
-            
-            # Debug: Print what we're returning
-            if result:
-                print(f"===== RETRIEVING COLOR VISION TESTS =====")
-                print(f"Number of tests: {len(result)}")
-                print(f"Latest test ID: {result[0]['id']}")
-                print(f"User Answers: {result[0].get('user_answers', 'NOT FOUND')}")
-                print(f"User Answers Length: {len(result[0].get('user_answers', []))}")
-                print(f"Correct Answers: {result[0].get('correct_answers', 'NOT FOUND')}")
-                print(f"Correct Answers Length: {len(result[0].get('correct_answers', []))}")
-                print(f"=====================================")
-            
             return result, 200
             
         except Exception as e:

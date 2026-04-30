@@ -8,6 +8,7 @@ from flask_restx import Namespace, Resource, fields
 from datetime import datetime
 from db_model import db, EyeTrackingTest, User
 from core.security import token_required
+from models.notification import Notification
 from features.eye_tracking.model import EyeTrackingMetrics, EyeTrackingDataset, EyeTrackingDataPoint
 
 # Create namespace
@@ -100,6 +101,15 @@ class EyeTrackingTests(Resource):
             
             # Save to database
             db.session.add(test_record)
+            db.session.commit()
+            
+            # Create notification for test result
+            notif = Notification.create_result_ready(
+                current_user.id,
+                'Eye Tracking',
+                test_record.id
+            )
+            db.session.add(notif)
             db.session.commit()
             
             return {

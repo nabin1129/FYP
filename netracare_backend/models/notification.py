@@ -140,3 +140,44 @@ class Notification(db.Model):
             related_id=consultation_id,
             priority='normal',
         )
+
+    @staticmethod
+    def create_result_ready(patient_id: int, test_type: str, test_id: int):
+        """In-app alert: test result is ready for the patient to view."""
+        return Notification(
+            recipient_type='user',
+            recipient_id=patient_id,
+            notification_type='result_ready',
+            title='Test Result Ready',
+            message=f'Your {test_type} result is ready. Tap to view.',
+            related_type='test_result',
+            related_id=test_id,
+            priority='normal',
+        )
+
+    @staticmethod
+    def create_review_complete(patient_id: int, report_id: int, status: str, doctor_name: str):
+        """FCM push: clinician has validated or rejected a clinical report."""
+        return Notification(
+            recipient_type='user',
+            recipient_id=patient_id,
+            notification_type='review_complete',
+            title='Report Reviewed',
+            message=f'Dr {doctor_name} has {status} your report.',
+            related_type='clinical_report',
+            related_id=report_id,
+            priority='high',
+        )
+
+    @staticmethod
+    def create_screening_reminder(patient_id: int, next_date_str: str):
+        """Scheduled push: remind patient to complete their next screening."""
+        return Notification(
+            recipient_type='user',
+            recipient_id=patient_id,
+            notification_type='screening_reminder',
+            title='Screening Reminder',
+            message=f'Your next eye screening is due on {next_date_str}. Open NetraCare to start.',
+            related_type='screening',
+            priority='normal',
+        )

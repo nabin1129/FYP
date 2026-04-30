@@ -3,7 +3,7 @@ Comprehensive Database Migration Script
 ========================================
 
 This script safely migrates the NetraCare database schema by adding new profile fields
-to the User table. It can be run multiple times safely (idempotent).
+and consent metadata to the User table. It can be run multiple times safely (idempotent).
 
 Features:
 - Direct SQLite access (no Flask app dependencies)
@@ -21,6 +21,7 @@ New fields added:
 - emergency_contact (VARCHAR 20)
 - medical_history (TEXT)
 - profile_image_url (VARCHAR 500)
+- consent_given_at (DATETIME)
 
 Author: NetraCare Development Team
 Date: February 2026
@@ -94,7 +95,8 @@ class DatabaseMigration:
             'address': 'TEXT',
             'emergency_contact': 'VARCHAR(20)',
             'medical_history': 'TEXT',
-            'profile_image_url': 'VARCHAR(500)'
+            'profile_image_url': 'VARCHAR(500)',
+            'consent_given_at': 'DATETIME'
         }
         
         try:

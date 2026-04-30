@@ -110,6 +110,23 @@ class ChatHistoryResource(Resource):
             return {"message": f"Failed to load history: {str(exc)}"}, 500
 
 
+@chat_ns.route('/voice')
+class ChatVoiceStub(Resource):
+    """Voice/video chat is not supported in v1 (text-only scope)."""
+
+    def post(self):
+        return {
+            'message': 'voice_not_supported',
+            'detail': 'Voice and video are out of scope for v1. Use text chat only.',
+        }, 501
+
+    def get(self):
+        return {
+            'message': 'voice_not_supported',
+            'detail': 'Voice and video are out of scope for v1. Use text chat only.',
+        }, 501
+
+
 firebase_token_request_model = chat_ns.model(
     "ChatFirebaseTokenRequest",
     {

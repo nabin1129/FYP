@@ -255,16 +255,18 @@ class PatientUpcomingConsultations(Resource):
     @consultation_ns.doc(security='Bearer')
     @token_required
     def get(self, current_user):
-        """Get patient's upcoming scheduled consultations"""
+        """Get patient's upcoming scheduled consultations (only future dates)"""
         try:
             # Mark any past scheduled consultations as missed
             Consultation.mark_missed_consultations()
             
             now = datetime.utcnow()
             
+            # Filter for upcoming consultations: pending/scheduled status AND scheduled_at is in the future
             consultations = Consultation.query.filter(
                 Consultation.patient_id == current_user.id,
                 Consultation.status.in_(['pending', 'scheduled']),
+                Consultation.scheduled_at > now,  # Only future consultations
             ).order_by(Consultation.scheduled_at.asc()).all()
             
             return {

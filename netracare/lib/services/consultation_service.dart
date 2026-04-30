@@ -77,17 +77,29 @@ class ConsultationService {
     }
   }
 
-  /// Get upcoming consultations
+  /// Get upcoming consultations (only future dates)
   Future<List<Consultation>> getUpcomingConsultations() async {
     try {
-      return await DoctorApiService.getUpcomingConsultations();
+      final consultations = await DoctorApiService.getUpcomingConsultations();
+      // Filter to ensure only future consultations are shown
+      final now = DateTime.now();
+      return consultations
+          .where(
+            (c) =>
+                (c.status == ConsultationStatus.scheduled ||
+                    c.status == ConsultationStatus.pending) &&
+                (c.scheduledAt == null || c.scheduledAt!.isAfter(now)),
+          )
+          .toList();
     } catch (e) {
       if (!_initialized) initialize();
+      final now = DateTime.now();
       return _consultations
           .where(
             (c) =>
-                c.status == ConsultationStatus.scheduled ||
-                c.status == ConsultationStatus.pending,
+                (c.status == ConsultationStatus.scheduled ||
+                    c.status == ConsultationStatus.pending) &&
+                (c.scheduledAt == null || c.scheduledAt!.isAfter(now)),
           )
           .toList();
     }

@@ -33,3 +33,17 @@ def classify_severity(logmar):
         return "Moderate Vision Loss"
     else:
         return "Severe Vision Loss"
+
+
+def classify_pass_fail(logmar):
+    """Three-tier clinical outcome per WHO/ETDRS thresholds.
+
+    <=0.3  (20/40 Snellen) → pass
+    <=1.0  (20/200)        → refer
+    >1.0                   → urgent
+    """
+    if logmar <= 0.3:
+        return "pass"
+    elif logmar <= 1.0:
+        return "refer"
+    return "urgent"

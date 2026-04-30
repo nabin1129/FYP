@@ -49,6 +49,10 @@ class CameraManagerService {
       ? _cameras![_currentCameraIndex]
       : null;
 
+  /// Is front camera currently in use?
+  bool get isFrontCamera =>
+      currentCamera?.lensDirection == CameraLensDirection.front;
+
   /// Initialize cameras
   Future<void> initialize({
     bool useFrontCamera = true,
@@ -69,6 +73,11 @@ class CameraManagerService {
       CameraDescription selectedCamera;
       if (useFrontCamera) {
         try {
+          // Log available cameras for debugging
+          debugPrint(
+            'CameraManager: Available cameras: ${_cameras!.map((c) => '${c.lensDirection} (ID: ${c.name})').join(', ')}',
+          );
+
           // Find front camera
           final frontCameraIndex = _cameras!.indexWhere(
             (camera) => camera.lensDirection == CameraLensDirection.front,
@@ -76,14 +85,23 @@ class CameraManagerService {
           if (frontCameraIndex >= 0) {
             _currentCameraIndex = frontCameraIndex;
             selectedCamera = _cameras![frontCameraIndex];
+            debugPrint(
+              'CameraManager: Found front camera at index $frontCameraIndex',
+            );
           } else {
-            // No front camera, use first available
+            // No front camera found, try first camera
             _currentCameraIndex = 0;
             selectedCamera = _cameras![0];
+            debugPrint(
+              'CameraManager: Front camera not found, using first available: ${selectedCamera.lensDirection}',
+            );
           }
         } catch (e) {
           _currentCameraIndex = 0;
           selectedCamera = _cameras![0];
+          debugPrint(
+            'CameraManager: Error finding front camera: $e, using first camera',
+          );
         }
       } else {
         try {
@@ -234,10 +252,6 @@ class CameraManagerService {
 
   /// Get camera sensor orientation
   int get sensorOrientation => currentCamera?.sensorOrientation ?? 0;
-
-  /// Is front camera active?
-  bool get isFrontCamera =>
-      currentCamera?.lensDirection == CameraLensDirection.front;
 
   /// Get camera resolution
   Size? get resolution => _controller?.value.previewSize;

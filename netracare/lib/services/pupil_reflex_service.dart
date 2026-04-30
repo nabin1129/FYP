@@ -12,6 +12,7 @@ class PupilReflexService {
   // =========================
 
   static const Duration _requestTimeout = Duration(seconds: 15);
+  static const Duration _videoAnalysisTimeout = Duration(seconds: 60);
 
   static Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) {
     return http
@@ -220,9 +221,9 @@ class PupilReflexService {
 
     // Send request
     final streamedResponse = await request.send().timeout(
-      _requestTimeout,
+      _videoAnalysisTimeout,
       onTimeout: () => throw Exception(
-        'Request timed out. Please check your internet connection and try again.',
+        'Video analysis is taking longer than expected. Please keep a stable connection and try again.',
       ),
     );
     final response = await http.Response.fromStream(streamedResponse);
@@ -434,9 +435,9 @@ class PupilReflexService {
 
     // Send request
     final streamedResponse = await request.send().timeout(
-      _requestTimeout,
+      _videoAnalysisTimeout,
       onTimeout: () => throw Exception(
-        'Request timed out. Please check your internet connection and try again.',
+        'Video analysis is taking longer than expected. Please keep a stable connection and try again.',
       ),
     );
     final response = await http.Response.fromStream(streamedResponse);

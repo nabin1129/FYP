@@ -18,6 +18,7 @@ class User(db.Model):
     profile_image_url = db.Column(db.String(500))
     reset_otp = db.Column(db.String(6))
     reset_otp_expiry = db.Column(db.DateTime)
+    consent_given_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(
         db.DateTime,
         default=lambda: datetime.now(timezone.utc).replace(tzinfo=None, microsecond=0),
@@ -401,16 +402,31 @@ class BlinkFatigueTest(db.Model):
     # Relationship
     user = db.relationship('User', backref=db.backref('blink_fatigue_tests', lazy=True))
     
+    def _blink_fatigue_flag(self):
+        """Return True when blink rate or PERCLOS breaches clinical thresholds.
+
+        Normal blink rate: 12-20 blinks/min.
+        Fatigue flag: blink rate <8 bpm  OR  drowsy_probability >0.15 (PERCLOS proxy).
+        """
+        bpm = self.avg_blinks_per_minute or 0
+        perclos_proxy = self.drowsy_probability or 0
+        return bpm > 0 and (bpm < 8 or perclos_proxy > 0.15)
+
     def to_dict(self) -> dict:
         """Convert test to dictionary"""
         # Calculate alertness percentage (inverse of drowsiness)
         alertness_percentage = round((1 - self.drowsy_probability) * 100)
-        
+
         # Map fatigue_level to classification for frontend compatibility
         classification = self.fatigue_level if self.fatigue_level else (
             'Alert' if self.prediction == 'notdrowsy' else 'Drowsy'
         )
-        
+
+        bpm = self.avg_blinks_per_minute or 0
+        blink_rate_status = (
+            'normal' if 12 <= bpm <= 20 else ('low' if 0 < bpm < 12 else ('high' if bpm > 20 else 'unavailable'))
+        )
+
         return {
             'id': self.id,
             'user_id': self.user_id,
@@ -424,13 +440,15 @@ class BlinkFatigueTest(db.Model):
             'classification': classification,
             'alertness_percentage': alertness_percentage,
             'alert_triggered': self.alert_triggered,
+            'fatigue_flag': self._blink_fatigue_flag(),
+            'blink_rate_status': blink_rate_status,
             'test_duration': self.test_duration,
             'duration_seconds': self.test_duration if self.test_duration else 0,
             'total_blinks': self.total_blinks if self.total_blinks else 0,
-            'avg_blinks_per_minute': self.avg_blinks_per_minute if self.avg_blinks_per_minute else 0,
+            'avg_blinks_per_minute': bpm,
             'image_filename': self.image_filename,
             'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'updated_at': self.updated_at.isoformat(),
         }
 
 
@@ -533,6 +551,36 @@ class PupilReflexTest(db.Model):
             return []
         return [item.strip() for item in self.recommendations.split(';') if item.strip()]
 
+    def _pupil_pass_fail(self):
+        """Joint pass/fail: latency <=300 ms AND constriction >=20%.
+
+        Returns 'pass', 'fail', or 'inconclusive' (when data is missing).
+        """
+        reaction_time_ms = (self.reaction_time or 0) * 1000
+
+        # Derive constriction percentage from pupil sizes when available
+        constriction_pct = None
+        if self.left_pupil_size_before and self.left_pupil_size_after and self.left_pupil_size_before > 0:
+            constriction_pct = (
+                (self.left_pupil_size_before - self.left_pupil_size_after)
+                / self.left_pupil_size_before
+            ) * 100
+
+        amplitude = (self.constriction_amplitude or '').lower()
+        if constriction_pct is None:
+            # Fall back to qualitative amplitude label
+            if amplitude == 'weak':
+                constriction_pct = 10.0  # below threshold
+            elif amplitude in ('normal', 'strong'):
+                constriction_pct = 25.0  # above threshold
+
+        if reaction_time_ms == 0 or constriction_pct is None:
+            return 'inconclusive'
+
+        latency_ok = reaction_time_ms <= 300
+        constriction_ok = constriction_pct >= 20
+        return 'pass' if (latency_ok and constriction_ok) else 'fail'
+
     def _clinical_urgency(self):
         severity = (self.nystagmus_severity or '').lower()
         reaction_time_ms = (self.reaction_time or 0) * 1000
@@ -623,6 +671,7 @@ class PupilReflexTest(db.Model):
             'user_id': self.user_id,
             'date': self.created_at.isoformat(),
             'created_at': self.created_at.isoformat(),
+            'pass_fail': self._pupil_pass_fail(),
             'reaction_time': self.reaction_time,
             'pupil_reaction_time': self.reaction_time,  # alias
             'constriction_amplitude': self.constriction_amplitude,
@@ -645,4 +694,74 @@ class PupilReflexTest(db.Model):
             'clinical_output_version': '1.0-fhir-aligned',
             'clinical_output': clinical_output,
             'clinical_summary': clinical_output['interpretation']['summary'],
+        }
+
+
+class AuditLog(db.Model):
+    """Append-only audit log for all sensitive record access and mutations."""
+    __tablename__ = 'audit_logs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    actor_id = db.Column(db.Integer, nullable=False)
+    actor_role = db.Column(db.String(20), nullable=False)  # user, doctor, admin
+    action = db.Column(db.String(50), nullable=False)      # read, create, update, delete, review
+    resource_type = db.Column(db.String(50), nullable=False)
+    resource_id = db.Column(db.Integer, nullable=True)
+    ip_address = db.Column(db.String(45), nullable=True)
+    timestamp = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None, microsecond=0),
+        nullable=False,
+        index=True,
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'actor_id': self.actor_id,
+            'actor_role': self.actor_role,
+            'action': self.action,
+            'resource_type': self.resource_type,
+            'resource_id': self.resource_id,
+            'ip_address': self.ip_address,
+            'timestamp': self.timestamp.isoformat(),
+        }
+
+
+class ClinicalReport(db.Model):
+    """AI-generated report pending clinician countersignature."""
+    __tablename__ = 'clinical_reports'
+
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    # Test source (one of these will be set)
+    visual_acuity_test_id = db.Column(db.Integer, db.ForeignKey('visual_acuity_tests.id'), nullable=True)
+    colour_vision_test_id = db.Column(db.Integer, db.ForeignKey('colour_vision_tests.id'), nullable=True)
+    pupil_reflex_test_id = db.Column(db.Integer, db.ForeignKey('pupil_reflex_tests.id'), nullable=True)
+    blink_fatigue_test_id = db.Column(db.Integer, db.ForeignKey('blink_fatigue_tests.id'), nullable=True)
+
+    ai_summary = db.Column(db.Text, nullable=False)
+    status = db.Column(
+        db.String(20), nullable=False, default='pending'
+    )  # pending, validated, rejected
+    clinician_id = db.Column(db.Integer, nullable=True)  # doctor.id who reviewed
+    clinician_notes = db.Column(db.Text, nullable=True)
+    reviewed_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None, microsecond=0),
+    )
+
+    patient = db.relationship('User', backref=db.backref('clinical_reports', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'patient_id': self.patient_id,
+            'ai_summary': self.ai_summary,
+            'status': self.status,
+            'clinician_id': self.clinician_id,
+            'clinician_notes': self.clinician_notes,
+            'reviewed_at': self.reviewed_at.isoformat() if self.reviewed_at else None,
+            'created_at': self.created_at.isoformat(),
         }

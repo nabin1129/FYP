@@ -23,7 +23,7 @@ class BlinkFatigueCNNTestPage extends StatefulWidget {
 }
 
 class _BlinkFatigueCNNTestPageState extends State<BlinkFatigueCNNTestPage> {
-  static const double _drowsyThreshold = 0.6;
+  static const double _drowsyThreshold = 0.7;
 
   CameraController? _cameraController;
   List<CameraDescription>? cameras;

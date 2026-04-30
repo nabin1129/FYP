@@ -124,11 +124,16 @@ class Register(Resource):
             if User.query.filter_by(email=email).first():
                 return {'message': 'Email already registered'}, 409
             
+            # Require explicit consent
+            if not data.get('consent_given'):
+                return {'message': 'Consent to data processing is required'}, 400
+
             # Create new user
             user = User(
                 name=name,
                 email=email,
-                password_hash=generate_password_hash(password)
+                password_hash=generate_password_hash(password),
+                consent_given_at=datetime.utcnow(),
             )
             
             db.session.add(user)
@@ -144,7 +149,8 @@ class Register(Resource):
                     'id': user.id,
                     'name': user.name,
                     'email': user.email,
-                    'created_at': user.created_at.isoformat() if user.created_at else None
+                    'consent_given_at': user.consent_given_at.isoformat() if user.consent_given_at else None,
+                    'created_at': user.created_at.isoformat() if user.created_at else None,
                 }
             }, 201
             

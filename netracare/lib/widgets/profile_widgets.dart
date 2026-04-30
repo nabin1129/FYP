@@ -109,12 +109,14 @@ class SettingsTile extends StatelessWidget {
     required this.icon,
     required this.iconColor,
     required this.title,
+    this.titleColor,
     this.onTap,
   });
 
   final IconData icon;
   final Color iconColor;
   final String title;
+  final Color? titleColor;
   final VoidCallback? onTap;
 
   @override
@@ -143,7 +145,7 @@ class SettingsTile extends StatelessWidget {
                 child: AppText(
                   title,
                   role: AppTextRole.body,
-                  color: colors.textDark,
+                  color: titleColor ?? colors.textDark,
                   fontWeight: FontWeight.w500,
                 ),
               ),

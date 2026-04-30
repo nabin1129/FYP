@@ -26,6 +26,7 @@ class _SignupPageState extends State<SignupPage> {
   bool isLoading = false;
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
+  bool _consentGiven = false;
 
   bool isStrongPassword(String password) {
     final regex = RegExp(
@@ -240,12 +241,32 @@ class _SignupPageState extends State<SignupPage> {
                   setState(() => selectedSex = value);
                 },
               ),
-              const SizedBox(height: AppTheme.spaceXL),
+              const SizedBox(height: AppTheme.spaceMD),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Checkbox(
+                    value: _consentGiven,
+                    activeColor: AppTheme.primary,
+                    onChanged: (v) => setState(() => _consentGiven = v ?? false),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Text(
+                        'I agree that my eye health data will be stored and processed for personal health screening purposes. Your data is kept private and secure.',
+                        style: AppTheme.bodySecondary.copyWith(height: 1.4),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppTheme.spaceMD),
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: isLoading ? null : _signup,
+                  onPressed: isLoading ? null : (_consentGiven ? _signup : null),
                   style: AppTheme.primaryButton,
                   child: isLoading
                       ? const CircularProgressIndicator(color: Colors.white)

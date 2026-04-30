@@ -131,7 +131,11 @@ class DistanceDetectionService {
       if (!debugMode) {
         await _cameraManager.startImageStream(_processImageFrame);
       }
-      debugPrint('DistanceDetection: Detection started (Debug: $debugMode)');
+
+      final cameraType = _cameraManager.isFrontCamera ? 'front' : 'back';
+      debugPrint(
+        'DistanceDetection: Detection started with $cameraType camera (Debug: $debugMode)',
+      );
     } catch (e) {
       _isDetecting = false;
       debugPrint('DistanceDetection: Error starting detection: $e');
@@ -202,7 +206,18 @@ class DistanceDetectionService {
       if (camera == null) return null;
 
       final sensorOrientation = camera.sensorOrientation;
-      final rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
+
+      // For front camera on emulator, adjust rotation
+      // Emulator front camera is typically 270 degrees but needs adjustment for proper detection
+      int adjustedOrientation = sensorOrientation;
+      if (_cameraManager.isFrontCamera && sensorOrientation == 270) {
+        // Adjust to 90 for proper front camera frame orientation
+        adjustedOrientation = 90;
+      }
+
+      final rotation = InputImageRotationValue.fromRawValue(
+        adjustedOrientation,
+      );
       if (rotation == null) return null;
 
       // Get image format
@@ -241,6 +256,9 @@ class DistanceDetectionService {
 
     // No face detected
     if (faces.isEmpty) {
+      debugPrint(
+        'DistanceDetection: No face detected in frame (front camera: ${_cameraManager.isFrontCamera})',
+      );
       return DistanceValidationResult(
         currentDistance: 0,
         referenceDistance: _calibrationData!.referenceDistance,
@@ -268,6 +286,7 @@ class DistanceDetectionService {
     final currentDistance = _calculateDistance(face);
 
     if (currentDistance == null) {
+      debugPrint('DistanceDetection: Could not calculate distance from face');
       return DistanceValidationResult(
         currentDistance: 0,
         referenceDistance: _calibrationData!.referenceDistance,
@@ -324,6 +343,9 @@ class DistanceDetectionService {
       final rightEye = face.landmarks[FaceLandmarkType.rightEye];
 
       if (leftEye == null || rightEye == null) {
+        debugPrint(
+          'DistanceDetection: Eye landmarks missing (left: $leftEye, right: $rightEye)',
+        );
         // Fallback to face width estimation
         return _estimateDistanceFromFaceWidth(face);
       }
@@ -332,18 +354,25 @@ class DistanceDetectionService {
       final ipdPixels = _calculateIpdPixels(face);
       if (ipdPixels == null || ipdPixels < 10) {
         // IPD too small, invalid detection
+        debugPrint('DistanceDetection: IPD too small: $ipdPixels px');
         return null;
       }
 
       // Calculate distance
       // Distance = (FocalLength × RealIPD) / PixelIPD
-      final distance =
-          (_calibrationData!.focalLength * _calibrationData!.realWorldIpd) /
-          ipdPixels;
+      final focalLength = _calibrationData!.focalLength;
+      final realIpd = _calibrationData!.realWorldIpd;
+      final distance = (focalLength * realIpd) / ipdPixels;
+
+      debugPrint(
+        'DistanceDetection: Distance calc - IPD: ${ipdPixels.toStringAsFixed(1)}px, '
+        'FocalLength: ${focalLength.toStringAsFixed(1)}, RealIPD: ${realIpd.toStringAsFixed(1)}mm, '
+        'Distance: ${distance.toStringAsFixed(1)}cm',
+      );
 
       return distance;
     } catch (e) {
-      debugPrint('DistanceDetection: Distance calculation error: $e');
+      debugPrint('DistanceDetection: Error calculating distance: $e');
       return null;
     }
   }

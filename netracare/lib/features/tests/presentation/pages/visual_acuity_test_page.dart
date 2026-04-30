@@ -5,6 +5,7 @@ import 'package:netracare/services/api_service.dart';
 import 'package:netracare/models/distance_calibration_model.dart';
 import 'package:netracare/widgets/distance_monitor_widget.dart';
 import 'package:netracare/widgets/distance_feedback_overlay.dart';
+import 'package:netracare/widgets/device_pre_check_dialog.dart';
 import 'package:netracare/features/tests/presentation/pages/visual_acuity_variant.dart';
 
 class VisualAcuityTestPage extends StatefulWidget {
@@ -32,6 +33,18 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
   @override
   void initState() {
     super.initState();
+    _runPreCheckThenLoad();
+  }
+
+  Future<void> _runPreCheckThenLoad() async {
+    await Future.microtask(() {}); // let the first frame render
+    if (!mounted) return;
+    final ok = await showDevicePreCheckDialog(context);
+    if (!mounted) return;
+    if (!ok) {
+      Navigator.pop(context);
+      return;
+    }
     _loadCalibration();
   }
 
@@ -531,7 +544,6 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
 
                     // Letter Display Area
                     Container(
-                      color: colors.surface,
                       width: double.infinity,
                       height: MediaQuery.of(context).size.height * 0.35,
                       decoration: BoxDecoration(
@@ -638,9 +650,13 @@ class _VisualAcuityTestPageState extends State<VisualAcuityTestPage> {
                                   borderRadius: BorderRadius.circular(12),
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: colors.primary.withValues(alpha: 0.08),
+                                      color: colors.primary.withValues(
+                                        alpha: 0.08,
+                                      ),
                                       border: Border.all(
-                                        color: colors.primary.withValues(alpha: 0.3),
+                                        color: colors.primary.withValues(
+                                          alpha: 0.3,
+                                        ),
                                         width: 2,
                                       ),
                                       borderRadius: BorderRadius.circular(12),

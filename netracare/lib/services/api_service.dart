@@ -206,6 +206,8 @@ class ApiService {
       'full_name': name,
       'email': email,
       'password': password,
+      'consent_given': true,
+      'consent_given_at': DateTime.now().toUtc().toIso8601String(),
       if (age != null) 'age': age,
       if (sex != null) 'sex': sex,
     };
@@ -357,6 +359,9 @@ class ApiService {
     _throwReadableError(response);
   }
 
+  // =========================
+  // DELETE ACCOUNT
+  // =========================
   // =========================
   // FILE UPLOAD
   // =========================

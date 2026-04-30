@@ -294,16 +294,16 @@ class BlinkTestSubmission(Resource):
             
             # Determine classification if not provided
             if not fatigue_level:
-                if drowsiness_prob > 0.6:
+                if drowsiness_prob >= 0.7:
                     fatigue_level = 'High Fatigue'
-                elif drowsiness_prob > 0.4:
+                elif drowsiness_prob >= 0.45:
                     fatigue_level = 'Moderate Fatigue'
                 else:
                     fatigue_level = 'Alert'
             
             # Keep saved class aligned with the model/UI threshold.
-            prediction = 'drowsy' if drowsiness_prob >= 0.6 else 'notdrowsy'
-            alert_triggered = drowsiness_prob > 0.7
+            prediction = 'drowsy' if drowsiness_prob >= 0.7 else 'notdrowsy'
+            alert_triggered = drowsiness_prob > 0.8
             
             # Create test record
             test = BlinkFatigueTest(
@@ -320,6 +320,16 @@ class BlinkTestSubmission(Resource):
             )
             
             db.session.add(test)
+            db.session.commit()
+            
+            # Create notification for test result
+            from models.notification import Notification
+            notif = Notification.create_result_ready(
+                current_user.id,
+                'Blink & Fatigue',
+                test.id
+            )
+            db.session.add(notif)
             db.session.commit()
             
             return {

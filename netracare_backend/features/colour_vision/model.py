@@ -261,6 +261,23 @@ def classify_result(score: int, control_plate_failed: bool = False, missed_plate
         return "Severe Color Vision Deficiency"
 
 
+def classify_severity_tier(error_count: int) -> str:
+    """Map raw error count to a 4-tier severity label.
+
+    0-2  → normal
+    3-5  → mild
+    6-10 → moderate
+    >10  → severe
+    """
+    if error_count <= 2:
+        return "normal"
+    elif error_count <= 5:
+        return "mild"
+    elif error_count <= 10:
+        return "moderate"
+    return "severe"
+
+
 def get_all_plate_numbers() -> list:
     """
     Get list of all available plate numbers

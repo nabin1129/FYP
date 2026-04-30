@@ -231,6 +231,9 @@ class NotificationService {
         break;
       case 'test_shared':
         return {'route': '/test-results', 'args': null};
+      case 'result_ready':
+        // Test result is ready - navigate to results report page
+        return {'route': '/results-report', 'args': null};
     }
     return null;
   }

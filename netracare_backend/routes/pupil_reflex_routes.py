@@ -2,6 +2,7 @@
 Pupil Reflex Test Routes with Nystagmus Detection
 Handles flash stimulation tests and AI-powered nystagmus classification
 """
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from flask import request, jsonify
 from flask_restx import Namespace, Resource, fields
 from werkzeug.utils import secure_filename
@@ -12,6 +13,12 @@ import cv2
 import numpy as np
 from core.security import token_required
 from db_model import db, User, PupilReflexTest
+from models.notification import Notification
+
+# Match the Flutter client's 60 s _videoAnalysisTimeout so the backend
+# does not terminate analysis earlier than the caller expects.
+_ANALYSIS_TIMEOUT_S = 60
+_analysis_executor = ThreadPoolExecutor(max_workers=2)
 
 # Create namespace
 pupil_reflex_ns = Namespace('pupil-reflex', description='Pupil Reflex and Nystagmus Detection Tests')
@@ -457,23 +464,58 @@ class AnalyzeVideo(Resource):
             if not test:
                 return {'message': 'Test not found'}, 404
             
-            # Save video file
+            # Save video file temporarily — deleted after analysis regardless of outcome
             filename = secure_filename(f"{test_id}_{uuid.uuid4().hex}.{video_file.filename.rsplit('.', 1)[1].lower()}")
             video_path = os.path.join(UPLOAD_FOLDER, filename)
             video_file.save(video_path)
 
-            # Best-effort face validation. We do not hard-fail here because
-            # flash lighting and motion blur can cause false negatives.
-            face_detected = has_detectable_face(video_path)
-            
-            # Analyze pupil reflex (if flash timestamps provided)
-            response_time, constriction = None, None
-            if flash_timestamps and len(flash_timestamps) > 0:
-                response_time, constriction = calculate_pupil_response(video_path, flash_timestamps)
-            
-            # Detect nystagmus
-            nystagmus_detected, nystagmus_type, severity, confidence = detect_nystagmus_movements(video_path)
-            
+            def _analyse(vpath, fts):
+                face = has_detectable_face(vpath)
+                rt, con = (None, None)
+                if fts:
+                    rt, con = calculate_pupil_response(vpath, fts)
+                nys = detect_nystagmus_movements(vpath)
+                return face, rt, con, nys
+
+            try:
+                future = _analysis_executor.submit(_analyse, video_path, flash_timestamps)
+                face_detected, response_time, constriction, nys_tuple = future.result(
+                    timeout=_ANALYSIS_TIMEOUT_S
+                )
+                nystagmus_detected, nystagmus_type, severity, confidence = nys_tuple
+            except FuturesTimeoutError:
+                try:
+                    os.remove(video_path)
+                except OSError:
+                    pass
+                test.status = 'inconclusive'
+                test.diagnosis = 'Analysis timed out'
+                db.session.commit()
+                return {
+                    'status': 'inconclusive',
+                    'reason': 'timeout',
+                    'message': f'Video analysis exceeded {_ANALYSIS_TIMEOUT_S} s — please retake the test.',
+                }, 200
+            except Exception as exc:
+                try:
+                    os.remove(video_path)
+                except OSError:
+                    pass
+                test.status = 'inconclusive'
+                test.diagnosis = f'Analysis error: {str(exc)}'
+                db.session.commit()
+                return {
+                    'status': 'inconclusive',
+                    'reason': 'exception',
+                    'message': 'Video analysis failed — please retake the test.',
+                }, 200
+            finally:
+                # Always delete the raw video — we store only structured results
+                try:
+                    os.remove(video_path)
+                except OSError:
+                    pass
+
             # Generate diagnosis
             diagnosis, recommendations = generate_diagnosis(
                 response_time, constriction, nystagmus_detected, nystagmus_type, severity
@@ -497,8 +539,16 @@ class AnalyzeVideo(Resource):
             test.diagnosis = diagnosis
             test.recommendations = recommendations
             test.status = 'completed'
-            
             db.session.commit()
+
+            notif = Notification.create_result_ready(
+                patient_id=current_user.id,
+                test_type='Pupil Reflex & Nystagmus',
+                test_id=test.id,
+            )
+            db.session.add(notif)
+            db.session.commit()
+
             serialized_test = test.to_dict()
 
             response_payload = {
@@ -696,19 +746,32 @@ class SimpleTestSubmission(Resource):
                 status='completed'
             )
             
-            # Save image if provided
+            # Save image only to extract metrics then delete it immediately
             if 'image' in request.files:
                 image_file = request.files['image']
                 if image_file.filename != '':
                     filename = secure_filename(f"{current_user.id}_{uuid.uuid4().hex}.jpg")
                     image_path = os.path.join(UPLOAD_FOLDER, filename)
                     image_file.save(image_path)
-                    test.image_filename = filename
+                    # Do not persist raw images — store only structured result
+                    try:
+                        os.remove(image_path)
+                    except OSError:
+                        pass
             
             db.session.add(test)
             db.session.commit()
+
+            notif = Notification.create_result_ready(
+                patient_id=current_user.id,
+                test_type='Pupil Reflex',
+                test_id=test.id,
+            )
+            db.session.add(notif)
+            db.session.commit()
+
             serialized_test = test.to_dict()
-            
+
             return {
                 'message': 'Test submitted successfully',
                 'id': test.id,

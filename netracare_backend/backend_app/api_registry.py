@@ -24,6 +24,8 @@ from routes.consultation_routes import consultation_ns
 from routes.medical_record_routes import medical_records_ns
 from routes.notification_routes import notification_ns
 from routes.admin_routes import admin_ns
+from routes.clinical_report_routes import clinical_report_ns
+from routes.metrics_routes import metrics_ns
 from features.chat.rest_routes import chat_ns
 
 # Import models to ensure tables are discovered
@@ -31,6 +33,7 @@ from models.doctor import Doctor, DoctorPatient
 from models.consultation import Consultation, ConsultationMessage, DoctorSlot
 from models.medical_record import MedicalRecord
 from models.notification import Notification
+from db_model import AuditLog, ClinicalReport  # noqa: F401 — ensure tables are created
 
 
 def build_api(app) -> Api:
@@ -62,6 +65,8 @@ def build_api(app) -> Api:
     api.add_namespace(medical_records_ns, path="/api/medical-records")
     api.add_namespace(notification_ns, path="/api/notifications")
     api.add_namespace(admin_ns, path="/api/admin")
+    api.add_namespace(metrics_ns, path="/api/admin/metrics")
+    api.add_namespace(clinical_report_ns, path="/api/clinical-reports")
     api.add_namespace(chat_ns, path="/api/chat")
 
     return api

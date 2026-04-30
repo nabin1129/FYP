@@ -6,7 +6,8 @@ from flask import request
 from flask_restx import Namespace, Resource, fields
 from db_model import db, VisualAcuityTest, User
 from core.security import token_required
-from features.visual_acuity.model import validate, calculate_logmar, logmar_to_snellen, classify_severity
+from features.visual_acuity.model import validate, calculate_logmar, logmar_to_snellen, classify_severity, classify_pass_fail
+from models.notification import Notification
 
 # Create namespace
 visual_acuity_ns = Namespace('visual-acuity', description='Visual acuity test operations')
@@ -55,7 +56,8 @@ class VisualAcuityTests(Resource):
             logmar = calculate_logmar(correct, total)
             snellen = logmar_to_snellen(logmar)
             severity = classify_severity(logmar)
-            
+            pass_fail = classify_pass_fail(logmar)
+
             # Create test record
             test = VisualAcuityTest(
                 user_id=current_user.id,
@@ -66,11 +68,21 @@ class VisualAcuityTests(Resource):
                 snellen_value=snellen,
                 severity=severity
             )
-            
+
             db.session.add(test)
             db.session.commit()
-            
-            return test.to_dict(), 201
+
+            notif = Notification.create_result_ready(
+                patient_id=current_user.id,
+                test_type='Visual Acuity',
+                test_id=test.id,
+            )
+            db.session.add(notif)
+            db.session.commit()
+
+            result = test.to_dict()
+            result['pass_fail'] = pass_fail
+            return result, 201
             
         except ValueError as e:
             visual_acuity_ns.abort(400, str(e))

@@ -1,4 +1,6 @@
-﻿// Status of a consultation
+﻿import 'package:flutter/foundation.dart';
+
+// Status of a consultation
 enum ConsultationStatus {
   scheduled,
   pending,
@@ -77,6 +79,7 @@ class Consultation {
   final String doctorId;
   final String doctorImage;
   final String date;
+  final DateTime? scheduledAt; // For filtering upcoming consultations
   final ConsultationType type;
   final ConsultationStatus status;
   final String notes;
@@ -87,6 +90,7 @@ class Consultation {
     this.doctorId = '',
     this.doctorImage = '',
     required this.date,
+    this.scheduledAt,
     required this.type,
     required this.status,
     required this.notes,
@@ -94,6 +98,21 @@ class Consultation {
 
   /// Parse from API JSON response
   factory Consultation.fromJson(Map<String, dynamic> json) {
+    // Parse scheduledAt from ISO string if available
+    DateTime? scheduledAt;
+    try {
+      final scheduledAtStr =
+          json['scheduled_at'] as String? ??
+          json['scheduledAt'] as String? ??
+          json['scheduled_datetime'] as String?;
+      if (scheduledAtStr != null) {
+        scheduledAt = DateTime.parse(scheduledAtStr);
+      }
+    } catch (e) {
+      // If parsing fails, leave as null
+      debugPrint('Failed to parse scheduledAt: $e');
+    }
+
     return Consultation(
       id: (json['id'] ?? json['consultation_id'] ?? '').toString(),
       // Support both camelCase (backend to_dict) and snake_case keys
@@ -111,6 +130,7 @@ class Consultation {
           json['scheduled_datetime'] as String? ??
           json['created_at'] as String? ??
           '',
+      scheduledAt: scheduledAt,
       type: ConsultationType.fromString(
         json['type'] as String? ??
             json['consultation_type'] as String? ??
@@ -124,30 +144,41 @@ class Consultation {
   }
 
   /// Mock history for offline / fallback use
-  static List<Consultation> getMockHistory() => [
-    const Consultation(
-      id: '1',
-      doctorName: 'Dr. Rajesh Kumar Shrestha',
-      date: 'Feb 28, 2026 — 10:00 AM',
-      type: ConsultationType.physical,
-      status: ConsultationStatus.scheduled,
-      notes: 'Follow-up on visual acuity test results.',
-    ),
-    const Consultation(
-      id: '2',
-      doctorName: 'Dr. Srijana Poudel',
-      date: 'Feb 25, 2026 — 2:00 PM',
-      type: ConsultationType.chat,
-      status: ConsultationStatus.completed,
-      notes: 'Discussed colour vision test report. No concerns.',
-    ),
-    const Consultation(
-      id: '3',
-      doctorName: 'Dr. Bikash Thapa',
-      date: 'Requested on Feb 24, 2026',
-      type: ConsultationType.chat,
-      status: ConsultationStatus.pending,
-      notes: 'Awaiting doctor approval and schedule confirmation.',
-    ),
-  ];
+  static List<Consultation> getMockHistory() {
+    // Generate future dates relative to now
+    final now = DateTime.now();
+    final tomorrow = now.add(const Duration(days: 1));
+    final nextWeek = now.add(const Duration(days: 7));
+
+    return [
+      Consultation(
+        id: '1',
+        doctorName: 'Dr. Rajesh Kumar Shrestha',
+        date: 'Tomorrow at 10:00 AM',
+        scheduledAt: tomorrow.copyWith(hour: 10, minute: 0),
+        type: ConsultationType.physical,
+        status: ConsultationStatus.scheduled,
+        notes: 'Follow-up on visual acuity test results.',
+      ),
+      Consultation(
+        id: '2',
+        doctorName: 'Dr. Srijana Poudel',
+        date: 'In 7 days at 2:00 PM',
+        scheduledAt: nextWeek.copyWith(hour: 14, minute: 0),
+        type: ConsultationType.chat,
+        status: ConsultationStatus.scheduled,
+        notes: 'Discuss colour vision test findings.',
+      ),
+      Consultation(
+        id: '3',
+        doctorName: 'Dr. Bikash Thapa',
+        date:
+            'Requested on ${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
+        scheduledAt: null,
+        type: ConsultationType.chat,
+        status: ConsultationStatus.pending,
+        notes: 'Awaiting doctor approval and schedule confirmation.',
+      ),
+    ];
+  }
 }

@@ -288,6 +288,87 @@ class AdminDoctorDetail(Resource):
 
 
 # ==========================
+# SCREENING CAMPAIGNS
+# ==========================
+
+screening_campaign_model = admin_ns.model('ScreeningCampaign', {
+    'next_date': fields.String(required=True, description='Scheduled screening date (YYYY-MM-DD)'),
+    'target_users': fields.String(description='Filter: all, inactive_30d, inactive_60d, or comma-separated user IDs'),
+})
+
+
+@admin_ns.route('/campaigns/send-screening-reminders')
+class ScreeningReminderCampaign(Resource):
+    @admin_ns.doc(security='Bearer')
+    @admin_ns.expect(screening_campaign_model)
+    @admin_token_required
+    def post(self, current_admin=None):
+        """Send screening reminders to patients (admin-only operation)."""
+        try:
+            data = request.get_json() or {}
+            next_date = (data.get('next_date') or '').strip()
+            target = (data.get('target_users', 'all') or 'all').strip()
+
+            if not next_date:
+                return {'message': 'next_date is required (format: YYYY-MM-DD)'}, 400
+
+            # Validate date format
+            try:
+                datetime.strptime(next_date, '%Y-%m-%d')
+            except ValueError:
+                return {'message': 'Invalid date format. Use YYYY-MM-DD'}, 400
+
+            # Determine target users
+            if target == 'all':
+                users = User.query.all()
+            elif target == 'inactive_30d':
+                cutoff = datetime.utcnow() - timedelta(days=30)
+                users = User.query.filter(
+                    (EyeTrackingTest.query.filter_by(user_id=User.id)
+                     .filter(EyeTrackingTest.created_at >= cutoff).count() == 0) |
+                    (User.created_at < cutoff)
+                ).all()
+            elif target == 'inactive_60d':
+                cutoff = datetime.utcnow() - timedelta(days=60)
+                users = User.query.filter(
+                    (EyeTrackingTest.query.filter_by(user_id=User.id)
+                     .filter(EyeTrackingTest.created_at >= cutoff).count() == 0) |
+                    (User.created_at < cutoff)
+                ).all()
+            elif ',' in target:
+                # Comma-separated user IDs
+                try:
+                    user_ids = [int(uid.strip()) for uid in target.split(',')]
+                    users = User.query.filter(User.id.in_(user_ids)).all()
+                except ValueError:
+                    return {'message': 'Invalid user IDs format'}, 400
+            else:
+                return {'message': f'Unknown target filter: {target}'}, 400
+
+            # Send reminders
+            from models.notification import Notification
+            count = 0
+            for user in users:
+                notif = Notification.create_screening_reminder(user.id, next_date)
+                db.session.add(notif)
+                count += 1
+
+            db.session.commit()
+
+            logging.info('[ADMIN] Sent screening reminders to %d users for date %s', count, next_date)
+            return {
+                'message': f'Screening reminder campaign sent',
+                'recipients_count': count,
+                'scheduled_date': next_date,
+                'target_filter': target,
+            }, 200
+        except Exception as e:
+            db.session.rollback()
+            logging.error('[ADMIN] Screening reminder campaign failed: %s', str(e))
+            return {'message': f'Campaign failed: {str(e)}'}, 500
+
+
+# ==========================
 # HELPERS
 # ==========================
 

@@ -7,14 +7,26 @@ from flask import request
 from flask_restx import Namespace, Resource, fields
 from db_model import db, BlinkFatigueTest, User
 from core.security import token_required
-from features.blink.fatigue_model import get_model_singleton
+from features.blink import get_model_singleton
+from models.notification import Notification
 from werkzeug.datastructures import FileStorage
 import os
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from datetime import datetime
 import cv2
 import numpy as np
 from io import BytesIO
 from PIL import Image
+
+_INFERENCE_TIMEOUT_S = 10
+_MIN_CONFIDENCE = 0.4
+_executor = ThreadPoolExecutor(max_workers=2)
+
+
+def _run_with_timeout(fn, *args):
+    """Run *fn* in a thread, raising TimeoutError after _INFERENCE_TIMEOUT_S seconds."""
+    future = _executor.submit(fn, *args)
+    return future.result(timeout=_INFERENCE_TIMEOUT_S)
 
 # Create namespace
 blink_fatigue_ns = Namespace('blink-fatigue', description='Blink and eye fatigue detection operations')
@@ -94,15 +106,34 @@ class BlinkFatiguePrediction(Resource):
             blink_fatigue_ns.abort(400, f'Invalid file type. Allowed: {allowed_extensions}')
         
         try:
-            # Read image bytes
             image_bytes = file.read()
-            
-            # Get model and make prediction
             model = get_model_singleton()
-            prediction_result = model.predict(image_bytes)
-            
+
+            try:
+                prediction_result = _run_with_timeout(model.predict, image_bytes)
+            except FuturesTimeoutError:
+                return {
+                    'status': 'inconclusive',
+                    'reason': 'timeout',
+                    'message': 'Inference exceeded 10 s — please retake the test.',
+                }, 200
+            except Exception as exc:
+                return {
+                    'status': 'inconclusive',
+                    'reason': 'exception',
+                    'message': 'Inference failed — please retake the test.',
+                }, 200
+
+            if prediction_result.get('confidence', 1.0) < _MIN_CONFIDENCE:
+                return {
+                    'status': 'inconclusive',
+                    'reason': 'low_confidence',
+                    'confidence': prediction_result.get('confidence'),
+                    'message': 'Confidence too low — please retake the test.',
+                }, 200
+
             return prediction_result
-            
+
         except Exception as e:
             blink_fatigue_ns.abort(500, f'Prediction failed: {str(e)}')
 
@@ -139,13 +170,32 @@ class BlinkFatigueTestSubmission(Resource):
             avg_blinks_per_minute = round((blink_count / test_duration) * 60, 1)
         
         try:
-            # Read image bytes
             image_bytes = file.read()
-            
-            # Get model and make prediction
             model = get_model_singleton()
-            prediction_result = model.predict(image_bytes)
-            
+
+            try:
+                prediction_result = _run_with_timeout(model.predict, image_bytes)
+            except FuturesTimeoutError:
+                return {
+                    'status': 'inconclusive',
+                    'reason': 'timeout',
+                    'message': 'Inference exceeded 10 s — please retake the test.',
+                }, 200
+            except Exception:
+                return {
+                    'status': 'inconclusive',
+                    'reason': 'exception',
+                    'message': 'Inference failed — please retake the test.',
+                }, 200
+
+            if prediction_result.get('confidence', 1.0) < _MIN_CONFIDENCE:
+                return {
+                    'status': 'inconclusive',
+                    'reason': 'low_confidence',
+                    'confidence': prediction_result.get('confidence'),
+                    'message': 'Confidence too low — please retake the test.',
+                }, 200
+
             # Create database record
             test_record = BlinkFatigueTest(
                 user_id=current_user.id,
@@ -162,7 +212,15 @@ class BlinkFatigueTestSubmission(Resource):
             
             db.session.add(test_record)
             db.session.commit()
-            
+
+            notif = Notification.create_result_ready(
+                patient_id=current_user.id,
+                test_type='Blink & Fatigue',
+                test_id=test_record.id,
+            )
+            db.session.add(notif)
+            db.session.commit()
+
             return test_record.to_dict()
             
         except Exception as e:
