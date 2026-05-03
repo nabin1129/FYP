@@ -747,6 +747,7 @@ class ClinicalReport(db.Model):
     clinician_id = db.Column(db.Integer, nullable=True)  # doctor.id who reviewed
     clinician_notes = db.Column(db.Text, nullable=True)
     reviewed_at = db.Column(db.DateTime, nullable=True)
+    pdf_path = db.Column(db.String(500), nullable=True)
     created_at = db.Column(
         db.DateTime,
         default=lambda: datetime.now(timezone.utc).replace(tzinfo=None, microsecond=0),
@@ -763,5 +764,6 @@ class ClinicalReport(db.Model):
             'clinician_id': self.clinician_id,
             'clinician_notes': self.clinician_notes,
             'reviewed_at': self.reviewed_at.isoformat() if self.reviewed_at else None,
+            'pdf_path': self.pdf_path,
             'created_at': self.created_at.isoformat(),
         }

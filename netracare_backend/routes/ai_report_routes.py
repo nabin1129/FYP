@@ -5,18 +5,19 @@ and ReportLab/FPDF for PDF creation.
 """
 import io
 import os
+import re
 import textwrap
 from datetime import datetime, timedelta
 
-from flask import request, jsonify, send_file
+from flask import request, jsonify, send_file, render_template, current_app
 from flask_restx import Namespace, Resource, fields
 from sqlalchemy import desc
 
 from core.security import token_required, admin_token_required
 from core.config import BaseConfig
 from db_model import (
-    db, User, VisualAcuityTest, ColourVisionTest,
-    BlinkFatigueTest, PupilReflexTest,
+    db, User, ClinicalReport, VisualAcuityTest, ColourVisionTest,
+    EyeTrackingTest, BlinkFatigueTest, PupilReflexTest,
 )
 
 # Gemini client setup
@@ -46,6 +47,13 @@ except ImportError:
         PDF_BACKEND = "fpdf"
     except ImportError:
         PDF_BACKEND = None
+
+# Optional HTML->PDF renderer
+try:
+    from weasyprint import HTML, CSS  # type: ignore[import-not-found]
+    WEASY_AVAILABLE = True
+except Exception:
+    WEASY_AVAILABLE = False
 
 # Namespace
 ai_report_ns = Namespace(
@@ -98,6 +106,32 @@ def calculate_colour_vision_score(tests):
     score = severity_scores.get(severity_lower, t.score if t.score else 70)
     finding = f"Colour vision: {t.severity} ({t.correct_count}/{t.total_plates} plates correct)"
     return score, finding
+
+
+def calculate_eye_tracking_score(tests):
+    if not tests:
+        return None, "No eye tracking tests available"
+    t = tests[0]
+    score = t.overall_performance_score
+    if score is None:
+        if t.gaze_accuracy is not None:
+            score = t.gaze_accuracy
+        elif t.fixation_stability_score is not None:
+            score = t.fixation_stability_score
+        else:
+            score = 70
+
+    details = []
+    if t.performance_classification:
+        details.append(f"{t.performance_classification} performance")
+    if t.gaze_accuracy is not None:
+        details.append(f"gaze accuracy {t.gaze_accuracy:.1f}%")
+    if t.fixation_stability_score is not None:
+        details.append(f"fixation stability {t.fixation_stability_score:.1f}/100")
+    if t.saccade_consistency_score is not None:
+        details.append(f"saccade consistency {t.saccade_consistency_score:.1f}/100")
+
+    return round(float(score), 2), "; ".join(details) if details else "Eye tracking test completed"
 
 
 def calculate_blink_fatigue_score(tests):
@@ -193,7 +227,20 @@ def analyze_trends(tests_by_type):
             trends["blink_fatigue"] = "improving"
         else:
             trends["blink_fatigue"] = "stable"
+    if len(tests_by_type.get("eye_tracking", [])) > 1:
+        recent = tests_by_type["eye_tracking"][0].overall_performance_score or tests_by_type["eye_tracking"][0].gaze_accuracy or 0
+        older = tests_by_type["eye_tracking"][-1].overall_performance_score or tests_by_type["eye_tracking"][-1].gaze_accuracy or 0
+        if recent > older + 5:
+            trends["eye_tracking"] = "improving"
+        elif recent < older - 5:
+            trends["eye_tracking"] = "declining"
+        else:
+            trends["eye_tracking"] = "stable"
     return trends
+
+
+def _latest_record(tests):
+    return tests[0] if tests else None
 
 
 def _assemble_report(user, time_range_days: int):
@@ -204,6 +251,10 @@ def _assemble_report(user, time_range_days: int):
     cutoff_date = datetime.utcnow() - timedelta(days=time_range_days)
 
     tests_by_type = {
+        "eye_tracking": EyeTrackingTest.query.filter(
+            EyeTrackingTest.user_id == user.id,
+            EyeTrackingTest.created_at >= cutoff_date,
+        ).order_by(desc(EyeTrackingTest.created_at)).all(),
         "visual_acuity": VisualAcuityTest.query.filter(
             VisualAcuityTest.user_id == user.id,
             VisualAcuityTest.created_at >= cutoff_date,
@@ -224,6 +275,7 @@ def _assemble_report(user, time_range_days: int):
 
     scores, findings = {}, {}
     for fn, key in [
+        (calculate_eye_tracking_score, "eye_tracking"),
         (calculate_visual_acuity_score, "visual_acuity"),
         (calculate_colour_vision_score, "colour_vision"),
         (calculate_blink_fatigue_score, "blink_fatigue"),
@@ -252,9 +304,21 @@ def _assemble_report(user, time_range_days: int):
         "user_name": user.name or "Patient",
         "generation_date": datetime.utcnow().isoformat(),
         "overall_score": round(overall_score, 2),
+        "health_status": (
+            "Normal" if overall_score >= 80 else
+            "Monitor" if overall_score >= 60 else
+            "Needs Attention"
+        ),
         "scores": scores,
         "findings": findings,
         "trends": trends,
+        "latest_tests": {
+            "eye_tracking": _latest_record(tests_by_type.get('eye_tracking', [])).to_dict() if _latest_record(tests_by_type.get('eye_tracking', [])) else None,
+            "visual_acuity": _latest_record(tests_by_type.get('visual_acuity', [])).to_dict() if _latest_record(tests_by_type.get('visual_acuity', [])) else None,
+            "colour_vision": _latest_record(tests_by_type.get('colour_vision', [])).to_dict() if _latest_record(tests_by_type.get('colour_vision', [])) else None,
+            "blink_fatigue": _latest_record(tests_by_type.get('blink_fatigue', [])).to_dict() if _latest_record(tests_by_type.get('blink_fatigue', [])) else None,
+            "pupil_reflex": _latest_record(tests_by_type.get('pupil_reflex', [])).to_dict() if _latest_record(tests_by_type.get('pupil_reflex', [])) else None,
+        },
         "ai_report_text": ai_text,
         "report_metadata": report_meta,
         "test_counts": {k: len(v) for k, v in tests_by_type.items()},
@@ -272,6 +336,7 @@ def _build_system_prompt(user, scores, findings, trends, tests_by_type, overall_
 
     va_tests = tests_by_type.get("visual_acuity", [])
     cv_tests = tests_by_type.get("colour_vision", [])
+    et_tests = tests_by_type.get("eye_tracking", [])
     bf_tests = tests_by_type.get("blink_fatigue", [])
     pr_tests = tests_by_type.get("pupil_reflex", [])
 
@@ -294,6 +359,16 @@ def _build_system_prompt(user, scores, findings, trends, tests_by_type, overall_
             f"Severity: {t.severity or 'N/A'}, "
             f"Correct plates: {t.correct_count or 'N/A'}/{t.total_plates or 'N/A'}, "
             f"Score: {t.score or 'N/A'}%"
+        )
+
+    et_detail = ""
+    if et_tests:
+        t = et_tests[0]
+        et_detail = (
+            f"Performance: {t.performance_classification or 'N/A'}, "
+            f"Overall score: {t.overall_performance_score or 'N/A'}, "
+            f"Gaze accuracy: {t.gaze_accuracy or 'N/A'}%, "
+            f"Fixation stability: {t.fixation_stability_score or 'N/A'}"
         )
 
     bf_detail = ""
@@ -330,12 +405,16 @@ Report Date: {datetime.utcnow().strftime('%B %d, %Y')}
 
 TEST SCORES SUMMARY:
 Overall Eye Health Score: {overall_score:.1f}/100
+Eye Tracking Score: {scores.get('eye_tracking', 'N/A')}
 Visual Acuity Score: {scores.get('visual_acuity', 'N/A')}
 Colour Vision Score: {scores.get('colour_vision', 'N/A')}
 Blink & Fatigue Score: {scores.get('blink_fatigue', 'N/A')}
 Pupil Reflex Score: {scores.get('pupil_reflex', 'N/A')}
 
 DETAILED TEST DATA:
+Eye Tracking - {findings.get('eye_tracking', 'Not tested')}
+Latest: {et_detail or 'No data'} | Tests completed: {test_counts.get('eye_tracking', 0)}
+
 Visual Acuity - {findings.get('visual_acuity', 'Not tested')}
 Latest: {va_detail or 'No data'} | Tests completed: {test_counts.get('visual_acuity', 0)}
 
@@ -352,7 +431,7 @@ TREND ANALYSIS:
 {trend_text}
 
 INSTRUCTIONS:
-Generate a structured report with the following sections (use UPPERCASE section names ending with colon):
+Generate a structured report with EXACTLY these section headers (uppercase, ending with colon, on their own line):
 
 EXECUTIVE SUMMARY:
 CLINICAL ASSESSMENT:
@@ -362,8 +441,13 @@ PERSONALIZED RECOMMENDATIONS:
 FOLLOW-UP PLAN:
 DISCLAIMER:
 
-Be professional but understandable. Do NOT use markdown (no **, ##, *, etc.).
-Keep total report under 800 words."""
+Formatting rules (strictly follow):
+- Each section header must be on its own line in ALL CAPS followed by a colon.
+- Use plain bullet points with a hyphen-space prefix (- item) for lists.
+- Do NOT use markdown: no **, no __, no ##, no *.
+- Write in complete sentences for narrative paragraphs.
+- Be professional, concise, and clinically accurate.
+- Keep total report under 800 words."""
 
     return prompt
 
@@ -382,7 +466,7 @@ def call_gemini_for_report(user, scores, findings, trends, tests_by_type, overal
     try:
         response = _gemini_model.generate_content(prompt)
         return {
-            "text": response.text.strip(),
+            "text": _clean_ai_text(response.text),
             "meta": {
                 "generator": "gemini",
                 "fallback_used": False,
@@ -424,6 +508,24 @@ def _fallback_report(scores, findings, trends, overall_score):
         "for a professional medical examination.",
     ]
     return "\n".join(lines)
+
+
+def _clean_ai_text(text: str) -> str:
+    """Strip markdown artifacts Gemini may emit despite instructions."""
+    # Bold: **text** → text
+    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text, flags=re.DOTALL)
+    # Italic: *text* → text  (skip lines that are bullet points)
+    text = re.sub(r'(?<![*])\*(?![*\s])(.+?)(?<!\s)\*(?![*])', r'\1', text)
+    # Heading markers: ## Heading → HEADING:  (normalise to our expected format)
+    def _heading_to_upper(m):
+        inner = m.group(1).strip().upper()
+        if not inner.endswith(':'):
+            inner += ':'
+        return inner
+    text = re.sub(r'^#{1,6}\s+(.+)', _heading_to_upper, text, flags=re.MULTILINE)
+    # Remove trailing whitespace on each line
+    text = '\n'.join(line.rstrip() for line in text.splitlines())
+    return text.strip()
 
 
 # PDF generation
@@ -607,21 +709,56 @@ class GenerateReportPDF(Resource):
         try:
             data = request.get_json() or {}
             time_range_days = data.get("time_range_days", 30)
-
-            _, ai_text, overall_score, scores = _assemble_report(
+            # Assemble the structured report data
+            report, ai_text, overall_score, scores = _assemble_report(
                 current_user, time_range_days
             )
 
             generation_date = datetime.utcnow().strftime("%B %d, %Y %H:%M UTC")
-            pdf_buffer = generate_pdf_from_report(
-                current_user, ai_text, overall_score, scores, generation_date
-            )
+
+            # Prefer HTML->PDF rendering with WeasyPrint when available for A4 layout
+            if WEASY_AVAILABLE:
+                # Render the HTML template with the assembled report
+                html = render_template('report_template.html', report=report, generation_date=generation_date)
+                css_path = os.path.join(current_app.root_path, 'static', 'report_styles.css')
+                styles = [CSS(filename=css_path)] if os.path.exists(css_path) else None
+                pdf_bytes = HTML(string=html, base_url=current_app.root_path).write_pdf(stylesheets=styles)
+                buf = io.BytesIO(pdf_bytes)
+                buf.seek(0)
+            else:
+                # Fallback to existing PDF generators (reportlab/fpdf)
+                buf = generate_pdf_from_report(
+                    current_user, ai_text, overall_score, scores, generation_date
+                )
 
             filename = f"netracare_report_{current_user.id}_{datetime.utcnow().strftime('%Y%m%d')}.pdf"
-            mimetype = "application/pdf" if PDF_BACKEND else "text/plain"
+            reports_dir = os.path.join(current_app.root_path, "uploads", "reports")
+            os.makedirs(reports_dir, exist_ok=True)
+            file_path = os.path.join(reports_dir, filename)
+            with open(file_path, "wb") as pdf_file:
+                pdf_file.write(buf.getvalue())
+            buf.seek(0)
+
+            # Create a ClinicalReport record linking the saved PDF
+            try:
+                cr = ClinicalReport(
+                    patient_id=current_user.id,
+                    ai_summary=ai_text,
+                    status='pending',
+                    visual_acuity_test_id=(report.get('latest_tests') or {}).get('visual_acuity', {}).get('id'),
+                    colour_vision_test_id=(report.get('latest_tests') or {}).get('colour_vision', {}).get('id'),
+                    pupil_reflex_test_id=(report.get('latest_tests') or {}).get('pupil_reflex', {}).get('id'),
+                    blink_fatigue_test_id=(report.get('latest_tests') or {}).get('blink_fatigue', {}).get('id'),
+                    pdf_path=os.path.join('uploads', 'reports', filename),
+                )
+                db.session.add(cr)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+            mimetype = "application/pdf"
 
             return send_file(
-                pdf_buffer,
+                buf,
                 mimetype=mimetype,
                 as_attachment=True,
                 download_name=filename,
@@ -672,6 +809,28 @@ class AdminUserReportPDF(Resource):
             )
 
             filename = f"netracare_report_{user.id}_{datetime.utcnow().strftime('%Y%m%d')}.pdf"
+            reports_dir = os.path.join(current_app.root_path, "uploads", "reports")
+            os.makedirs(reports_dir, exist_ok=True)
+            file_path = os.path.join(reports_dir, filename)
+            with open(file_path, "wb") as pdf_file:
+                pdf_file.write(pdf_buffer.getvalue())
+            pdf_buffer.seek(0)
+            # Create ClinicalReport record for admin-generated report
+            try:
+                cr = ClinicalReport(
+                    patient_id=user.id,
+                    ai_summary=ai_text,
+                    status='pending',
+                    visual_acuity_test_id=(report.get('latest_tests') or {}).get('visual_acuity', {}).get('id'),
+                    colour_vision_test_id=(report.get('latest_tests') or {}).get('colour_vision', {}).get('id'),
+                    pupil_reflex_test_id=(report.get('latest_tests') or {}).get('pupil_reflex', {}).get('id'),
+                    blink_fatigue_test_id=(report.get('latest_tests') or {}).get('blink_fatigue', {}).get('id'),
+                    pdf_path=os.path.join('uploads', 'reports', filename),
+                )
+                db.session.add(cr)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
             mimetype = "application/pdf" if PDF_BACKEND else "text/plain"
 
             return send_file(

@@ -1,7 +1,8 @@
 """Clinical report workflow — AI summary + clinician countersignature."""
 from datetime import datetime, timezone
 
-from flask import request
+from flask import request, send_file, current_app
+import os
 from flask_restx import Namespace, Resource, fields
 
 from core.audit import audit_log
@@ -71,6 +72,30 @@ class ClinicalReportList(Resource):
             .all()
         )
         return [r.to_dict() for r in reports], 200
+
+
+@clinical_report_ns.route('/<int:report_id>/download')
+class ClinicalReportDownload(Resource):
+    @clinical_report_ns.doc(security='Bearer')
+    @token_required
+    def get(self, current_user, report_id):
+        """Download the PDF for a clinical report if available and authorised."""
+        report = ClinicalReport.query.get(report_id)
+        if not report:
+            return {'message': 'Report not found'}, 404
+
+        # Allow the patient owner or clinicians/admins
+        if report.patient_id != current_user.id and getattr(current_user, 'role', 'user') not in ('doctor', 'admin'):
+            return {'message': 'Not authorised to download this report'}, 403
+
+        if not report.pdf_path:
+            return {'message': 'No PDF available for this report'}, 404
+
+        file_path = os.path.join(current_app.root_path, report.pdf_path)
+        if not os.path.exists(file_path):
+            return {'message': 'Stored PDF not found on server'}, 404
+
+        return send_file(file_path, mimetype='application/pdf', as_attachment=True, download_name=os.path.basename(file_path))
 
 
 @clinical_report_ns.route('/<int:report_id>/review')

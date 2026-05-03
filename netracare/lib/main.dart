@@ -3,17 +3,24 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 
 import 'package:netracare/app/app.dart';
+import 'package:netracare/firebase_options.dart';
 import 'package:netracare/theme/theme_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final firebaseInit = Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  final themeManagerFuture = ThemeManager.create();
+
   try {
-    await Firebase.initializeApp();
+    await firebaseInit;
   } catch (_) {
     // Firebase not configured yet — Google Sign-In will be unavailable
     debugPrint('Firebase not initialized. Google Sign-In disabled.');
   }
-  final themeManager = await ThemeManager.create();
+
+  final themeManager = await themeManagerFuture;
   runApp(
     ChangeNotifierProvider<ThemeManager>.value(
       value: themeManager,

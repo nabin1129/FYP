@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Ophthalmic Screening and Functional Vision Assessment Report</title>
+    <link rel="stylesheet" href="/static/report_styles.css">
+  </head>
+  <body>
+    <header class="report-header">
+      <div class="clinic">{{ report.get('report_metadata', {}).get('clinic', 'Not Recorded') }}</div>
+      <div class="title">OPHTHALMIC SCREENING AND FUNCTIONAL VISION ASSESSMENT REPORT</div>
+      <div class="meta">Report ID: {{ report.get('report_id','Not Recorded') }} | Date: {{ generation_date }}</div>
+    </header>
+
+    <section class="patient">
+      <h2>PATIENT IDENTIFICATION</h2>
+      <table class="patient-table">
+        <tr><th>Full Name</th><td>{{ report.get('user_name','Not Recorded') }}</td></tr>
+        <tr><th>Patient ID</th><td>{{ report.get('user_id','Not Recorded') }}</td></tr>
+        <tr><th>Report Version</th><td>{{ report.get('report_version','Not Recorded') }}</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>EXECUTIVE SUMMARY</h2>
+      <p>{{ report.get('ai_report_text','Not Recorded').split('\n\n')[0] if report.get('ai_report_text') else 'Not Recorded' }}</p>
+    </section>
+
+    <section>
+      <h2>TEST SUMMARIES</h2>
+      <table class="summary-table">
+        <tr><th>Test Area</th><th>Latest Finding</th><th>Count</th></tr>
+        <tr><td>Eye Tracking</td><td>{{ report.get('findings',{}).get('eye_tracking','Not Recorded') }}</td><td>{{ report.get('test_counts',{}).get('eye_tracking',0) }}</td></tr>
+        <tr><td>Visual Acuity</td><td>{{ report.get('findings',{}).get('visual_acuity','Not Recorded') }}</td><td>{{ report.get('test_counts',{}).get('visual_acuity',0) }}</td></tr>
+        <tr><td>Colour Vision</td><td>{{ report.get('findings',{}).get('colour_vision','Not Recorded') }}</td><td>{{ report.get('test_counts',{}).get('colour_vision',0) }}</td></tr>
+        <tr><td>Blink & Fatigue</td><td>{{ report.get('findings',{}).get('blink_fatigue','Not Recorded') }}</td><td>{{ report.get('test_counts',{}).get('blink_fatigue',0) }}</td></tr>
+        <tr><td>Pupil Reflex</td><td>{{ report.get('findings',{}).get('pupil_reflex','Not Recorded') }}</td><td>{{ report.get('test_counts',{}).get('pupil_reflex',0) }}</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>STRUCTURED TEST DETAILS</h2>
+      {% set latest = report.get('latest_tests', {}) %}
+      <div class="structured-grid">
+        {% if latest.get('eye_tracking') %}
+        <div class="detail-card">
+          <h3>Eye Tracking</h3>
+          <table>
+            <tr><th>Test</th><td>{{ latest.get('eye_tracking', {}).get('test_name', 'Not Recorded') }}</td></tr>
+            <tr><th>Duration</th><td>{{ latest.get('eye_tracking', {}).get('test_duration', 'Not Recorded') }} s</td></tr>
+            <tr><th>Classification</th><td>{{ latest.get('eye_tracking', {}).get('performance_classification', 'Not Recorded') }}</td></tr>
+            <tr><th>Overall score</th><td>{{ latest.get('eye_tracking', {}).get('overall_performance_score', 'Not Recorded') }}</td></tr>
+            <tr><th>Gaze accuracy</th><td>{{ latest.get('eye_tracking', {}).get('gaze_accuracy', 'Not Recorded') }}</td></tr>
+            <tr><th>Fixation stability</th><td>{{ latest.get('eye_tracking', {}).get('fixation_stability_score', 'Not Recorded') }}</td></tr>
+            <tr><th>Saccade consistency</th><td>{{ latest.get('eye_tracking', {}).get('saccade_consistency_score', 'Not Recorded') }}</td></tr>
+          </table>
+        </div>
+        {% endif %}
+        {% if latest.get('visual_acuity') %}
+        <div class="detail-card">
+          <h3>Visual Acuity</h3>
+          <table>
+            <tr><th>Variant</th><td>{{ latest.get('visual_acuity', {}).get('test_variant', 'Not Recorded') }}</td></tr>
+            <tr><th>Snellen</th><td>{{ latest.get('visual_acuity', {}).get('snellen_value', 'Not Recorded') }}</td></tr>
+            <tr><th>logMAR</th><td>{{ latest.get('visual_acuity', {}).get('logmar_value', 'Not Recorded') }}</td></tr>
+            <tr><th>Score</th><td>{{ latest.get('visual_acuity', {}).get('score', 'Not Recorded') }}</td></tr>
+            <tr><th>Severity</th><td>{{ latest.get('visual_acuity', {}).get('severity', 'Not Recorded') }}</td></tr>
+          </table>
+        </div>
+        {% endif %}
+        {% if latest.get('colour_vision') %}
+        <div class="detail-card">
+          <h3>Colour Vision</h3>
+          <table>
+            <tr><th>Plates</th><td>{{ latest.get('colour_vision', {}).get('total_plates', 'Not Recorded') }}</td></tr>
+            <tr><th>Correct</th><td>{{ latest.get('colour_vision', {}).get('correct_count', 'Not Recorded') }}</td></tr>
+            <tr><th>Score</th><td>{{ latest.get('colour_vision', {}).get('score', 'Not Recorded') }}</td></tr>
+            <tr><th>Severity</th><td>{{ latest.get('colour_vision', {}).get('severity', 'Not Recorded') }}</td></tr>
+            <tr><th>Duration</th><td>{{ latest.get('colour_vision', {}).get('test_duration', 'Not Recorded') }} s</td></tr>
+          </table>
+        </div>
+        {% endif %}
+        {% if latest.get('blink_fatigue') %}
+        <div class="detail-card">
+          <h3>Blink & Fatigue</h3>
+          <table>
+            <tr><th>Prediction</th><td>{{ latest.get('blink_fatigue', {}).get('prediction', 'Not Recorded') }}</td></tr>
+            <tr><th>Fatigue level</th><td>{{ latest.get('blink_fatigue', {}).get('fatigue_level', 'Not Recorded') }}</td></tr>
+            <tr><th>Alertness</th><td>{{ latest.get('blink_fatigue', {}).get('alertness_percentage', 'Not Recorded') }}%</td></tr>
+            <tr><th>Drowsy probability</th><td>{{ latest.get('blink_fatigue', {}).get('probabilities', {}).get('drowsy', 'Not Recorded') }}</td></tr>
+            <tr><th>Blinks/min</th><td>{{ latest.get('blink_fatigue', {}).get('avg_blinks_per_minute', 'Not Recorded') }}</td></tr>
+            <tr><th>Fatigue flag</th><td>{{ latest.get('blink_fatigue', {}).get('fatigue_flag', 'Not Recorded') }}</td></tr>
+          </table>
+        </div>
+        {% endif %}
+        {% if latest.get('pupil_reflex') %}
+        <div class="detail-card">
+          <h3>Pupil Reflex</h3>
+          <table>
+            <tr><th>Reaction time</th><td>{{ latest.get('pupil_reflex', {}).get('reaction_time', 'Not Recorded') }} s</td></tr>
+            <tr><th>Constriction</th><td>{{ latest.get('pupil_reflex', {}).get('constriction_amplitude', 'Not Recorded') }}</td></tr>
+            <tr><th>Symmetry</th><td>{{ latest.get('pupil_reflex', {}).get('symmetry', 'Not Recorded') }}</td></tr>
+            <tr><th>Nystagmus</th><td>{{ latest.get('pupil_reflex', {}).get('nystagmus_detected', 'Not Recorded') }}</td></tr>
+            <tr><th>Severity</th><td>{{ latest.get('pupil_reflex', {}).get('nystagmus_severity', 'Not Recorded') }}</td></tr>
+            <tr><th>Diagnosis</th><td>{{ latest.get('pupil_reflex', {}).get('diagnosis', 'Not Recorded') }}</td></tr>
+          </table>
+        </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section>
+      <h2>AI-GENERATED CLINICAL REPORT</h2>
+      <div class="report-text">
+        {% if report.get('ai_report_text') %}
+          {% for line in report.get('ai_report_text').split('\n') %}
+            {% if line.strip() == '' %}
+              <p></p>
+            {% elif line.strip().endswith(':') and line.strip() == line.strip().upper() %}
+              <h3 class="section-head">{{ line }}</h3>
+            {% else %}
+              <p>{{ line }}</p>
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          <p>Not Recorded</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <footer class="report-footer">
+      <div>Generated by NetraCare</div>
+      <div>Disclaimer: This report does not replace a comprehensive clinical eye examination.</div>
+    </footer>
+  </body>
+</html>

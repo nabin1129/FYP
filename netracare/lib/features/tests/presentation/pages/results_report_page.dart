@@ -2954,48 +2954,27 @@ class _ResultsReportPageState extends State<ResultsReportPage>
               ),
             ),
             const SizedBox(height: 12),
-            // AI Report text
-            if (_aiReport!['ai_report_text'] != null)
-              Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.article_outlined,
-                            color: AppTheme.categoryPurple,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'AI Analysis',
-                            style: TextStyle(
-                              fontSize: AppTheme.fontBody,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Divider(height: 20),
-                      Text(
-                        '${_aiReport!['ai_report_text']}',
-                        style: const TextStyle(
-                          fontSize: AppTheme.fontBody,
-                          color: AppTheme.textPrimary,
-                          height: 1.6,
+            // AI Report sections (parsed from AI text)
+            if (_aiReport!['ai_report_text'] != null) ...[
+              ...() {
+                final secs = _parseAiReportSections(
+                  _aiReport!['ai_report_text'] as String,
+                );
+                final colors = context.appColors;
+                return secs
+                    .map(
+                      (s) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _buildAiSectionCard(
+                          s['header']!,
+                          s['body']!,
+                          colors,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    )
+                    .toList();
+              }(),
+            ],
             const SizedBox(height: 12),
             // Findings
             if (_aiReport!['findings'] != null &&
@@ -3210,6 +3189,207 @@ class _ResultsReportPageState extends State<ResultsReportPage>
   }
 }
 
+// ---------------------------------------------------------------------------
+// AI Report helpers (shared by tab and full-report view)
+// ---------------------------------------------------------------------------
+
+List<Map<String, String>> _parseAiReportSections(String text) {
+  final sections = <Map<String, String>>[];
+  String currentHeader = '';
+  final body = StringBuffer();
+  for (final line in text.split('\n')) {
+    final trimmed = line.trim();
+    if (trimmed.isNotEmpty &&
+        trimmed.endsWith(':') &&
+        trimmed == trimmed.toUpperCase()) {
+      if (currentHeader.isNotEmpty || body.isNotEmpty) {
+        sections.add({
+          'header': currentHeader,
+          'body': body.toString().trim(),
+        });
+        body.clear();
+      }
+      currentHeader = trimmed.replaceAll(':', '').trim();
+    } else {
+      if (trimmed.isNotEmpty) body.writeln(line);
+    }
+  }
+  if (currentHeader.isNotEmpty || body.isNotEmpty) {
+    sections.add({'header': currentHeader, 'body': body.toString().trim()});
+  }
+  if (sections.isEmpty && text.isNotEmpty) {
+    sections.add({'header': 'AI ANALYSIS', 'body': text.trim()});
+  }
+  return sections;
+}
+
+Color _aiSectionColor(String header) {
+  switch (header) {
+    case 'EXECUTIVE SUMMARY':
+      return AppTheme.categoryBlue;
+    case 'CLINICAL ASSESSMENT':
+      return AppTheme.categoryPurple;
+    case 'KEY FINDINGS':
+      return AppTheme.categoryIndigo;
+    case 'RISK ASSESSMENT':
+      return AppTheme.categoryOrange;
+    case 'PERSONALIZED RECOMMENDATIONS':
+      return AppTheme.success;
+    case 'FOLLOW-UP PLAN':
+      return AppTheme.categoryGreen;
+    case 'DISCLAIMER':
+      return AppTheme.textSecondary;
+    default:
+      return AppTheme.categoryPurple;
+  }
+}
+
+IconData _aiSectionIcon(String header) {
+  switch (header) {
+    case 'EXECUTIVE SUMMARY':
+      return Icons.summarize_outlined;
+    case 'CLINICAL ASSESSMENT':
+      return Icons.medical_services_outlined;
+    case 'KEY FINDINGS':
+      return Icons.manage_search;
+    case 'RISK ASSESSMENT':
+      return Icons.warning_amber_outlined;
+    case 'PERSONALIZED RECOMMENDATIONS':
+      return Icons.tips_and_updates_outlined;
+    case 'FOLLOW-UP PLAN':
+      return Icons.calendar_today_outlined;
+    case 'DISCLAIMER':
+      return Icons.info_outline;
+    default:
+      return Icons.article_outlined;
+  }
+}
+
+Widget _buildAiBodyText(String body, AppColors colors) {
+  final lines = body.split('\n');
+  final widgets = <Widget>[];
+  for (final line in lines) {
+    final trimmed = line.trim();
+    if (trimmed.isEmpty) {
+      widgets.add(const SizedBox(height: 6));
+      continue;
+    }
+    final isBullet = trimmed.startsWith('- ') ||
+        trimmed.startsWith('• ') ||
+        trimmed.startsWith('* ');
+    if (isBullet) {
+      final bulletText = trimmed.substring(2).trim();
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 7, right: 10),
+                child: Container(
+                  width: 5,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: colors.textSecondary,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  bulletText,
+                  style: TextStyle(
+                    fontSize: AppTheme.fontBody,
+                    color: colors.textPrimary,
+                    height: 1.55,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text(
+            trimmed,
+            style: TextStyle(
+              fontSize: AppTheme.fontBody,
+              color: colors.textPrimary,
+              height: 1.65,
+            ),
+          ),
+        ),
+      );
+    }
+  }
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: widgets,
+  );
+}
+
+Widget _buildAiSectionCard(
+  String header,
+  String body,
+  AppColors colors,
+) {
+  final accent = _aiSectionColor(header);
+  final icon = _aiSectionIcon(header);
+  return Container(
+    decoration: BoxDecoration(
+      color: colors.surface,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: accent.withValues(alpha: 0.3)),
+      boxShadow: [
+        BoxShadow(
+          color: accent.withValues(alpha: 0.06),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: accent.withValues(alpha: 0.1),
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(12)),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: accent, size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  header,
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSM,
+                    fontWeight: FontWeight.bold,
+                    color: accent,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+          child: _buildAiBodyText(body, colors),
+        ),
+      ],
+    ),
+  );
+}
+
 class _AIReportViewPage extends StatelessWidget {
   final Map<String, dynamic> report;
   final VoidCallback onDownloadPDF;
@@ -3221,6 +3401,39 @@ class _AIReportViewPage extends StatelessWidget {
     required this.isDownloadingPDF,
   });
 
+  Widget _kv(String k, dynamic v) {
+    final String value = v == null ? 'Not Recorded' : v.toString();
+    return SizedBox(
+      width: 160,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            k,
+            style: const TextStyle(
+              fontSize: AppTheme.fontXS,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: AppTheme.fontBody,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Color _scoreColor(double score) {
+    if (score >= 80) return AppTheme.success;
+    if (score >= 60) return AppTheme.categoryBlue;
+    return AppTheme.categoryOrange;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
@@ -3231,38 +3444,11 @@ class _AIReportViewPage extends StatelessWidget {
     final Map<String, dynamic> scores =
         (report['scores'] as Map<String, dynamic>?) ?? {};
     final String generationDate = report['generation_date'] ?? '';
+    final String reportId = report['report_id'] ?? '';
+    final String userName = report['user_name'] ?? 'Patient';
 
-    // Parse sections: lines ending with ':' that are all-caps are headers
-    final List<Map<String, String>> sections = [];
-    String currentHeader = '';
-    final StringBuffer currentBody = StringBuffer();
-    for (final line in reportText.split('\n')) {
-      final trimmed = line.trim();
-      if (trimmed.isNotEmpty &&
-          trimmed.endsWith(':') &&
-          trimmed == trimmed.toUpperCase()) {
-        if (currentHeader.isNotEmpty || currentBody.isNotEmpty) {
-          sections.add({
-            'header': currentHeader,
-            'body': currentBody.toString().trim(),
-          });
-          currentBody.clear();
-        }
-        currentHeader = trimmed.replaceAll(':', '');
-      } else {
-        if (trimmed.isNotEmpty) currentBody.writeln(line);
-      }
-    }
-    if (currentHeader.isNotEmpty || currentBody.isNotEmpty) {
-      sections.add({
-        'header': currentHeader,
-        'body': currentBody.toString().trim(),
-      });
-    }
-    // If no sections parsed, treat entire text as one block
-    if (sections.isEmpty && reportText.isNotEmpty) {
-      sections.add({'header': '', 'body': reportText});
-    }
+    final List<Map<String, String>> sections =
+        _parseAiReportSections(reportText);
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -3302,116 +3488,275 @@ class _AIReportViewPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Report header
-            AppCard(
-              padding: const EdgeInsets.all(20),
-              gradient: LinearGradient(
-                colors: [colors.categoryPurpleBg, colors.categoryBlueBg],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              border: Border.all(
-                color: colors.categoryPurple.withValues(alpha: 0.3),
+            // Medical document header
+            Container(
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: colors.categoryPurple.withValues(alpha: 0.3),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: colors.categoryPurple.withValues(alpha: 0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.psychology,
-                        color: colors.categoryPurple,
-                        size: 28,
+                  // Title band
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          colors.categoryPurple,
+                          colors.categoryBlue,
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'NetraCare AI Report',
-                          style: TextStyle(
-                            fontSize: AppTheme.fontXL,
-                            fontWeight: FontWeight.bold,
-                            color: colors.textPrimary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (generationDate.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      'Generated: ${generationDate.split('T').first}',
-                      style: TextStyle(
-                        fontSize: AppTheme.fontSM,
-                        color: colors.textSecondary,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(14),
                       ),
                     ),
-                  ],
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Text(
-                        overallScore.toStringAsFixed(0),
-                        style: TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          color: colors.categoryPurple,
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.remove_red_eye_outlined,
+                          color: Colors.white,
+                          size: 22,
                         ),
-                      ),
-                      Text(
-                        '/100',
-                        style: TextStyle(
-                          fontSize: AppTheme.fontXL,
-                          color: colors.textSecondary,
-                        ),
-                      ),
-                      const Spacer(),
-                      if (healthStatus.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colors.success.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
+                        const SizedBox(width: 10),
+                        const Expanded(
                           child: Text(
-                            healthStatus,
+                            'NetraCare — AI Eye Health Report',
                             style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: colors.success,
+                              fontSize: AppTheme.fontLG,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
                             ),
                           ),
                         ),
-                    ],
+                      ],
+                    ),
                   ),
-                  if (scores.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    const Divider(height: 1),
-                    const SizedBox(height: 12),
-                    ...scores.entries.map(
-                      (e) => Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                e.key.replaceAll('_', ' ').toUpperCase(),
+                  // Patient & report metadata
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Patient',
                                 style: TextStyle(
-                                  fontSize: AppTheme.fontSM,
+                                  fontSize: AppTheme.fontXS,
                                   color: colors.textSecondary,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                            ),
-                            Text(
-                              '${e.value}/100',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: colors.textPrimary,
+                              const SizedBox(height: 2),
+                              Text(
+                                userName,
+                                style: TextStyle(
+                                  fontSize: AppTheme.fontBody,
+                                  fontWeight: FontWeight.bold,
+                                  color: colors.textPrimary,
+                                ),
                               ),
+                            ],
+                          ),
+                        ),
+                        if (generationDate.isNotEmpty)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                'Date',
+                                style: TextStyle(
+                                  fontSize: AppTheme.fontXS,
+                                  color: colors.textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                generationDate.split('T').first,
+                                style: TextStyle(
+                                  fontSize: AppTheme.fontBody,
+                                  color: colors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (reportId.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 4, 18, 0),
+                      child: Text(
+                        'Report ID: $reportId',
+                        style: TextStyle(
+                          fontSize: AppTheme.fontXS,
+                          color: colors.textLight,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 14),
+                  const Divider(height: 1),
+                  // Overall score
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 6),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Overall Score',
+                              style: TextStyle(
+                                fontSize: AppTheme.fontSM,
+                                color: colors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  overallScore.toStringAsFixed(0),
+                                  style: TextStyle(
+                                    fontSize: 42,
+                                    fontWeight: FontWeight.bold,
+                                    color: _scoreColor(overallScore),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 6),
+                                  child: Text(
+                                    '/100',
+                                    style: TextStyle(
+                                      fontSize: AppTheme.fontLG,
+                                      color: colors.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
+                        const Spacer(),
+                        if (healthStatus.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _scoreColor(overallScore)
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: _scoreColor(overallScore)
+                                    .withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Text(
+                              healthStatus,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: AppTheme.fontBody,
+                                color: _scoreColor(overallScore),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  // Per-test score bars
+                  if (scores.isNotEmpty) ...[
+                    const Divider(height: 1),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 12, 18, 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'TEST SCORES',
+                            style: TextStyle(
+                              fontSize: AppTheme.fontXS,
+                              fontWeight: FontWeight.bold,
+                              color: colors.textSecondary,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ...scores.entries.map((e) {
+                            final scoreVal =
+                                (e.value as num?)?.toDouble() ?? 0;
+                            final barColor = _scoreColor(scoreVal);
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        e.key
+                                            .replaceAll('_', ' ')
+                                            .toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: AppTheme.fontXS,
+                                          color: colors.textSecondary,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${scoreVal.toStringAsFixed(0)}/100',
+                                        style: TextStyle(
+                                          fontSize: AppTheme.fontSM,
+                                          fontWeight: FontWeight.bold,
+                                          color: barColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: LinearProgressIndicator(
+                                      value: (scoreVal / 100).clamp(0.0, 1.0),
+                                      backgroundColor:
+                                          barColor.withValues(alpha: 0.15),
+                                      valueColor:
+                                          AlwaysStoppedAnimation<Color>(
+                                            barColor,
+                                          ),
+                                      minHeight: 7,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ],
                       ),
                     ),
                   ],
@@ -3419,42 +3764,263 @@ class _AIReportViewPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            // Report sections
-            ...sections.map(
-              (section) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: AppCard(
-                  border: Border.all(
-                    color: colors.border.withValues(alpha: 0.7),
-                  ),
+            // Structured latest test details (if available)
+            if ((report['latest_tests'] as Map<String, dynamic>?) != null) ...[
+              const SizedBox(height: 8),
+              // Visual Acuity
+              if ((report['latest_tests']['visual_acuity']) != null)
+                AppCard(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (section['header']!.isNotEmpty) ...[
-                          Text(
-                            section['header']!,
-                            style: TextStyle(
-                              fontSize: AppTheme.fontBody,
-                              fontWeight: FontWeight.bold,
-                              color: colors.categoryPurple,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const Divider(height: 16),
-                        ],
                         Text(
-                          section['body']!,
+                          'Visual Acuity',
                           style: TextStyle(
                             fontSize: AppTheme.fontBody,
-                            color: colors.textPrimary,
-                            height: 1.7,
+                            fontWeight: FontWeight.bold,
+                            color: colors.categoryPurple,
                           ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 6,
+                          children: [
+                            _kv(
+                              'Variant',
+                              report['latest_tests']['visual_acuity']['test_variant'] ??
+                                  'Not Recorded',
+                            ),
+                            _kv(
+                              'Snellen',
+                              report['latest_tests']['visual_acuity']['snellen_value'] ??
+                                  'Not Recorded',
+                            ),
+                            _kv(
+                              'logMAR',
+                              report['latest_tests']['visual_acuity']['logmar_value']
+                                      ?.toString() ??
+                                  'Not Recorded',
+                            ),
+                            _kv(
+                              'Score',
+                              report['latest_tests']['visual_acuity']['score']
+                                      ?.toString() ??
+                                  'Not Recorded',
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
+                ),
+              const SizedBox(height: 8),
+              // Colour vision
+              if ((report['latest_tests']['colour_vision']) != null)
+                AppCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Colour Vision',
+                          style: TextStyle(
+                            fontSize: AppTheme.fontBody,
+                            fontWeight: FontWeight.bold,
+                            color: colors.categoryPurple,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 6,
+                          children: [
+                            _kv(
+                              'Plates',
+                              report['latest_tests']['colour_vision']['total_plates']
+                                      ?.toString() ??
+                                  'Not Recorded',
+                            ),
+                            _kv(
+                              'Correct',
+                              report['latest_tests']['colour_vision']['correct_count']
+                                      ?.toString() ??
+                                  'Not Recorded',
+                            ),
+                            _kv(
+                              'Score',
+                              report['latest_tests']['colour_vision']['score']
+                                      ?.toString() ??
+                                  'Not Recorded',
+                            ),
+                            _kv(
+                              'Severity',
+                              report['latest_tests']['colour_vision']['severity'] ??
+                                  'Not Recorded',
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 8),
+              // Blink & Fatigue
+              if ((report['latest_tests']['blink_fatigue']) != null)
+                AppCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Blink & Fatigue',
+                          style: TextStyle(
+                            fontSize: AppTheme.fontBody,
+                            fontWeight: FontWeight.bold,
+                            color: colors.categoryPurple,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 6,
+                          children: [
+                            _kv(
+                              'Fatigue level',
+                              report['latest_tests']['blink_fatigue']['fatigue_level'] ??
+                                  'Not Recorded',
+                            ),
+                            _kv(
+                              'Drowsy prob',
+                              report['latest_tests']['blink_fatigue']['probabilities']?['drowsy']
+                                      ?.toString() ??
+                                  'Not Recorded',
+                            ),
+                            _kv(
+                              'Avg blinks/min',
+                              report['latest_tests']['blink_fatigue']['avg_blinks_per_minute']
+                                      ?.toString() ??
+                                  'Not Recorded',
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 8),
+              // Pupil Reflex
+              if ((report['latest_tests']['pupil_reflex']) != null)
+                AppCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Pupil Reflex',
+                          style: TextStyle(
+                            fontSize: AppTheme.fontBody,
+                            fontWeight: FontWeight.bold,
+                            color: colors.categoryPurple,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 6,
+                          children: [
+                            _kv(
+                              'Reaction time (ms)',
+                              (report['latest_tests']['pupil_reflex']['reaction_time'] !=
+                                      null)
+                                  ? ((report['latest_tests']['pupil_reflex']['reaction_time'] *
+                                                1000)
+                                            .round())
+                                        .toString()
+                                  : 'Not Recorded',
+                            ),
+                            _kv(
+                              'Constriction',
+                              report['latest_tests']['pupil_reflex']['constriction_amplitude'] ??
+                                  'Not Recorded',
+                            ),
+                            _kv(
+                              'Symmetry',
+                              report['latest_tests']['pupil_reflex']['symmetry'] ??
+                                  'Not Recorded',
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 8),
+              // Eye tracking (basic)
+              if ((report['latest_tests']['eye_tracking']) != null)
+                AppCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Eye Tracking',
+                          style: TextStyle(
+                            fontSize: AppTheme.fontBody,
+                            fontWeight: FontWeight.bold,
+                            color: colors.categoryPurple,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 6,
+                          children: [
+                            _kv(
+                              'Test',
+                              report['latest_tests']['eye_tracking']['test_name'] ??
+                                  'Not Recorded',
+                            ),
+                            _kv(
+                              'Duration (s)',
+                              report['latest_tests']['eye_tracking']['test_duration']
+                                      ?.toString() ??
+                                  'Not Recorded',
+                            ),
+                            _kv(
+                              'Gaze accuracy',
+                              report['latest_tests']['eye_tracking']['gaze_accuracy']
+                                      ?.toString() ??
+                                  'Not Recorded',
+                            ),
+                            _kv(
+                              'Stability',
+                              report['latest_tests']['eye_tracking']['fixation_stability_score']
+                                      ?.toString() ??
+                                  'Not Recorded',
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 12),
+            ],
+            // Report sections — each with accent colour, icon, bullet support
+            ...sections.map(
+              (section) => Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: _buildAiSectionCard(
+                  section['header']!,
+                  section['body']!,
+                  colors,
                 ),
               ),
             ),

@@ -5,7 +5,7 @@ Registration, Login, Profile Management
 from flask import Blueprint, request, jsonify
 from flask_restx import Namespace, Resource, fields
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import jwt
 import re
 from functools import wraps
@@ -74,6 +74,22 @@ def validate_password_strength(password: str) -> tuple:
     if not re.search(r'[@$!%*?&]', password):
         return False, "Password must contain a special character (@$!%*?&)"
     return True, ""
+
+
+def generate_token(user_id: int) -> str:
+    """Generate a JWT compatible with the shared token_required decorator."""
+    now = datetime.now(timezone.utc)
+    exp_time = now + timedelta(days=7)
+    token = jwt.encode(
+        {
+            "sub": str(user_id),
+            "iat": int(now.timestamp()),
+            "exp": int(exp_time.timestamp()),
+        },
+        BaseConfig.SECRET_KEY,
+        algorithm="HS256",
+    )
+    return token.decode("utf-8") if isinstance(token, bytes) else token
 
 
 @auth_ns.route('/register')
@@ -198,11 +214,8 @@ class Login(Resource):
                     'message': 'Invalid email or password'
                 }, 401
             
-            # Generate JWT token
-            token = jwt.encode({
-                'user_id': user.id,
-                'exp': datetime.utcnow() + timedelta(days=7)
-            }, BaseConfig.SECRET_KEY, algorithm='HS256')
+            # Generate JWT token compatible with the shared auth middleware
+            token = generate_token(user.id)
             
             return {
                 'message': 'Login successful',
