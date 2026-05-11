@@ -31,12 +31,15 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
   Future<void> _initializeAsync() async {
     setState(() => _isLoading = true);
 
+    final notificationService = NotificationService();
+    notificationService.setRole(NotificationRole.doctor);
+    notificationService.clear();
+
     // Initialize doctor service with API data
     await _doctorService.initializeAsync();
 
     // Initialize notification polling for doctor role
-    NotificationService().setRole(NotificationRole.doctor);
-    NotificationService().initialize();
+    notificationService.initialize();
 
     if (mounted) {
       setState(() => _isLoading = false);

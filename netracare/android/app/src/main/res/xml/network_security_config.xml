@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Development config: allow cleartext for local emulator (10.0.2.2) and host -->
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="system"/>
+            <certificates src="user"/>
+        </trust-anchors>
+        <base-config cleartextTrafficPermitted="true" />
+    </debug-overrides>
+    <!-- Default: do not permit cleartext in release builds -->
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

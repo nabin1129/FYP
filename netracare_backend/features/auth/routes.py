@@ -358,11 +358,13 @@ class ForgotPassword(Resource):
         otp = _generate_otp()
         user.reset_otp = otp
         user.reset_otp_expiry = datetime.now(timezone.utc) + timedelta(minutes=15)
-        db.session.commit()
 
         sent = send_otp_email(email, otp)
         if not sent:
+            db.session.rollback()
             auth_ns.abort(500, "Failed to send email. Please try again.")
+
+        db.session.commit()
 
         return {"message": "Verification code sent to your email."}, 200
 

@@ -29,4 +29,6 @@ if __name__ == "__main__":
         # Ensure tables exist for ad-hoc local runs
         db.create_all()
 
-    socketio.run(app, debug=True, use_reloader=False, allow_unsafe_werkzeug=True)
+    # Bind to 0.0.0.0 so emulator and external devices can reach the server
+    # Keep default port 5000 for compatibility with existing Flutter config
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True, use_reloader=False, allow_unsafe_werkzeug=True)

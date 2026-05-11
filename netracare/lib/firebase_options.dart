@@ -52,7 +52,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAyDS8zQ4DWHficzysQeSJWs6fgItpzYLE',
-    appId: '1:735051756678:android:ff4454e95ad7c74606cd07',
+    appId: '1:735051756678:android:c55add5b95e9072706cd07',
     messagingSenderId: '735051756678',
     projectId: 'netracare-ef30d',
     storageBucket: 'netracare-ef30d.firebasestorage.app',

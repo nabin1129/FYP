@@ -553,10 +553,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
         appBar: AppBar(
           backgroundColor: colors.surface,
           elevation: 1,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: colors.textPrimary),
-            onPressed: () => Navigator.pop(context),
-          ),
+          automaticallyImplyLeading: false,
           title: Text(
             'Your Eye Health Report',
             style: TextStyle(
@@ -575,10 +572,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
         appBar: AppBar(
           backgroundColor: colors.surface,
           elevation: 1,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: colors.textPrimary),
-            onPressed: () => Navigator.pop(context),
-          ),
+          automaticallyImplyLeading: false,
           title: Text(
             'Your Eye Health Report',
             style: TextStyle(
@@ -640,10 +634,7 @@ class _ResultsReportPageState extends State<ResultsReportPage>
       appBar: AppBar(
         backgroundColor: colors.surface,
         elevation: 1,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: colors.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false,
         title: Text(
           'Your Eye Health Report',
           style: TextStyle(

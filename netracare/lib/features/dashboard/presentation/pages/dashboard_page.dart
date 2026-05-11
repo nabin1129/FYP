@@ -37,6 +37,9 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> _initializeData() async {
+    _notificationService.setRole(NotificationRole.user);
+    _notificationService.clear();
+
     await Future.wait([
       _loadNextConsultation(),
       _loadNotificationCount(),
@@ -45,7 +48,6 @@ class _DashboardPageState extends State<DashboardPage> {
     ]);
 
     // Initialize notification polling for user role
-    _notificationService.setRole(NotificationRole.user);
     _notificationService.initialize();
   }
 

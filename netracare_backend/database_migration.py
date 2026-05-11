@@ -16,6 +16,9 @@ Usage:
     python database_migration.py
 
 New fields added:
+- first_name (VARCHAR 120)
+- last_name (VARCHAR 120)
+- user_type (VARCHAR 50)
 - phone (VARCHAR 20)
 - address (TEXT)
 - emergency_contact (VARCHAR 20)
@@ -97,6 +100,9 @@ class DatabaseMigration:
 
         # Define new columns to add
         new_columns = {
+            "first_name": "VARCHAR(120)",
+            "last_name": "VARCHAR(120)",
+            "user_type": "VARCHAR(50)",
             "phone": "VARCHAR(20)",
             "address": "TEXT",
             "emergency_contact": "VARCHAR(20)",

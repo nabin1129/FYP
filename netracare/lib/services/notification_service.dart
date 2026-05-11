@@ -143,9 +143,35 @@ class NotificationService {
   /// Get unread notification count
   Future<int> getUnreadCount() async {
     try {
-      _unreadCount = _isDoctor
+      // First retrieve the server-side count
+      final serverCount = _isDoctor
           ? await DoctorApiService.getDoctorUnreadNotificationCount()
           : await DoctorApiService.getUnreadNotificationCount();
+
+      // If serverCount is zero, we're done
+      if (serverCount == 0) {
+        _unreadCount = 0;
+        return _unreadCount;
+      }
+
+      // Fetch the actual unread notifications to validate the count.
+      // Some server-side inconsistencies cause the count endpoint to return
+      // a non-zero value while the notifications list is empty. Reconcile
+      // by using the notifications list when available.
+      final list = await (_isDoctor
+          ? DoctorApiService.getDoctorNotifications(unreadOnly: true)
+          : DoctorApiService.getUserNotifications(unreadOnly: true));
+
+      _notifications = list.map((n) => AppNotification.fromJson(n)).toList();
+      _unreadCount = _notifications.where((n) => !n.isRead).length;
+
+      // If reconciliation produced zero, fall back to serverCount only if
+      // we couldn't fetch the list (unlikely). Otherwise use reconciled value.
+      if (_unreadCount == 0 && list.isEmpty) {
+        _unreadCount = serverCount;
+      }
+
+      _notificationController.add(_notifications);
       return _unreadCount;
     } catch (e) {
       return _unreadCount;

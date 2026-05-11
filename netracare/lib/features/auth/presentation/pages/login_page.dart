@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -530,6 +531,21 @@ class _LoginPageState extends State<LoginPage>
           context,
           MaterialPageRoute(builder: (_) => const DashboardPage()),
         );
+      }
+    } on PlatformException catch (e) {
+      if (mounted) {
+        setState(() {
+          final details = [
+            if (e.code.isNotEmpty) 'code: ${e.code}',
+            if (e.message != null && e.message!.isNotEmpty)
+              'message: ${e.message}',
+          ].join('\n');
+          _errorMessage =
+              'Google Sign-In failed. $details\n\n'
+              'If you see ApiException 10 or sign_in_failed, regenerate '
+              'Android Firebase config, confirm the SHA-1 matches the debug '
+              'keystore, and rebuild the app.';
+        });
       }
     } catch (e) {
       if (mounted) {

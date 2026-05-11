@@ -60,7 +60,7 @@ class _NotificationBellState extends State<NotificationBell>
           ),
         );
 
-    _unreadCount = _notificationService.unreadCount;
+    _unreadCount = 0;
     _subscription = _notificationService.notificationStream.listen((list) {
       if (mounted) {
         setState(() {
