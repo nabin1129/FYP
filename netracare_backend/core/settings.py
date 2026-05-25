@@ -14,7 +14,19 @@ DB_PATH = BASE_DIR / "db.sqlite3"
 def apply_app_config(app) -> None:
     """Apply standard Flask config values."""
     app.config.from_object(get_config_class())
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
+    # Allow environment to override the SQLALCHEMY URI (useful for tests).
+    db_uri = None
+    try:
+        import os
+
+        db_uri = os.environ.get("SQLALCHEMY_DATABASE_URI")
+    except Exception:
+        db_uri = None
+
+    if db_uri:
+        app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
+    else:
+        app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Production-like environments must not use known default secrets.

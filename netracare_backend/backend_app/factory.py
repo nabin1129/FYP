@@ -41,11 +41,8 @@ def create_app() -> Flask:
     app.register_blueprint(distance_bp)
     register_web_routes(app)
 
-    # Keep migration behavior consistent with previous startup flow.
-    with app.app_context():
-        ensure_user_schema_migrated()
-        ensure_consultation_schema_migrated()
-        ensure_medical_record_schema_migrated()
-        ensure_visual_acuity_schema_migrated()
+    # Migration execution is intentionally performed outside the factory so
+    # tests can create the app and configure the database (e.g. in-memory)
+    # without running repository migrations automatically.
 
     return app

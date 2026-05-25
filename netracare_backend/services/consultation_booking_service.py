@@ -50,8 +50,4 @@ def get_available_slot_for_booking(slot_id: int, doctor_id: int) -> DoctorSlot |
 
     if not slot:
         return None
-
-    if not is_future_utc(slot.slot_start_at):
-        return None
-
     return slot

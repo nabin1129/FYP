@@ -90,6 +90,22 @@ def get_user_from_auth():
         return None
 
 
+def generate_token(user_id: int, hours: int = 24) -> str:
+    """Generate a JWT for a regular user.
+
+    Tests and routes import `generate_token(user_id)` to create bearer tokens
+    for test users; provide a small helper with a configurable lifetime.
+    """
+    payload = {
+        "sub": str(user_id),
+        "type": "user",
+        "iat": datetime.utcnow(),
+        "exp": datetime.utcnow() + timedelta(hours=hours),
+    }
+
+    return jwt.encode(payload, BaseConfig.SECRET_KEY, algorithm="HS256")
+
+
 def generate_admin_token(admin_email: str) -> str:
     """Generate JWT token for admin access."""
     payload = {
