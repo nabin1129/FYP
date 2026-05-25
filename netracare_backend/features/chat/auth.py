@@ -27,10 +27,8 @@ class ChatAuthError(Exception):
     """Raised when chat token is invalid or missing."""
 
 
-
 def _decode_token(token: str) -> dict:
     return jwt.decode(token, BaseConfig.SECRET_KEY, algorithms=["HS256"], leeway=30)
-
 
 
 def resolve_actor_from_token(token: str) -> ChatActor:
@@ -71,7 +69,6 @@ def resolve_actor_from_token(token: str) -> ChatActor:
         raise ChatAuthError("User not found")
 
     return ChatActor(role="patient", actor_id=user.id, user=user)
-
 
 
 def extract_bearer_from_request() -> str:

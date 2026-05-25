@@ -1,4 +1,5 @@
 """Repository helpers for medical record persistence."""
+
 from __future__ import annotations
 
 from sqlalchemy import or_
@@ -19,22 +20,26 @@ class MedicalRecordRepository:
     def get(self, record_id: int) -> MedicalRecord | None:
         return db.session.get(MedicalRecord, record_id)
 
-    def list_for_patient(self, patient_id: int, include_deleted: bool = False) -> list[MedicalRecord]:
+    def list_for_patient(
+        self, patient_id: int, include_deleted: bool = False
+    ) -> list[MedicalRecord]:
         query = MedicalRecord.query.filter(MedicalRecord.patient_id == patient_id)
         if not include_deleted:
-            query = query.filter(MedicalRecord.status != 'deleted')
+            query = query.filter(MedicalRecord.status != "deleted")
         return query.order_by(MedicalRecord.created_at.desc()).all()
 
-    def list_for_doctor(self, doctor_id: int, include_deleted: bool = False) -> list[MedicalRecord]:
+    def list_for_doctor(
+        self, doctor_id: int, include_deleted: bool = False
+    ) -> list[MedicalRecord]:
         query = MedicalRecord.query.filter(MedicalRecord.doctor_id == doctor_id)
         if not include_deleted:
-            query = query.filter(MedicalRecord.status != 'deleted')
+            query = query.filter(MedicalRecord.status != "deleted")
         return query.order_by(MedicalRecord.created_at.desc()).all()
 
     def list_all(self, include_deleted: bool = False) -> list[MedicalRecord]:
         query = MedicalRecord.query
         if not include_deleted:
-            query = query.filter(MedicalRecord.status != 'deleted')
+            query = query.filter(MedicalRecord.status != "deleted")
         return query.order_by(MedicalRecord.created_at.desc()).all()
 
     def list_admin_filtered(
@@ -49,12 +54,12 @@ class MedicalRecordRepository:
         page: int = 1,
         per_page: int = 20,
     ) -> tuple[list[MedicalRecord], int, int]:
-        query = MedicalRecord.query.join(Doctor, MedicalRecord.doctor_id == Doctor.id).join(
-            User, MedicalRecord.patient_id == User.id
-        )
+        query = MedicalRecord.query.join(
+            Doctor, MedicalRecord.doctor_id == Doctor.id
+        ).join(User, MedicalRecord.patient_id == User.id)
 
         if not include_deleted and not status:
-            query = query.filter(MedicalRecord.status != 'deleted')
+            query = query.filter(MedicalRecord.status != "deleted")
 
         if status:
             query = query.filter(MedicalRecord.status == status)

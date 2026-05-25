@@ -19,8 +19,8 @@ class ConsultationSlotBookingTestCase(unittest.TestCase):
         self.app = Flask(__name__)
         self.app.config.update(
             TESTING=True,
-            SECRET_KEY='test-secret',
-            SQLALCHEMY_DATABASE_URI='sqlite:///:memory:',
+            SECRET_KEY="test-secret",
+            SQLALCHEMY_DATABASE_URI="sqlite:///:memory:",
             SQLALCHEMY_TRACK_MODIFICATIONS=False,
         )
         init_extensions(self.app)
@@ -29,16 +29,16 @@ class ConsultationSlotBookingTestCase(unittest.TestCase):
             db.create_all()
 
             user = User(
-                name='Patient Slot User',
-                email='slot-patient@example.com',
-                password_hash='hashed-password',
+                name="Patient Slot User",
+                email="slot-patient@example.com",
+                password_hash="hashed-password",
             )
             doctor = Doctor(
-                name='Doctor Slot Owner',
-                email='slot-doctor@example.com',
-                password_hash='hashed-password',
-                nhpc_number='NHPC-SLOT-001',
-                qualification='MBBS',
+                name="Doctor Slot Owner",
+                email="slot-doctor@example.com",
+                password_hash="hashed-password",
+                nhpc_number="NHPC-SLOT-001",
+                qualification="MBBS",
             )
             db.session.add_all([user, doctor])
             db.session.commit()
@@ -90,10 +90,10 @@ class ConsultationSlotBookingTestCase(unittest.TestCase):
                 doctor_id=self.doctor_id,
                 patient_id=self.user_id,
                 doctor_slot_id=slot.id,
-                consultation_type='physical',
-                status='scheduled',
+                consultation_type="physical",
+                status="scheduled",
                 scheduled_at=slot.slot_start_at,
-                reason='Physical slot booking',
+                reason="Physical slot booking",
             )
             slot.is_booked = True
             db.session.add(consultation)
@@ -103,10 +103,10 @@ class ConsultationSlotBookingTestCase(unittest.TestCase):
             self.assertIsNone(second_pick)
 
     def test_consultation_type_normalization_supports_aliases(self):
-        self.assertEqual(normalize_consultation_type('in-person'), 'physical')
-        self.assertEqual(normalize_consultation_type('CHAT'), 'chat')
-        self.assertEqual(normalize_consultation_type('unknown'), 'chat')
+        self.assertEqual(normalize_consultation_type("in-person"), "physical")
+        self.assertEqual(normalize_consultation_type("CHAT"), "chat")
+        self.assertEqual(normalize_consultation_type("unknown"), "chat")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

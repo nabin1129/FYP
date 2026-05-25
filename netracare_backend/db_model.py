@@ -4,10 +4,13 @@ import json
 
 db = SQLAlchemy()
 
+
 class User(db.Model):
+    __tablename__ = "user"
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120))
-    email = db.Column(db.String(120), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     age = db.Column(db.Integer)
     sex = db.Column(db.String(20))
@@ -22,6 +25,8 @@ class User(db.Model):
     created_at = db.Column(
         db.DateTime,
         default=lambda: datetime.now(timezone.utc).replace(tzinfo=None, microsecond=0),
+        nullable=False,
+        index=True,
     )
 
 
@@ -42,366 +47,413 @@ class AuthRateLimitEvent(db.Model):
 
 class EyeTrackingTest(db.Model):
     """Database model for eye tracking test records"""
-    __tablename__ = 'eye_tracking_tests'
-    
+
+    __tablename__ = "eye_tracking_tests"
+
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("user.id"), nullable=False, index=True
+    )
     test_name = db.Column(db.String(255), nullable=False)
     test_duration = db.Column(db.Float, nullable=False)  # in seconds
-    
+
     # Metrics
     gaze_accuracy = db.Column(db.Float)  # percentage
     fixation_stability_score = db.Column(db.Float)  # 0-100
     saccade_consistency_score = db.Column(db.Float)  # 0-100
     overall_performance_score = db.Column(db.Float)  # 0-100
     performance_classification = db.Column(db.String(50))  # Excellent, Good, Fair, Poor
-    
+
     # Pupil metrics (stored as JSON)
     left_pupil_metrics = db.Column(db.Text)  # JSON string
     right_pupil_metrics = db.Column(db.Text)  # JSON string
-    
+
     # Raw data (stored as JSON for detailed analysis)
     raw_data = db.Column(db.Text)  # JSON string containing all data points
-    
+
     # Screen resolution
     screen_width = db.Column(db.Integer)
     screen_height = db.Column(db.Integer)
-    
+
     # Status and timestamps
-    status = db.Column(db.String(50), default='completed')  # pending, completed, failed
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    status = db.Column(db.String(50), default="completed")  # pending, completed, failed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
     # Relationship
-    user = db.relationship('User', backref=db.backref('eye_tracking_tests', lazy=True))
-    
+    user = db.relationship("User", backref=db.backref("eye_tracking_tests", lazy=True))
+
     def set_pupil_metrics(self, left_metrics: dict, right_metrics: dict) -> None:
         """Store pupil metrics as JSON"""
         self.left_pupil_metrics = json.dumps(left_metrics)
         self.right_pupil_metrics = json.dumps(right_metrics)
-    
+
     def get_pupil_metrics(self) -> dict:
         """Retrieve pupil metrics from JSON"""
         return {
-            'left_pupil': json.loads(self.left_pupil_metrics) if self.left_pupil_metrics else None,
-            'right_pupil': json.loads(self.right_pupil_metrics) if self.right_pupil_metrics else None
+            "left_pupil": (
+                json.loads(self.left_pupil_metrics) if self.left_pupil_metrics else None
+            ),
+            "right_pupil": (
+                json.loads(self.right_pupil_metrics)
+                if self.right_pupil_metrics
+                else None
+            ),
         }
-    
+
     def set_raw_data(self, data_points: list) -> None:
         """Store raw eye tracking data as JSON"""
         self.raw_data = json.dumps(data_points)
-    
+
     def get_raw_data(self) -> list:
         """Retrieve raw eye tracking data from JSON"""
         return json.loads(self.raw_data) if self.raw_data else []
-    
+
     def to_dict(self) -> dict:
         """Convert test record to dictionary"""
         return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'test_name': self.test_name,
-            'test_duration': self.test_duration,
-            'gaze_accuracy': self.gaze_accuracy,
-            'fixation_stability_score': self.fixation_stability_score,
-            'saccade_consistency_score': self.saccade_consistency_score,
-            'overall_performance_score': self.overall_performance_score,
-            'performance_classification': self.performance_classification,
-            'pupil_metrics': self.get_pupil_metrics(),
-            'screen_width': self.screen_width,
-            'screen_height': self.screen_height,
-            'status': self.status,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            "id": self.id,
+            "user_id": self.user_id,
+            "test_name": self.test_name,
+            "test_duration": self.test_duration,
+            "gaze_accuracy": self.gaze_accuracy,
+            "fixation_stability_score": self.fixation_stability_score,
+            "saccade_consistency_score": self.saccade_consistency_score,
+            "overall_performance_score": self.overall_performance_score,
+            "performance_classification": self.performance_classification,
+            "pupil_metrics": self.get_pupil_metrics(),
+            "screen_width": self.screen_width,
+            "screen_height": self.screen_height,
+            "status": self.status,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
         }
 
 
 class VisualAcuityTest(db.Model):
     """Database model for visual acuity test results"""
-    __tablename__ = 'visual_acuity_tests'
-    
+
+    __tablename__ = "visual_acuity_tests"
+
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("user.id"), nullable=False, index=True
+    )
+
     # Test results
-    test_variant = db.Column(db.String(50), default='snellen')
+    test_variant = db.Column(db.String(50), default="snellen")
     correct_answers = db.Column(db.Integer, nullable=False)
     total_questions = db.Column(db.Integer, nullable=False)
     logmar_value = db.Column(db.Float, nullable=False)
     snellen_value = db.Column(db.String(50), nullable=False)
     severity = db.Column(db.String(50), nullable=False)
-    
+
     # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
     # Relationship
-    user = db.relationship('User', backref=db.backref('visual_acuity_tests', lazy=True))
-    
+    user = db.relationship("User", backref=db.backref("visual_acuity_tests", lazy=True))
+
     def to_dict(self) -> dict:
         """Convert test to dictionary"""
         # Calculate score percentage
-        score = round((self.correct_answers / self.total_questions) * 100) if self.total_questions > 0 else 0
-        
+        score = (
+            round((self.correct_answers / self.total_questions) * 100)
+            if self.total_questions > 0
+            else 0
+        )
+
         return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'test_variant': self.test_variant or 'snellen',
-            'correct_answers': self.correct_answers,
-            'total_questions': self.total_questions,
-            'score': score,
-            'logmar_value': self.logmar_value,
-            'snellen_value': self.snellen_value,
-            'severity': self.severity,
-            'created_at': self.created_at.isoformat()
+            "id": self.id,
+            "user_id": self.user_id,
+            "test_variant": self.test_variant or "snellen",
+            "correct_answers": self.correct_answers,
+            "total_questions": self.total_questions,
+            "score": score,
+            "logmar_value": self.logmar_value,
+            "snellen_value": self.snellen_value,
+            "severity": self.severity,
+            "created_at": self.created_at.isoformat(),
         }
 
 
 class CameraEyeTrackingSession(db.Model):
     """Database model for camera-based eye tracking sessions (OpenCV + MediaPipe)"""
-    __tablename__ = 'camera_eye_tracking_sessions'
-    
+
+    __tablename__ = "camera_eye_tracking_sessions"
+
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    session_name = db.Column(db.String(255), default='Camera Eye Tracking Session')
-    
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("user.id"), nullable=False, index=True
+    )
+    session_name = db.Column(db.String(255), default="Camera Eye Tracking Session")
+
     # Session details
     duration_seconds = db.Column(db.Float, nullable=False)
     start_time = db.Column(db.DateTime, nullable=False)
     end_time = db.Column(db.DateTime, nullable=False)
-    
+
     # Blink metrics
     total_blinks = db.Column(db.Integer, default=0)
     blink_rate_per_minute = db.Column(db.Float)
-    
+
     # Eye Aspect Ratio (EAR) statistics
     left_eye_ear_mean = db.Column(db.Float)
     left_eye_ear_std = db.Column(db.Float)
     left_eye_ear_min = db.Column(db.Float)
     left_eye_ear_max = db.Column(db.Float)
-    
+
     right_eye_ear_mean = db.Column(db.Float)
     right_eye_ear_std = db.Column(db.Float)
     right_eye_ear_min = db.Column(db.Float)
     right_eye_ear_max = db.Column(db.Float)
-    
+
     average_ear_mean = db.Column(db.Float)
     average_ear_std = db.Column(db.Float)
     average_ear_min = db.Column(db.Float)
     average_ear_max = db.Column(db.Float)
-    
+
     # Gaze direction distribution (stored as JSON)
-    gaze_distribution = db.Column(db.Text)  # JSON: {'center': count, 'left': count, ...}
-    
+    gaze_distribution = db.Column(
+        db.Text
+    )  # JSON: {'center': count, 'left': count, ...}
+
     # Raw session data
     total_frames = db.Column(db.Integer, default=0)
     frames_with_face = db.Column(db.Integer, default=0)
     detection_rate = db.Column(db.Float)  # percentage
-    
+
     # Detailed data (optional, can be large)
     blink_events = db.Column(db.Text)  # JSON array of blink events with timestamps
     gaze_events = db.Column(db.Text)  # JSON array of gaze movements with timestamps
-    
+
     # Device and settings
     camera_id = db.Column(db.Integer, default=0)
     ear_threshold = db.Column(db.Float, default=0.21)
-    
+
     # Status
-    status = db.Column(db.String(50), default='completed')  # pending, in_progress, completed, failed
+    status = db.Column(
+        db.String(50), default="completed"
+    )  # pending, in_progress, completed, failed
     notes = db.Column(db.Text)
-    
+
     # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
     # Relationship
-    user = db.relationship('User', backref=db.backref('camera_eye_tracking_sessions', lazy=True))
-    
+    user = db.relationship(
+        "User", backref=db.backref("camera_eye_tracking_sessions", lazy=True)
+    )
+
     def set_gaze_distribution(self, distribution: dict) -> None:
         """Store gaze distribution as JSON"""
         self.gaze_distribution = json.dumps(distribution)
-    
+
     def get_gaze_distribution(self) -> dict:
         """Retrieve gaze distribution from JSON"""
         return json.loads(self.gaze_distribution) if self.gaze_distribution else {}
-    
+
     def set_blink_events(self, events: list) -> None:
         """Store blink events as JSON"""
         self.blink_events = json.dumps(events)
-    
+
     def get_blink_events(self) -> list:
         """Retrieve blink events from JSON"""
         return json.loads(self.blink_events) if self.blink_events else []
-    
+
     def set_gaze_events(self, events: list) -> None:
         """Store gaze events as JSON"""
         self.gaze_events = json.dumps(events)
-    
+
     def get_gaze_events(self) -> list:
         """Retrieve gaze events from JSON"""
         return json.loads(self.gaze_events) if self.gaze_events else []
-    
+
     def to_dict(self, include_events: bool = False) -> dict:
         """Convert session to dictionary"""
         result = {
-            'id': self.id,
-            'user_id': self.user_id,
-            'session_name': self.session_name,
-            'duration_seconds': self.duration_seconds,
-            'start_time': self.start_time.isoformat() if self.start_time else None,
-            'end_time': self.end_time.isoformat() if self.end_time else None,
-            'blink_metrics': {
-                'total_blinks': self.total_blinks,
-                'blink_rate_per_minute': self.blink_rate_per_minute
+            "id": self.id,
+            "user_id": self.user_id,
+            "session_name": self.session_name,
+            "duration_seconds": self.duration_seconds,
+            "start_time": self.start_time.isoformat() if self.start_time else None,
+            "end_time": self.end_time.isoformat() if self.end_time else None,
+            "blink_metrics": {
+                "total_blinks": self.total_blinks,
+                "blink_rate_per_minute": self.blink_rate_per_minute,
             },
-            'ear_statistics': {
-                'left_eye': {
-                    'mean': self.left_eye_ear_mean,
-                    'std': self.left_eye_ear_std,
-                    'min': self.left_eye_ear_min,
-                    'max': self.left_eye_ear_max
+            "ear_statistics": {
+                "left_eye": {
+                    "mean": self.left_eye_ear_mean,
+                    "std": self.left_eye_ear_std,
+                    "min": self.left_eye_ear_min,
+                    "max": self.left_eye_ear_max,
                 },
-                'right_eye': {
-                    'mean': self.right_eye_ear_mean,
-                    'std': self.right_eye_ear_std,
-                    'min': self.right_eye_ear_min,
-                    'max': self.right_eye_ear_max
+                "right_eye": {
+                    "mean": self.right_eye_ear_mean,
+                    "std": self.right_eye_ear_std,
+                    "min": self.right_eye_ear_min,
+                    "max": self.right_eye_ear_max,
                 },
-                'average': {
-                    'mean': self.average_ear_mean,
-                    'std': self.average_ear_std,
-                    'min': self.average_ear_min,
-                    'max': self.average_ear_max
-                }
+                "average": {
+                    "mean": self.average_ear_mean,
+                    "std": self.average_ear_std,
+                    "min": self.average_ear_min,
+                    "max": self.average_ear_max,
+                },
             },
-            'gaze_distribution': self.get_gaze_distribution(),
-            'detection_metrics': {
-                'total_frames': self.total_frames,
-                'frames_with_face': self.frames_with_face,
-                'detection_rate': self.detection_rate
+            "gaze_distribution": self.get_gaze_distribution(),
+            "detection_metrics": {
+                "total_frames": self.total_frames,
+                "frames_with_face": self.frames_with_face,
+                "detection_rate": self.detection_rate,
             },
-            'settings': {
-                'camera_id': self.camera_id,
-                'ear_threshold': self.ear_threshold
+            "settings": {
+                "camera_id": self.camera_id,
+                "ear_threshold": self.ear_threshold,
             },
-            'status': self.status,
-            'notes': self.notes,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            "status": self.status,
+            "notes": self.notes,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
         }
-        
+
         if include_events:
-            result['blink_events'] = self.get_blink_events()
-            result['gaze_events'] = self.get_gaze_events()
-        
+            result["blink_events"] = self.get_blink_events()
+            result["gaze_events"] = self.get_gaze_events()
+
         return result
 
 
 class ColourVisionTest(db.Model):
     """Database model for Ishihara color vision test results"""
-    __tablename__ = 'colour_vision_tests'
-    
+
+    __tablename__ = "colour_vision_tests"
+
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("user.id"), nullable=False, index=True
+    )
+
     # Test configuration
     total_plates = db.Column(db.Integer, nullable=False)
     plate_ids = db.Column(db.Text, nullable=False)  # JSON: [0, 3, 5, 7, 9]
-    plate_images = db.Column(db.Text, nullable=False)  # JSON: ["0_Font1...", "3_Font2..."]
-    
+    plate_images = db.Column(
+        db.Text, nullable=False
+    )  # JSON: ["0_Font1...", "3_Font2..."]
+
     # User responses
-    user_answers = db.Column(db.Text, nullable=False)  # JSON: ["12", "8", "29", "5", "74"]
-    correct_answers = db.Column(db.Text, nullable=False)  # JSON: ["12", "8", "29", "5", "74"]
-    
+    user_answers = db.Column(
+        db.Text, nullable=False
+    )  # JSON: ["12", "8", "29", "5", "74"]
+    correct_answers = db.Column(
+        db.Text, nullable=False
+    )  # JSON: ["12", "8", "29", "5", "74"]
+
     # Scoring
     correct_count = db.Column(db.Integer, nullable=False)
     score = db.Column(db.Integer, nullable=False)  # Percentage: 0-100
     severity = db.Column(db.String(50), nullable=False)  # Normal, Mild, Deficiency
-    
+
     # Metadata
     test_duration = db.Column(db.Float)  # seconds
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
     # Relationship
-    user = db.relationship('User', backref=db.backref('colour_vision_tests', lazy=True))
-    
+    user = db.relationship("User", backref=db.backref("colour_vision_tests", lazy=True))
+
     def set_plate_data(self, plate_ids: list, plate_images: list):
         """Store plate data as JSON"""
         self.plate_ids = json.dumps(plate_ids)
         self.plate_images = json.dumps(plate_images)
-    
+
     def set_answers(self, user_answers: list, correct_answers: list):
         """Store answer data as JSON"""
         self.user_answers = json.dumps(user_answers)
         self.correct_answers = json.dumps(correct_answers)
-    
+
     def get_plate_ids(self) -> list:
         """Retrieve plate IDs as list"""
         return json.loads(self.plate_ids) if self.plate_ids else []
-    
+
     def get_plate_images(self) -> list:
         """Retrieve plate images as list"""
         return json.loads(self.plate_images) if self.plate_images else []
-    
+
     def get_user_answers(self) -> list:
         """Retrieve user answers as list"""
         return json.loads(self.user_answers) if self.user_answers else []
-    
+
     def get_correct_answers(self) -> list:
         """Retrieve correct answers as list"""
         return json.loads(self.correct_answers) if self.correct_answers else []
-    
+
     def to_dict(self) -> dict:
         """Convert test to dictionary"""
         return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'total_plates': self.total_plates,
-            'plate_ids': self.get_plate_ids(),
-            'plate_images': self.get_plate_images(),
-            'user_answers': self.get_user_answers(),
-            'correct_answers': self.get_correct_answers(),
-            'correct_count': self.correct_count,
-            'score': self.score,
-            'severity': self.severity,
-            'test_duration': self.test_duration,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            "id": self.id,
+            "user_id": self.user_id,
+            "total_plates": self.total_plates,
+            "plate_ids": self.get_plate_ids(),
+            "plate_images": self.get_plate_images(),
+            "user_answers": self.get_user_answers(),
+            "correct_answers": self.get_correct_answers(),
+            "correct_count": self.correct_count,
+            "score": self.score,
+            "severity": self.severity,
+            "test_duration": self.test_duration,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
         }
 
 
 class BlinkFatigueTest(db.Model):
     """Database model for blink and eye fatigue detection results"""
-    __tablename__ = 'blink_fatigue_tests'
-    
+
+    __tablename__ = "blink_fatigue_tests"
+
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("user.id"), nullable=False, index=True
+    )
+
     # Prediction results
     prediction = db.Column(db.String(50), nullable=False)  # 'drowsy' or 'notdrowsy'
     confidence = db.Column(db.Float, nullable=False)  # 0-1
     drowsy_probability = db.Column(db.Float, nullable=False)  # 0-1
     notdrowsy_probability = db.Column(db.Float, nullable=False)  # 0-1
-    
+
     # Fatigue classification
-    fatigue_level = db.Column(db.String(100), nullable=False)  # Alert, Low Fatigue, etc.
+    fatigue_level = db.Column(
+        db.String(100), nullable=False
+    )  # Alert, Low Fatigue, etc.
     alert_triggered = db.Column(db.Boolean, default=False)  # True if drowsy_prob > 0.7
-    
+
     # Test metadata
     test_duration = db.Column(db.Float)  # seconds (if applicable)
     image_filename = db.Column(db.String(255))  # stored image filename (optional)
-    
+
     # Blink metrics (optional - from camera tracking)
     total_blinks = db.Column(db.Integer)
     avg_blinks_per_minute = db.Column(db.Float)
-    
+
     # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
     # Relationship
-    user = db.relationship('User', backref=db.backref('blink_fatigue_tests', lazy=True))
-    
+    user = db.relationship("User", backref=db.backref("blink_fatigue_tests", lazy=True))
+
     def _blink_fatigue_flag(self):
         """Return True when blink rate or PERCLOS breaches clinical thresholds.
 
@@ -418,106 +470,118 @@ class BlinkFatigueTest(db.Model):
         alertness_percentage = round((1 - self.drowsy_probability) * 100)
 
         # Map fatigue_level to classification for frontend compatibility
-        classification = self.fatigue_level if self.fatigue_level else (
-            'Alert' if self.prediction == 'notdrowsy' else 'Drowsy'
+        classification = (
+            self.fatigue_level
+            if self.fatigue_level
+            else ("Alert" if self.prediction == "notdrowsy" else "Drowsy")
         )
 
         bpm = self.avg_blinks_per_minute or 0
         blink_rate_status = (
-            'normal' if 12 <= bpm <= 20 else ('low' if 0 < bpm < 12 else ('high' if bpm > 20 else 'unavailable'))
+            "normal"
+            if 12 <= bpm <= 20
+            else ("low" if 0 < bpm < 12 else ("high" if bpm > 20 else "unavailable"))
         )
 
         return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'prediction': self.prediction,
-            'confidence': self.confidence,
-            'probabilities': {
-                'drowsy': self.drowsy_probability,
-                'notdrowsy': self.notdrowsy_probability
+            "id": self.id,
+            "user_id": self.user_id,
+            "prediction": self.prediction,
+            "confidence": self.confidence,
+            "probabilities": {
+                "drowsy": self.drowsy_probability,
+                "notdrowsy": self.notdrowsy_probability,
             },
-            'fatigue_level': self.fatigue_level,
-            'classification': classification,
-            'alertness_percentage': alertness_percentage,
-            'alert_triggered': self.alert_triggered,
-            'fatigue_flag': self._blink_fatigue_flag(),
-            'blink_rate_status': blink_rate_status,
-            'test_duration': self.test_duration,
-            'duration_seconds': self.test_duration if self.test_duration else 0,
-            'total_blinks': self.total_blinks if self.total_blinks else 0,
-            'avg_blinks_per_minute': bpm,
-            'image_filename': self.image_filename,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat(),
+            "fatigue_level": self.fatigue_level,
+            "classification": classification,
+            "alertness_percentage": alertness_percentage,
+            "alert_triggered": self.alert_triggered,
+            "fatigue_flag": self._blink_fatigue_flag(),
+            "blink_rate_status": blink_rate_status,
+            "test_duration": self.test_duration,
+            "duration_seconds": self.test_duration if self.test_duration else 0,
+            "total_blinks": self.total_blinks if self.total_blinks else 0,
+            "avg_blinks_per_minute": bpm,
+            "image_filename": self.image_filename,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
         }
 
 
 class DistanceCalibration(db.Model):
     """Database model for distance calibration data"""
-    __tablename__ = 'distance_calibrations'
-    
+
+    __tablename__ = "distance_calibrations"
+
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("user.id"), nullable=False, index=True
+    )
+
     # Calibration timestamp
     calibrated_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    
+
     # Distance measurements
     reference_distance = db.Column(db.Float, nullable=False)  # cm (typically 40-50)
     baseline_ipd_pixels = db.Column(db.Float, nullable=False)  # pixels
     baseline_face_width_pixels = db.Column(db.Float, nullable=False)  # pixels
-    
+
     # Camera calibration
     focal_length = db.Column(db.Float, nullable=False)  # estimated focal length
     real_world_ipd = db.Column(db.Float, default=6.3)  # cm (average adult IPD)
     tolerance_cm = db.Column(db.Float, default=3.0)  # ±tolerance in cm
-    
+
     # Device information
     device_model = db.Column(db.String(100))
     camera_resolution = db.Column(db.String(50))  # e.g., "1920x1080"
-    
+
     # Status
     is_active = db.Column(db.Boolean, default=True)
-    
+
     # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
     # Relationship
-    user = db.relationship('User', backref=db.backref('distance_calibrations', lazy=True))
-    
+    user = db.relationship(
+        "User", backref=db.backref("distance_calibrations", lazy=True)
+    )
+
     def to_dict(self) -> dict:
         """Convert calibration to dictionary"""
         return {
-            'calibration_id': self.id,
-            'user_id': self.user_id,
-            'calibrated_at': self.calibrated_at.isoformat(),
-            'reference_distance': self.reference_distance,
-            'baseline_ipd_pixels': self.baseline_ipd_pixels,
-            'baseline_face_width_pixels': self.baseline_face_width_pixels,
-            'focal_length': self.focal_length,
-            'real_world_ipd': self.real_world_ipd,
-            'tolerance_cm': self.tolerance_cm,
-            'device_model': self.device_model,
-            'camera_resolution': self.camera_resolution,
-            'is_active': self.is_active,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            "calibration_id": self.id,
+            "user_id": self.user_id,
+            "calibrated_at": self.calibrated_at.isoformat(),
+            "reference_distance": self.reference_distance,
+            "baseline_ipd_pixels": self.baseline_ipd_pixels,
+            "baseline_face_width_pixels": self.baseline_face_width_pixels,
+            "focal_length": self.focal_length,
+            "real_world_ipd": self.real_world_ipd,
+            "tolerance_cm": self.tolerance_cm,
+            "device_model": self.device_model,
+            "camera_resolution": self.camera_resolution,
+            "is_active": self.is_active,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
         }
 
 
 class PupilReflexTest(db.Model):
     """Database model for pupil reflex test records"""
-    __tablename__ = 'pupil_reflex_tests'
-    
+
+    __tablename__ = "pupil_reflex_tests"
+
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
     # Test measurements
     reaction_time = db.Column(db.Float, nullable=False)  # in seconds
     constriction_amplitude = db.Column(db.String(50))  # Normal, Weak, Strong
     symmetry = db.Column(db.String(50))  # Equal, Unequal
-    
+
     # Nystagmus detection results
     nystagmus_detected = db.Column(db.Boolean, default=False)
     nystagmus_type = db.Column(db.String(50))  # Horizontal, Vertical, Rotary, Mixed
@@ -525,31 +589,35 @@ class PupilReflexTest(db.Model):
     nystagmus_confidence = db.Column(db.Float)  # 0-1
     diagnosis = db.Column(db.Text)
     recommendations = db.Column(db.Text)
-    
+
     # Additional metrics
     left_pupil_size_before = db.Column(db.Float)  # mm
     left_pupil_size_after = db.Column(db.Float)  # mm
     right_pupil_size_before = db.Column(db.Float)  # mm
     right_pupil_size_after = db.Column(db.Float)  # mm
-    
+
     # Test metadata
     test_duration = db.Column(db.Float)  # total test duration in seconds
     image_filename = db.Column(db.String(255))  # stored image path
-    
+
     # Status
-    status = db.Column(db.String(50), default='completed')
-    
+    status = db.Column(db.String(50), default="completed")
+
     # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
     # Relationship
-    user = db.relationship('User', backref=db.backref('pupil_reflex_tests', lazy=True))
+    user = db.relationship("User", backref=db.backref("pupil_reflex_tests", lazy=True))
 
     def _recommendation_items(self):
         if not self.recommendations:
             return []
-        return [item.strip() for item in self.recommendations.split(';') if item.strip()]
+        return [
+            item.strip() for item in self.recommendations.split(";") if item.strip()
+        ]
 
     def _pupil_pass_fail(self):
         """Joint pass/fail: latency <=300 ms AND constriction >=20%.
@@ -560,151 +628,160 @@ class PupilReflexTest(db.Model):
 
         # Derive constriction percentage from pupil sizes when available
         constriction_pct = None
-        if self.left_pupil_size_before and self.left_pupil_size_after and self.left_pupil_size_before > 0:
+        if (
+            self.left_pupil_size_before
+            and self.left_pupil_size_after
+            and self.left_pupil_size_before > 0
+        ):
             constriction_pct = (
                 (self.left_pupil_size_before - self.left_pupil_size_after)
                 / self.left_pupil_size_before
             ) * 100
 
-        amplitude = (self.constriction_amplitude or '').lower()
+        amplitude = (self.constriction_amplitude or "").lower()
         if constriction_pct is None:
             # Fall back to qualitative amplitude label
-            if amplitude == 'weak':
+            if amplitude == "weak":
                 constriction_pct = 10.0  # below threshold
-            elif amplitude in ('normal', 'strong'):
+            elif amplitude in ("normal", "strong"):
                 constriction_pct = 25.0  # above threshold
 
         if reaction_time_ms == 0 or constriction_pct is None:
-            return 'inconclusive'
+            return "inconclusive"
 
         latency_ok = reaction_time_ms <= 300
         constriction_ok = constriction_pct >= 20
-        return 'pass' if (latency_ok and constriction_ok) else 'fail'
+        return "pass" if (latency_ok and constriction_ok) else "fail"
 
     def _clinical_urgency(self):
-        severity = (self.nystagmus_severity or '').lower()
+        severity = (self.nystagmus_severity or "").lower()
         reaction_time_ms = (self.reaction_time or 0) * 1000
 
-        if severity == 'severe' or reaction_time_ms > 450:
-            return 'urgent'
-        if severity == 'moderate' or reaction_time_ms > 320:
-            return 'soon'
-        return 'routine'
+        if severity == "severe" or reaction_time_ms > 450:
+            return "urgent"
+        if severity == "moderate" or reaction_time_ms > 320:
+            return "soon"
+        return "routine"
 
     def _clinical_output(self):
         reaction_time_ms = round((self.reaction_time or 0) * 1000, 2)
 
         components = [
             {
-                'code': 'reaction_time',
-                'display': 'Pupil reaction time',
-                'value': reaction_time_ms,
-                'unit': 'ms',
+                "code": "reaction_time",
+                "display": "Pupil reaction time",
+                "value": reaction_time_ms,
+                "unit": "ms",
             },
             {
-                'code': 'constriction_amplitude',
-                'display': 'Constriction amplitude',
-                'value': self.constriction_amplitude,
-                'unit': 'qualitative',
+                "code": "constriction_amplitude",
+                "display": "Constriction amplitude",
+                "value": self.constriction_amplitude,
+                "unit": "qualitative",
             },
             {
-                'code': 'symmetry',
-                'display': 'Pupillary symmetry',
-                'value': self.symmetry,
-                'unit': 'qualitative',
+                "code": "symmetry",
+                "display": "Pupillary symmetry",
+                "value": self.symmetry,
+                "unit": "qualitative",
             },
             {
-                'code': 'nystagmus_detected',
-                'display': 'Nystagmus detected',
-                'value': bool(self.nystagmus_detected),
-                'unit': 'boolean',
+                "code": "nystagmus_detected",
+                "display": "Nystagmus detected",
+                "value": bool(self.nystagmus_detected),
+                "unit": "boolean",
             },
             {
-                'code': 'nystagmus_type',
-                'display': 'Nystagmus type',
-                'value': self.nystagmus_type,
-                'unit': 'qualitative',
+                "code": "nystagmus_type",
+                "display": "Nystagmus type",
+                "value": self.nystagmus_type,
+                "unit": "qualitative",
             },
             {
-                'code': 'nystagmus_severity',
-                'display': 'Nystagmus severity',
-                'value': self.nystagmus_severity,
-                'unit': 'qualitative',
+                "code": "nystagmus_severity",
+                "display": "Nystagmus severity",
+                "value": self.nystagmus_severity,
+                "unit": "qualitative",
             },
             {
-                'code': 'nystagmus_confidence',
-                'display': 'Nystagmus confidence',
-                'value': self.nystagmus_confidence,
-                'unit': 'probability',
+                "code": "nystagmus_confidence",
+                "display": "Nystagmus confidence",
+                "value": self.nystagmus_confidence,
+                "unit": "probability",
             },
         ]
 
         return {
-            'standard': 'FHIR-aligned',
-            'resource_type': 'Observation',
-            'status': 'final' if self.status == 'completed' else 'preliminary',
-            'effectiveDateTime': self.created_at.isoformat() if self.created_at else None,
-            'code': {
-                'text': 'Pupil reflex and nystagmus screening',
+            "standard": "FHIR-aligned",
+            "resource_type": "Observation",
+            "status": "final" if self.status == "completed" else "preliminary",
+            "effectiveDateTime": (
+                self.created_at.isoformat() if self.created_at else None
+            ),
+            "code": {
+                "text": "Pupil reflex and nystagmus screening",
             },
-            'component': components,
-            'interpretation': {
-                'summary': self.diagnosis,
-                'severity': self.nystagmus_severity,
-                'nystagmus_detected': bool(self.nystagmus_detected),
+            "component": components,
+            "interpretation": {
+                "summary": self.diagnosis,
+                "severity": self.nystagmus_severity,
+                "nystagmus_detected": bool(self.nystagmus_detected),
             },
-            'recommendations': {
-                'urgency': self._clinical_urgency(),
-                'items': self._recommendation_items(),
+            "recommendations": {
+                "urgency": self._clinical_urgency(),
+                "items": self._recommendation_items(),
             },
-            'quality': {
-                'confidence': self.nystagmus_confidence,
-                'status': self.status,
+            "quality": {
+                "confidence": self.nystagmus_confidence,
+                "status": self.status,
             },
         }
-    
+
     def to_dict(self) -> dict:
         """Convert test to dictionary"""
         clinical_output = self._clinical_output()
         return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'date': self.created_at.isoformat(),
-            'created_at': self.created_at.isoformat(),
-            'pass_fail': self._pupil_pass_fail(),
-            'reaction_time': self.reaction_time,
-            'pupil_reaction_time': self.reaction_time,  # alias
-            'constriction_amplitude': self.constriction_amplitude,
-            'amplitude': self.constriction_amplitude,  # alias
-            'symmetry': self.symmetry,
-            'nystagmus_detected': self.nystagmus_detected,
-            'nystagmus_type': self.nystagmus_type,
-            'nystagmus_severity': self.nystagmus_severity,
-            'nystagmus_confidence': self.nystagmus_confidence,
-            'diagnosis': self.diagnosis,
-            'recommendations': self.recommendations,
-            'left_pupil_size_before': self.left_pupil_size_before,
-            'left_pupil_size_after': self.left_pupil_size_after,
-            'right_pupil_size_before': self.right_pupil_size_before,
-            'right_pupil_size_after': self.right_pupil_size_after,
-            'test_duration': self.test_duration,
-            'image_filename': self.image_filename,
-            'status': self.status,
-            'updated_at': self.updated_at.isoformat(),
-            'clinical_output_version': '1.0-fhir-aligned',
-            'clinical_output': clinical_output,
-            'clinical_summary': clinical_output['interpretation']['summary'],
+            "id": self.id,
+            "user_id": self.user_id,
+            "date": self.created_at.isoformat(),
+            "created_at": self.created_at.isoformat(),
+            "pass_fail": self._pupil_pass_fail(),
+            "reaction_time": self.reaction_time,
+            "pupil_reaction_time": self.reaction_time,  # alias
+            "constriction_amplitude": self.constriction_amplitude,
+            "amplitude": self.constriction_amplitude,  # alias
+            "symmetry": self.symmetry,
+            "nystagmus_detected": self.nystagmus_detected,
+            "nystagmus_type": self.nystagmus_type,
+            "nystagmus_severity": self.nystagmus_severity,
+            "nystagmus_confidence": self.nystagmus_confidence,
+            "diagnosis": self.diagnosis,
+            "recommendations": self.recommendations,
+            "left_pupil_size_before": self.left_pupil_size_before,
+            "left_pupil_size_after": self.left_pupil_size_after,
+            "right_pupil_size_before": self.right_pupil_size_before,
+            "right_pupil_size_after": self.right_pupil_size_after,
+            "test_duration": self.test_duration,
+            "image_filename": self.image_filename,
+            "status": self.status,
+            "updated_at": self.updated_at.isoformat(),
+            "clinical_output_version": "1.0-fhir-aligned",
+            "clinical_output": clinical_output,
+            "clinical_summary": clinical_output["interpretation"]["summary"],
         }
 
 
 class AuditLog(db.Model):
     """Append-only audit log for all sensitive record access and mutations."""
-    __tablename__ = 'audit_logs'
+
+    __tablename__ = "audit_logs"
 
     id = db.Column(db.Integer, primary_key=True)
     actor_id = db.Column(db.Integer, nullable=False)
     actor_role = db.Column(db.String(20), nullable=False)  # user, doctor, admin
-    action = db.Column(db.String(50), nullable=False)      # read, create, update, delete, review
+    action = db.Column(
+        db.String(50), nullable=False
+    )  # read, create, update, delete, review
     resource_type = db.Column(db.String(50), nullable=False)
     resource_id = db.Column(db.Integer, nullable=True)
     ip_address = db.Column(db.String(45), nullable=True)
@@ -717,32 +794,41 @@ class AuditLog(db.Model):
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'actor_id': self.actor_id,
-            'actor_role': self.actor_role,
-            'action': self.action,
-            'resource_type': self.resource_type,
-            'resource_id': self.resource_id,
-            'ip_address': self.ip_address,
-            'timestamp': self.timestamp.isoformat(),
+            "id": self.id,
+            "actor_id": self.actor_id,
+            "actor_role": self.actor_role,
+            "action": self.action,
+            "resource_type": self.resource_type,
+            "resource_id": self.resource_id,
+            "ip_address": self.ip_address,
+            "timestamp": self.timestamp.isoformat(),
         }
 
 
 class ClinicalReport(db.Model):
     """AI-generated report pending clinician countersignature."""
-    __tablename__ = 'clinical_reports'
+
+    __tablename__ = "clinical_reports"
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     # Test source (one of these will be set)
-    visual_acuity_test_id = db.Column(db.Integer, db.ForeignKey('visual_acuity_tests.id'), nullable=True)
-    colour_vision_test_id = db.Column(db.Integer, db.ForeignKey('colour_vision_tests.id'), nullable=True)
-    pupil_reflex_test_id = db.Column(db.Integer, db.ForeignKey('pupil_reflex_tests.id'), nullable=True)
-    blink_fatigue_test_id = db.Column(db.Integer, db.ForeignKey('blink_fatigue_tests.id'), nullable=True)
+    visual_acuity_test_id = db.Column(
+        db.Integer, db.ForeignKey("visual_acuity_tests.id"), nullable=True
+    )
+    colour_vision_test_id = db.Column(
+        db.Integer, db.ForeignKey("colour_vision_tests.id"), nullable=True
+    )
+    pupil_reflex_test_id = db.Column(
+        db.Integer, db.ForeignKey("pupil_reflex_tests.id"), nullable=True
+    )
+    blink_fatigue_test_id = db.Column(
+        db.Integer, db.ForeignKey("blink_fatigue_tests.id"), nullable=True
+    )
 
     ai_summary = db.Column(db.Text, nullable=False)
     status = db.Column(
-        db.String(20), nullable=False, default='pending'
+        db.String(20), nullable=False, default="pending"
     )  # pending, validated, rejected
     clinician_id = db.Column(db.Integer, nullable=True)  # doctor.id who reviewed
     clinician_notes = db.Column(db.Text, nullable=True)
@@ -751,19 +837,20 @@ class ClinicalReport(db.Model):
     created_at = db.Column(
         db.DateTime,
         default=lambda: datetime.now(timezone.utc).replace(tzinfo=None, microsecond=0),
+        nullable=False,
     )
 
-    patient = db.relationship('User', backref=db.backref('clinical_reports', lazy=True))
+    patient = db.relationship("User", backref=db.backref("clinical_reports", lazy=True))
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'patient_id': self.patient_id,
-            'ai_summary': self.ai_summary,
-            'status': self.status,
-            'clinician_id': self.clinician_id,
-            'clinician_notes': self.clinician_notes,
-            'reviewed_at': self.reviewed_at.isoformat() if self.reviewed_at else None,
-            'pdf_path': self.pdf_path,
-            'created_at': self.created_at.isoformat(),
+            "id": self.id,
+            "patient_id": self.patient_id,
+            "ai_summary": self.ai_summary,
+            "status": self.status,
+            "clinician_id": self.clinician_id,
+            "clinician_notes": self.clinician_notes,
+            "reviewed_at": self.reviewed_at.isoformat() if self.reviewed_at else None,
+            "pdf_path": self.pdf_path,
+            "created_at": self.created_at.isoformat(),
         }

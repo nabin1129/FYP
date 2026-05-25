@@ -2,6 +2,7 @@
 Consultation Model - Consultation Management
 Handles consultation booking, history, and messaging
 """
+
 from datetime import datetime
 import json
 from db_model import db
@@ -9,58 +10,68 @@ from db_model import db
 
 class DoctorSlot(db.Model):
     """Doctor-managed physical consultation slots"""
-    __tablename__ = 'doctor_slots'
+
+    __tablename__ = "doctor_slots"
 
     id = db.Column(db.Integer, primary_key=True)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey("doctors.id"), nullable=False)
     slot_start_at = db.Column(db.DateTime, nullable=False, index=True)
     location = db.Column(db.String(255))
     is_active = db.Column(db.Boolean, default=True)
     is_booked = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    __table_args__ = (
-        db.UniqueConstraint('doctor_id', 'slot_start_at', name='unique_doctor_slot_start'),
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
 
-    doctor = db.relationship('Doctor', backref=db.backref('slots', lazy='dynamic'))
+    __table_args__ = (
+        db.UniqueConstraint(
+            "doctor_id", "slot_start_at", name="unique_doctor_slot_start"
+        ),
+    )
+
+    doctor = db.relationship("Doctor", backref=db.backref("slots", lazy="dynamic"))
 
     def to_dict(self) -> dict:
         """Convert slot to dictionary"""
         return {
-            'id': self.id,
-            'doctor_id': self.doctor_id,
-            'slot_start_at': self.slot_start_at.isoformat() if self.slot_start_at else None,
-            'location': self.location,
-            'is_active': self.is_active,
-            'is_booked': self.is_booked,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            "id": self.id,
+            "doctor_id": self.doctor_id,
+            "slot_start_at": (
+                self.slot_start_at.isoformat() if self.slot_start_at else None
+            ),
+            "location": self.location,
+            "is_active": self.is_active,
+            "is_booked": self.is_booked,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
 
 class Consultation(db.Model):
     """Consultation booking and history"""
-    __tablename__ = 'consultations'
-    
+
+    __tablename__ = "consultations"
+
     id = db.Column(db.Integer, primary_key=True)
-    
+
     # Participants
-    doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
-    patient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    doctor_slot_id = db.Column(db.Integer, db.ForeignKey('doctor_slots.id'))
-    
+    doctor_id = db.Column(db.Integer, db.ForeignKey("doctors.id"), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    doctor_slot_id = db.Column(db.Integer, db.ForeignKey("doctor_slots.id"))
+
     # Consultation Details
-    consultation_type = db.Column(db.String(20), default='chat')  # chat, physical
-    status = db.Column(db.String(20), default='pending')  # pending, scheduled, in_progress, completed, cancelled
-    
+    consultation_type = db.Column(db.String(20), default="chat")  # chat, physical
+    status = db.Column(
+        db.String(20), default="pending"
+    )  # pending, scheduled, in_progress, completed, cancelled
+
     # Scheduling
     requested_at = db.Column(db.DateTime, default=datetime.utcnow)
     scheduled_at = db.Column(db.DateTime)
     started_at = db.Column(db.DateTime)
     ended_at = db.Column(db.DateTime)
-    
+
     # Content
     reason = db.Column(db.Text)
     patient_notes = db.Column(db.Text)
@@ -70,118 +81,144 @@ class Consultation(db.Model):
 
     # Payment
     is_paid = db.Column(db.Boolean, default=False)
-    
+
     # Attachments - Test results shared during consultation
     shared_test_ids = db.Column(db.Text)  # JSON array of test IDs
-    
+
     # Ratings
     patient_rating = db.Column(db.Integer)
     patient_feedback = db.Column(db.Text)
-    
+
     # Follow-up
     follow_up_required = db.Column(db.Boolean, default=False)
     follow_up_date = db.Column(db.DateTime)
-    
+
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
     # Relationships
-    doctor = db.relationship('Doctor', back_populates='consultations')
-    patient = db.relationship('User', backref=db.backref('consultations', lazy='dynamic'))
-    doctor_slot = db.relationship('DoctorSlot', backref=db.backref('consultations', lazy='dynamic'))
-    messages = db.relationship('ConsultationMessage', back_populates='consultation', lazy='dynamic', cascade='all, delete-orphan')
-    
+    doctor = db.relationship("Doctor", back_populates="consultations")
+    patient = db.relationship(
+        "User", backref=db.backref("consultations", lazy="dynamic")
+    )
+    doctor_slot = db.relationship(
+        "DoctorSlot", backref=db.backref("consultations", lazy="dynamic")
+    )
+    messages = db.relationship(
+        "ConsultationMessage",
+        back_populates="consultation",
+        lazy="dynamic",
+        cascade="all, delete-orphan",
+    )
+
     def get_shared_test_ids(self) -> list:
         """Get shared test IDs as list"""
         return json.loads(self.shared_test_ids) if self.shared_test_ids else []
-    
+
     def set_shared_test_ids(self, test_ids: list):
         """Set shared test IDs from list"""
         self.shared_test_ids = json.dumps(test_ids)
-    
+
     def to_dict(self, include_messages=False) -> dict:
         """Convert to dictionary"""
         data = {
-            'id': str(self.id),
-            'doctor_id': self.doctor_id,
-            'patient_id': self.patient_id,
-            'doctor_slot_id': self.doctor_slot_id,
-            'doctorName': self.doctor.name if self.doctor else 'Unknown',
-            'type': self._format_type(),
-            'consultation_type': self.consultation_type,
-            'status': self.status,
-            'date': self._format_date(),
-            'scheduled_at': self.scheduled_at.isoformat() if self.scheduled_at else None,
-            'reason': self.reason,
-            'patient_notes': self.patient_notes,
-            'doctor_notes': self.doctor_notes,
-            'notes': self.doctor_notes or self.patient_notes or '',
-            'diagnosis': self.diagnosis,
-            'prescription': self.prescription,
-            'is_paid': self.is_paid,
-            'patient_rating': self.patient_rating,
-            'follow_up_required': self.follow_up_required,
-            'follow_up_date': self.follow_up_date.isoformat() if self.follow_up_date else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
+            "id": str(self.id),
+            "doctor_id": self.doctor_id,
+            "patient_id": self.patient_id,
+            "doctor_slot_id": self.doctor_slot_id,
+            "doctorName": self.doctor.name if self.doctor else "Unknown",
+            "type": self._format_type(),
+            "consultation_type": self.consultation_type,
+            "status": self.status,
+            "date": self._format_date(),
+            "scheduled_at": (
+                self.scheduled_at.isoformat() if self.scheduled_at else None
+            ),
+            "reason": self.reason,
+            "patient_notes": self.patient_notes,
+            "doctor_notes": self.doctor_notes,
+            "notes": self.doctor_notes or self.patient_notes or "",
+            "diagnosis": self.diagnosis,
+            "prescription": self.prescription,
+            "is_paid": self.is_paid,
+            "patient_rating": self.patient_rating,
+            "follow_up_required": self.follow_up_required,
+            "follow_up_date": (
+                self.follow_up_date.isoformat() if self.follow_up_date else None
+            ),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
         }
-        
+
         if include_messages:
-            data['messages'] = [m.to_dict() for m in self.messages.order_by(ConsultationMessage.created_at.asc()).all()]
-        
+            data["messages"] = [
+                m.to_dict()
+                for m in self.messages.order_by(
+                    ConsultationMessage.created_at.asc()
+                ).all()
+            ]
+
         return data
-    
+
     def _format_type(self) -> str:
         """Format consultation type for display"""
-        if self.consultation_type == 'physical':
-            return 'Physical'
-        return 'Chat'
-    
+        if self.consultation_type == "physical":
+            return "Physical"
+        return "Chat"
+
     def _format_date(self) -> str:
         """Format date for display"""
-        if self.status == 'pending':
-            return f"Requested on {self.requested_at.strftime('%b %d, %Y')}" if self.requested_at else 'Pending'
+        if self.status == "pending":
+            return (
+                f"Requested on {self.requested_at.strftime('%b %d, %Y')}"
+                if self.requested_at
+                else "Pending"
+            )
         elif self.scheduled_at:
-            return self.scheduled_at.strftime('%B %d, %Y at %I:%M %p')
+            return self.scheduled_at.strftime("%B %d, %Y at %I:%M %p")
         elif self.ended_at:
-            return self.ended_at.strftime('%b %d, %Y')
-        return 'Not scheduled'
-    
+            return self.ended_at.strftime("%b %d, %Y")
+        return "Not scheduled"
+
     def to_doctor_dict(self) -> dict:
         """Convert to dictionary for doctor view"""
         patient = self.patient
         return {
-            'id': str(self.id),
-            'patient': {
-                'id': str(self.patient_id),
-                'name': patient.name if hasattr(patient, 'name') else 'Unknown',
-                'email': patient.email,
-                'age': patient.age if hasattr(patient, 'age') else None,
+            "id": str(self.id),
+            "patient": {
+                "id": str(self.patient_id),
+                "name": patient.name if hasattr(patient, "name") else "Unknown",
+                "email": patient.email,
+                "age": patient.age if hasattr(patient, "age") else None,
             },
-            'type': self.consultation_type,
-            'doctor_slot_id': self.doctor_slot_id,
-            'status': self.status,
-            'scheduled_at': self.scheduled_at.isoformat() if self.scheduled_at else None,
-            'reason': self.reason,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
+            "type": self.consultation_type,
+            "doctor_slot_id": self.doctor_slot_id,
+            "status": self.status,
+            "scheduled_at": (
+                self.scheduled_at.isoformat() if self.scheduled_at else None
+            ),
+            "reason": self.reason,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
         }
-    
+
     @classmethod
     def mark_missed_consultations(cls):
         """Mark scheduled consultations as missed if their scheduled time has passed"""
         from datetime import datetime
+
         now = datetime.utcnow()
-        
+
         # Find all scheduled consultations where scheduled_at is in the past
         missed = cls.query.filter(
-            cls.status == 'scheduled',
-            cls.scheduled_at < now
+            cls.status == "scheduled", cls.scheduled_at < now
         ).all()
-        
+
         for consultation in missed:
-            consultation.status = 'missed'
+            consultation.status = "missed"
             consultation.updated_at = now
-        
+
         if missed:
             db.session.commit()
             return len(missed)
@@ -190,92 +227,97 @@ class Consultation(db.Model):
 
 class ConsultationMessage(db.Model):
     """Chat messages within a consultation"""
-    __tablename__ = 'consultation_messages'
-    
+
+    __tablename__ = "consultation_messages"
+
     id = db.Column(db.Integer, primary_key=True)
-    consultation_id = db.Column(db.Integer, db.ForeignKey('consultations.id'), nullable=False)
-    
+    consultation_id = db.Column(
+        db.Integer, db.ForeignKey("consultations.id"), nullable=False
+    )
+
     # Sender
     sender_type = db.Column(db.String(10), nullable=False)  # 'doctor' or 'patient'
     sender_id = db.Column(db.Integer, nullable=False)
-    
+
     # Message content
-    message_type = db.Column(db.String(20), default='text')  # text, image, file, test_result
+    message_type = db.Column(
+        db.String(20), default="text"
+    )  # text, image, file, test_result
     content = db.Column(db.Text, nullable=False)
-    
+
     # File attachments
     file_url = db.Column(db.String(500))
     file_name = db.Column(db.String(200))
-    
+
     # Test result reference
     test_type = db.Column(db.String(50))  # visual_acuity, colour_vision, etc.
     test_id = db.Column(db.Integer)
-    
+
     # Status
     is_read = db.Column(db.Boolean, default=False)
     read_at = db.Column(db.DateTime)
-    
+
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     # Relationships
-    consultation = db.relationship('Consultation', back_populates='messages')
+    consultation = db.relationship("Consultation", back_populates="messages")
 
     def _to_attachment_list(self) -> list:
         """Build attachment payload expected by Flutter chat clients."""
-        attachment_type = (self.message_type or 'file').lower()
-        if attachment_type == 'attachment':
-            attachment_type = 'file'
+        attachment_type = (self.message_type or "file").lower()
+        if attachment_type == "attachment":
+            attachment_type = "file"
 
-        if attachment_type in {'text'} and not self.file_name and not self.file_url:
+        if attachment_type in {"text"} and not self.file_name and not self.file_url:
             return []
 
         file_name = self.file_name
         if not file_name:
-            if attachment_type == 'test_result':
-                test_name = (self.test_type or 'test_result').replace('_', ' ')
+            if attachment_type == "test_result":
+                test_name = (self.test_type or "test_result").replace("_", " ")
                 file_name = f"{test_name}.pdf"
-            elif attachment_type == 'medical_record':
-                file_name = 'medical_record.pdf'
-            elif attachment_type == 'clinical_note':
-                file_name = 'clinical_note.pdf'
+            elif attachment_type == "medical_record":
+                file_name = "medical_record.pdf"
+            elif attachment_type == "clinical_note":
+                file_name = "clinical_note.pdf"
             else:
-                file_name = 'attachment'
+                file_name = "attachment"
 
         payload = {
-            'id': str(self.id),
-            'file_name': file_name,
-            'url': self.file_url,
-            'type': attachment_type,
+            "id": str(self.id),
+            "file_name": file_name,
+            "url": self.file_url,
+            "type": attachment_type,
         }
 
         if self.test_id is not None:
-            payload['linked_entity_id'] = str(self.test_id)
+            payload["linked_entity_id"] = str(self.test_id)
         if self.test_type:
-            title = self.test_type.replace('_', ' ').title()
-            payload['linked_entity_title'] = title
+            title = self.test_type.replace("_", " ").title()
+            payload["linked_entity_title"] = title
 
         return [payload]
-    
+
     def to_dict(self) -> dict:
         """Convert to dictionary"""
         attachments = self._to_attachment_list()
         return {
-            'id': str(self.id),
-            'consultation_id': self.consultation_id,
-            'sender_type': self.sender_type,
-            'sender_id': self.sender_id,
-            'isFromDoctor': self.sender_type == 'doctor',
-            'message_type': self.message_type,
-            'message': self.content,
-            'content': self.content,
-            'file_url': self.file_url,
-            'file_name': self.file_name,
-            'attachments': attachments,
-            'test_type': self.test_type,
-            'test_id': self.test_id,
-            'is_read': self.is_read,
-            'read_at': self.read_at.isoformat() if self.read_at else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'timestamp': self.created_at.isoformat() if self.created_at else None,
+            "id": str(self.id),
+            "consultation_id": self.consultation_id,
+            "sender_type": self.sender_type,
+            "sender_id": self.sender_id,
+            "isFromDoctor": self.sender_type == "doctor",
+            "message_type": self.message_type,
+            "message": self.content,
+            "content": self.content,
+            "file_url": self.file_url,
+            "file_name": self.file_name,
+            "attachments": attachments,
+            "test_type": self.test_type,
+            "test_id": self.test_id,
+            "is_read": self.is_read,
+            "read_at": self.read_at.isoformat() if self.read_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "timestamp": self.created_at.isoformat() if self.created_at else None,
         }

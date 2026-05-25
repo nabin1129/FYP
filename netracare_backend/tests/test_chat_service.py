@@ -20,8 +20,8 @@ class ChatServiceTestCase(unittest.TestCase):
         self.app = Flask(__name__)
         self.app.config.update(
             TESTING=True,
-            SECRET_KEY='test-secret',
-            SQLALCHEMY_DATABASE_URI='sqlite:///:memory:',
+            SECRET_KEY="test-secret",
+            SQLALCHEMY_DATABASE_URI="sqlite:///:memory:",
             SQLALCHEMY_TRACK_MODIFICATIONS=False,
         )
         init_extensions(self.app)
@@ -30,16 +30,16 @@ class ChatServiceTestCase(unittest.TestCase):
             db.create_all()
 
             self.user = User(
-                name='Patient One',
-                email='patient@example.com',
-                password_hash='hashed-password',
+                name="Patient One",
+                email="patient@example.com",
+                password_hash="hashed-password",
             )
             self.doctor = Doctor(
-                name='Doctor One',
-                email='doctor@example.com',
-                password_hash='hashed-password',
-                nhpc_number='NHPC-001',
-                qualification='MBBS',
+                name="Doctor One",
+                email="doctor@example.com",
+                password_hash="hashed-password",
+                nhpc_number="NHPC-001",
+                qualification="MBBS",
             )
             db.session.add_all([self.user, self.doctor])
             db.session.commit()
@@ -50,9 +50,9 @@ class ChatServiceTestCase(unittest.TestCase):
             self.consultation = Consultation(
                 doctor_id=self.doctor.id,
                 patient_id=self.user.id,
-                consultation_type='chat',
-                status='pending',
-                reason='Follow-up eye chat',
+                consultation_type="chat",
+                status="pending",
+                reason="Follow-up eye chat",
             )
             db.session.add(self.consultation)
             db.session.commit()
@@ -71,11 +71,11 @@ class ChatServiceTestCase(unittest.TestCase):
             consultation = ensure_user_doctor_pair(self.user_id, self.doctor_id)
 
             actor = ChatActor(
-                role='doctor',
+                role="doctor",
                 actor_id=doctor.id,
                 doctor=doctor,
             )
-            message = create_message(actor, consultation, '  Hello from the doctor  ')
+            message = create_message(actor, consultation, "  Hello from the doctor  ")
 
             stored = ConsultationMessage.query.filter_by(
                 consultation_id=consultation.id,
@@ -84,12 +84,12 @@ class ChatServiceTestCase(unittest.TestCase):
 
             self.assertEqual(consultation.id, self.consultation_id)
             self.assertEqual(message.id, stored.id)
-            self.assertEqual(stored.content, 'Hello from the doctor')
-            self.assertEqual(stored.sender_type, 'doctor')
-            self.assertEqual(notification.recipient_type, 'user')
+            self.assertEqual(stored.content, "Hello from the doctor")
+            self.assertEqual(stored.sender_type, "doctor")
+            self.assertEqual(notification.recipient_type, "user")
             self.assertEqual(notification.recipient_id, user.id)
             self.assertEqual(notification.related_id, consultation.id)
-            self.assertEqual(notification.notification_type, 'new_message')
+            self.assertEqual(notification.notification_type, "new_message")
 
     def test_mark_messages_read_updates_only_inbound_messages(self):
         with self.app.app_context():
@@ -99,22 +99,22 @@ class ChatServiceTestCase(unittest.TestCase):
 
             doctor_message = ConsultationMessage(
                 consultation_id=consultation.id,
-                sender_type='doctor',
+                sender_type="doctor",
                 sender_id=doctor.id,
-                message_type='text',
-                content='Doctor message',
+                message_type="text",
+                content="Doctor message",
             )
             patient_message = ConsultationMessage(
                 consultation_id=consultation.id,
-                sender_type='patient',
+                sender_type="patient",
                 sender_id=user.id,
-                message_type='text',
-                content='Patient message',
+                message_type="text",
+                content="Patient message",
             )
             db.session.add_all([doctor_message, patient_message])
             db.session.commit()
 
-            actor = ChatActor(role='patient', actor_id=user.id, user=user)
+            actor = ChatActor(role="patient", actor_id=user.id, user=user)
             updated_ids = mark_messages_read(
                 actor,
                 consultation,
@@ -131,5 +131,5 @@ class ChatServiceTestCase(unittest.TestCase):
             self.assertIsNone(patient_message.read_at)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

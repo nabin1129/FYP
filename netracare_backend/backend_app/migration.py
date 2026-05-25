@@ -20,7 +20,7 @@ def ensure_user_schema_migrated() -> None:
 
 def ensure_consultation_schema_migrated() -> None:
     """Run idempotent consultation slot schema updates for existing databases."""
-    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db.sqlite3')
+    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "db.sqlite3")
 
     if not os.path.exists(db_path):
         return
@@ -51,8 +51,10 @@ def ensure_consultation_schema_migrated() -> None:
 
         cursor.execute("PRAGMA table_info(consultations)")
         consultation_columns = [row[1] for row in cursor.fetchall()]
-        if 'doctor_slot_id' not in consultation_columns:
-            cursor.execute("ALTER TABLE consultations ADD COLUMN doctor_slot_id INTEGER")
+        if "doctor_slot_id" not in consultation_columns:
+            cursor.execute(
+                "ALTER TABLE consultations ADD COLUMN doctor_slot_id INTEGER"
+            )
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_consultations_doctor_slot_id ON consultations(doctor_slot_id)"
             )
@@ -67,7 +69,7 @@ def ensure_consultation_schema_migrated() -> None:
 
 def ensure_medical_record_schema_migrated() -> None:
     """Create the medical_records table when running against an existing SQLite db."""
-    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db.sqlite3')
+    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "db.sqlite3")
 
     if not os.path.exists(db_path):
         return
@@ -106,10 +108,18 @@ def ensure_medical_record_schema_migrated() -> None:
             )
             """
         )
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_medical_records_doctor_id ON medical_records(doctor_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_medical_records_patient_id ON medical_records(patient_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_medical_records_record_type ON medical_records(record_type)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_medical_records_status ON medical_records(status)")
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_medical_records_doctor_id ON medical_records(doctor_id)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_medical_records_patient_id ON medical_records(patient_id)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_medical_records_record_type ON medical_records(record_type)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_medical_records_status ON medical_records(status)"
+        )
 
         conn.commit()
     except Exception as exc:
@@ -121,7 +131,7 @@ def ensure_medical_record_schema_migrated() -> None:
 
 def ensure_visual_acuity_schema_migrated() -> None:
     """Add the visual acuity variant column if it is missing."""
-    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db.sqlite3')
+    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "db.sqlite3")
 
     if not os.path.exists(db_path):
         return
@@ -133,7 +143,7 @@ def ensure_visual_acuity_schema_migrated() -> None:
 
         cursor.execute("PRAGMA table_info(visual_acuity_tests)")
         columns = [row[1] for row in cursor.fetchall()]
-        if 'test_variant' not in columns:
+        if "test_variant" not in columns:
             cursor.execute(
                 "ALTER TABLE visual_acuity_tests ADD COLUMN test_variant VARCHAR(50) DEFAULT 'snellen'"
             )

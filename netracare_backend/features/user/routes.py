@@ -5,39 +5,42 @@ from flask import request
 from core.security import token_required
 from db_model import db, User
 
-user_ns = Namespace(
-    "user",
-    description="User Profile APIs",
-    security="BearerAuth"
-)
+user_ns = Namespace("user", description="User Profile APIs", security="BearerAuth")
 
 # -----------------------------
 # Swagger Models
 # -----------------------------
-profile_response = user_ns.model("ProfileResponse", {
-    "id": fields.Integer,
-    "name": fields.String,
-    "email": fields.String,
-    "age": fields.Integer,
-    "sex": fields.String,
-    "phone": fields.String,
-    "address": fields.String,
-    "emergency_contact": fields.String,
-    "medical_history": fields.String,
-    "profile_image_url": fields.String,
-})
+profile_response = user_ns.model(
+    "ProfileResponse",
+    {
+        "id": fields.Integer,
+        "name": fields.String,
+        "email": fields.String,
+        "age": fields.Integer,
+        "sex": fields.String,
+        "phone": fields.String,
+        "address": fields.String,
+        "emergency_contact": fields.String,
+        "medical_history": fields.String,
+        "profile_image_url": fields.String,
+    },
+)
 
-profile_update = user_ns.model("ProfileUpdate", {
-    "name": fields.String,
-    "email": fields.String,
-    "age": fields.Integer,
-    "sex": fields.String,
-    "phone": fields.String,
-    "address": fields.String,
-    "emergency_contact": fields.String,
-    "medical_history": fields.String,
-    "profile_image_url": fields.String,
-})
+profile_update = user_ns.model(
+    "ProfileUpdate",
+    {
+        "name": fields.String,
+        "email": fields.String,
+        "age": fields.Integer,
+        "sex": fields.String,
+        "phone": fields.String,
+        "address": fields.String,
+        "emergency_contact": fields.String,
+        "medical_history": fields.String,
+        "profile_image_url": fields.String,
+    },
+)
+
 
 # -----------------------------
 # PROFILE APIs
@@ -81,8 +84,7 @@ class ProfileAPI(Resource):
         # Update email (ensure uniqueness)
         if "email" in data:
             existing = User.query.filter(
-                User.email == data["email"],
-                User.id != user.id
+                User.email == data["email"], User.id != user.id
             ).first()
             if existing:
                 return {"error": "Email already in use"}, 400
@@ -126,7 +128,7 @@ class ProfileAPI(Resource):
                 "emergency_contact": user.emergency_contact,
                 "medical_history": user.medical_history,
                 "profile_image_url": user.profile_image_url,
-            }
+            },
         }, 200
 
 
@@ -139,12 +141,12 @@ class ProfileImageUploadAPI(Resource):
         """
         Upload profile image
         """
-        if 'profile_image' not in request.files:
+        if "profile_image" not in request.files:
             return {"error": "No image file provided"}, 400
 
-        file = request.files['profile_image']
+        file = request.files["profile_image"]
 
-        if file.filename == '':
+        if file.filename == "":
             return {"error": "No file selected"}, 400
 
         if file:
@@ -157,7 +159,7 @@ class ProfileImageUploadAPI(Resource):
             filename = f"{user.id}_{uuid.uuid4().hex}{ext}"
 
             # Create uploads directory if it doesn't exist
-            upload_folder = os.path.join(os.getcwd(), 'uploads', 'profile_images')
+            upload_folder = os.path.join(os.getcwd(), "uploads", "profile_images")
             os.makedirs(upload_folder, exist_ok=True)
 
             # Save file
@@ -173,7 +175,5 @@ class ProfileImageUploadAPI(Resource):
 
             return {
                 "message": "Image uploaded successfully",
-                "image_url": image_url
+                "image_url": image_url,
             }, 200
-
-

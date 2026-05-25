@@ -1,4 +1,5 @@
 """Audit-log decorator for sensitive endpoint access."""
+
 from functools import wraps
 from flask import request
 from db_model import db, AuditLog
@@ -17,6 +18,7 @@ def audit_log(action: str, resource_type: str):
     The decorated function must receive *current_user* as its first positional
     argument (injected by @token_required) so the actor identity is available.
     """
+
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
@@ -27,16 +29,20 @@ def audit_log(action: str, resource_type: str):
                 # args[0] is 'self' for Resource methods, args[1] is current_user
                 current_user = None
                 for arg in args:
-                    if hasattr(arg, 'id') and hasattr(arg, 'email'):
+                    if hasattr(arg, "id") and hasattr(arg, "email"):
                         current_user = arg
                         break
 
-                resource_id = kwargs.get('record_id') or kwargs.get('test_id') or kwargs.get('report_id')
+                resource_id = (
+                    kwargs.get("record_id")
+                    or kwargs.get("test_id")
+                    or kwargs.get("report_id")
+                )
 
                 if current_user is not None:
                     entry = AuditLog(
                         actor_id=current_user.id,
-                        actor_role=getattr(current_user, 'role', 'user'),
+                        actor_role=getattr(current_user, "role", "user"),
                         action=action,
                         resource_type=resource_type,
                         resource_id=resource_id,
@@ -48,5 +54,7 @@ def audit_log(action: str, resource_type: str):
                 db.session.rollback()
 
             return result
+
         return wrapper
+
     return decorator

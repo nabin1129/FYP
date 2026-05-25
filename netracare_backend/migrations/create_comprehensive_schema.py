@@ -8,23 +8,26 @@ Implements all tables required as per project proposal
 - AI Reports Generation
 - Distance Calibration (ARCore/ARKit)
 """
+
 import sqlite3
 import os
 from datetime import datetime
 
-db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db.sqlite3')
+db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "db.sqlite3")
+
 
 def migrate():
     """Create comprehensive database schema"""
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    
+
     try:
         print("🚀 Starting Netra Care comprehensive migration...")
         print(f"📍 Database: {db_path}\n")
-        
+
         # ===== 1. USERS TABLE (Enhanced with Medical History) =====
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username VARCHAR(80) UNIQUE NOT NULL,
@@ -54,11 +57,13 @@ def migrate():
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 last_login TIMESTAMP
             )
-        """)
+        """
+        )
         print("✓ Users table created/verified")
-        
+
         # ===== 2. VISUAL ACUITY TESTS TABLE =====
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS visual_acuity_tests (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
@@ -98,11 +103,13 @@ def migrate():
                 
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
-        """)
+        """
+        )
         print("✓ Visual Acuity Tests table created")
-        
+
         # ===== 3. COLOUR VISION TESTS TABLE (Ishihara) =====
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS colour_vision_tests (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
@@ -138,11 +145,13 @@ def migrate():
                 
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
-        """)
+        """
+        )
         print("✓ Colour Vision Tests table created")
-        
+
         # ===== 4. PUPIL REFLEX TESTS TABLE (Nystagmus Detection) =====
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS pupil_reflex_tests (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
@@ -190,11 +199,13 @@ def migrate():
                 
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
-        """)
+        """
+        )
         print("✓ Pupil Reflex Tests table created")
-        
+
         # ===== 5. DISTANCE CALIBRATION TABLE (ARCore/ARKit) =====
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS distance_calibrations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
@@ -230,11 +241,13 @@ def migrate():
                 
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
-        """)
+        """
+        )
         print("✓ Distance Calibration table created")
-        
+
         # ===== 6. AI REPORTS TABLE (Comprehensive Reports) =====
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS ai_reports (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
@@ -302,29 +315,36 @@ def migrate():
                 FOREIGN KEY (colour_vision_test_id) REFERENCES colour_vision_tests(id),
                 FOREIGN KEY (pupil_reflex_test_id) REFERENCES pupil_reflex_tests(id)
             )
-        """)
+        """
+        )
         print("✓ AI Reports table created")
-        
+
         # ===== 7. UPDATE EXISTING TABLES =====
-        
+
         # Add user_id to blink_fatigue_tests if not exists
         cursor.execute("PRAGMA table_info(blink_fatigue_tests)")
         blink_columns = [col[1] for col in cursor.fetchall()]
-        
-        if 'user_id' not in blink_columns:
+
+        if "user_id" not in blink_columns:
             cursor.execute("ALTER TABLE blink_fatigue_tests ADD COLUMN user_id INTEGER")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_blink_user ON blink_fatigue_tests(user_id)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_blink_user ON blink_fatigue_tests(user_id)"
+            )
             print("✓ Added user_id to blink_fatigue_tests")
-        
+
         # Add user_id to camera_eye_tracking_sessions if not exists
         cursor.execute("PRAGMA table_info(camera_eye_tracking_sessions)")
         tracking_columns = [col[1] for col in cursor.fetchall()]
-        
-        if 'user_id' not in tracking_columns:
-            cursor.execute("ALTER TABLE camera_eye_tracking_sessions ADD COLUMN user_id INTEGER")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_tracking_user ON camera_eye_tracking_sessions(user_id)")
+
+        if "user_id" not in tracking_columns:
+            cursor.execute(
+                "ALTER TABLE camera_eye_tracking_sessions ADD COLUMN user_id INTEGER"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_tracking_user ON camera_eye_tracking_sessions(user_id)"
+            )
             print("✓ Added user_id to camera_eye_tracking_sessions")
-        
+
         # ===== 8. CREATE INDEXES FOR PERFORMANCE =====
         indexes = [
             "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)",
@@ -336,38 +356,42 @@ def migrate():
             "CREATE INDEX IF NOT EXISTS idx_reports_user ON ai_reports(user_id)",
             "CREATE INDEX IF NOT EXISTS idx_reports_date ON ai_reports(report_date)",
         ]
-        
+
         for index_sql in indexes:
             cursor.execute(index_sql)
         print("✓ Performance indexes created")
-        
+
         conn.commit()
-        
+
         # ===== 9. VERIFICATION =====
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+        )
         tables = cursor.fetchall()
-        
-        print("\n" + "="*60)
+
+        print("\n" + "=" * 60)
         print("✅ MIGRATION COMPLETED SUCCESSFULLY!")
-        print("="*60)
+        print("=" * 60)
         print(f"\n📊 Total Tables Created: {len(tables)}")
         print("\n📋 Database Schema:")
         for table in tables:
             cursor.execute(f"SELECT COUNT(*) FROM {table[0]}")
             count = cursor.fetchone()[0]
             print(f"   • {table[0]:<35} ({count} records)")
-        
+
         print(f"\n📍 Database Location: {db_path}")
         print("🎯 Ready for Netra Care backend development!")
-        
+
     except Exception as e:
         conn.rollback()
         print(f"\n❌ Migration failed: {e}")
         import traceback
+
         traceback.print_exc()
         raise
     finally:
         conn.close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     migrate()

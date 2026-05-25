@@ -31,7 +31,9 @@ def apply_app_config(app) -> None:
 
 
 def _parse_allowed_origins(raw_origins: str):
-    cleaned = [origin.strip() for origin in (raw_origins or "").split(",") if origin.strip()]
+    cleaned = [
+        origin.strip() for origin in (raw_origins or "").split(",") if origin.strip()
+    ]
     return cleaned or ["*"]
 
 

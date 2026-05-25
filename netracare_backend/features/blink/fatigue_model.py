@@ -21,15 +21,15 @@ import numpy as np
 from typing import Any
 
 # Read and execute the notebook to populate a namespace
-NB_PATH = os.path.join(os.path.dirname(__file__), 'fatigue_model.ipynb')
+NB_PATH = os.path.join(os.path.dirname(__file__), "fatigue_model.ipynb")
 _nb_ns: dict[str, Any] = {}
 
 if os.path.exists(NB_PATH):
     try:
         nb = nbformat.read(NB_PATH, as_version=4)
-        code_cells = [c['source'] for c in nb.cells if c.get('cell_type') == 'code']
+        code_cells = [c["source"] for c in nb.cells if c.get("cell_type") == "code"]
         # Execute notebook code in dedicated namespace
-        exec('\n\n'.join(code_cells), _nb_ns)
+        exec("\n\n".join(code_cells), _nb_ns)
     except Exception:
         _nb_ns = {}
 else:
@@ -43,12 +43,12 @@ def _make_stub():
 
         def predict(self, image_input):
             return {
-                'prediction': 'notdrowsy',
-                'confidence': 1.0,
-                'probabilities': {'drowsy': 0.0, 'notdrowsy': 1.0},
-                'fatigue_level': 'Alert',
-                'alert': False,
-                'timestamp': str(np.datetime64('now')),
+                "prediction": "notdrowsy",
+                "confidence": 1.0,
+                "probabilities": {"drowsy": 0.0, "notdrowsy": 1.0},
+                "fatigue_level": "Alert",
+                "alert": False,
+                "timestamp": str(np.datetime64("now")),
             }
 
         def preprocess_image(self, x):
@@ -61,7 +61,7 @@ def _make_stub():
 
 
 # Prefer BlinkFatigueModel from notebook; fall back to stub
-BlinkFatigueModel = _nb_ns.get('BlinkFatigueModel', None)
+BlinkFatigueModel = _nb_ns.get("BlinkFatigueModel", None)
 if BlinkFatigueModel is None:
     BlinkFatigueModel = _make_stub()
 
@@ -73,17 +73,17 @@ def get_model_singleton(model_path: str | None = None):
     `.keras` or `.h5` file in the `models/` directory next to this file.
     The function is defensive and will return a minimal stub on failure.
     """
-    if not hasattr(get_model_singleton, '_instance'):
+    if not hasattr(get_model_singleton, "_instance"):
         # Determine model path
         if model_path is None:
-            models_dir = os.path.join(os.path.dirname(__file__), 'models')
+            models_dir = os.path.join(os.path.dirname(__file__), "models")
             chosen = None
             try:
                 if os.path.isdir(models_dir):
                     candidates = [
                         os.path.join(models_dir, f)
                         for f in os.listdir(models_dir)
-                        if f.lower().endswith('.keras') or f.lower().endswith('.h5')
+                        if f.lower().endswith(".keras") or f.lower().endswith(".h5")
                     ]
                     if candidates:
                         candidates.sort(key=lambda p: os.path.getmtime(p), reverse=True)
@@ -94,11 +94,15 @@ def get_model_singleton(model_path: str | None = None):
             if chosen:
                 model_path = chosen
             else:
-                model_path = os.path.join(models_dir, 'best_blink_fatigue.keras')
+                model_path = os.path.join(models_dir, "best_blink_fatigue.keras")
 
         # Instantiate model class
         try:
-            inst = BlinkFatigueModel(model_path) if callable(BlinkFatigueModel) else BlinkFatigueModel()
+            inst = (
+                BlinkFatigueModel(model_path)
+                if callable(BlinkFatigueModel)
+                else BlinkFatigueModel()
+            )
         except Exception:
             try:
                 inst = BlinkFatigueModel()

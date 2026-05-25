@@ -4,11 +4,24 @@ from __future__ import annotations
 
 import os
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
+
+def load_dotenv_file() -> None:
+    """Load a local .env file if `python-dotenv` is available.
+
+    This function is intentionally not called at import time; callers (such
+    as the app factory) should decide when to load a `.env` file (for
+    example, only in development).
+    """
+    try:
+        from dotenv import load_dotenv
+    except Exception:
+        return
+
+    try:
+        load_dotenv()
+    except Exception:
+        # Best-effort: do not raise if dotenv fails to parse a file.
+        return
 
 
 class BaseConfig:

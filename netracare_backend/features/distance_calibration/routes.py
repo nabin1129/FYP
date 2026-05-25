@@ -10,15 +10,15 @@ from datetime import datetime
 from db_model import db, User, DistanceCalibration
 from core.security import token_required
 
-distance_bp = Blueprint('distance', __name__, url_prefix='/distance')
+distance_bp = Blueprint("distance", __name__, url_prefix="/distance")
 
 
-@distance_bp.route('/calibrate', methods=['POST'])
+@distance_bp.route("/calibrate", methods=["POST"])
 @token_required
 def save_calibration(current_user):
     """
     Save distance calibration data for user
-    
+
     Request Body:
     {
         "user_id": "string",
@@ -36,87 +36,92 @@ def save_calibration(current_user):
     """
     try:
         data = request.get_json()
-        
+
         # Validate required fields
         required_fields = [
-            'reference_distance',
-            'baseline_ipd_pixels',
-            'baseline_face_width_pixels',
-            'focal_length'
+            "reference_distance",
+            "baseline_ipd_pixels",
+            "baseline_face_width_pixels",
+            "focal_length",
         ]
-        
+
         for field in required_fields:
             if field not in data:
-                return jsonify({'error': f'Missing required field: {field}'}), 400
-        
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+
         # Deactivate all existing calibrations if new one is active
-        if data.get('is_active', True):
+        if data.get("is_active", True):
             DistanceCalibration.query.filter_by(
-                user_id=current_user.id,
-                is_active=True
-            ).update({'is_active': False})
-        
+                user_id=current_user.id, is_active=True
+            ).update({"is_active": False})
+
         # Create new calibration
         calibration = DistanceCalibration(
             user_id=current_user.id,
             calibrated_at=datetime.utcnow(),
-            reference_distance=float(data['reference_distance']),
-            baseline_ipd_pixels=float(data['baseline_ipd_pixels']),
-            baseline_face_width_pixels=float(data['baseline_face_width_pixels']),
-            focal_length=float(data['focal_length']),
-            real_world_ipd=float(data.get('real_world_ipd', 6.3)),
-            tolerance_cm=float(data.get('tolerance_cm', 3.0)),
-            device_model=data.get('device_model'),
-            camera_resolution=data.get('camera_resolution'),
-            is_active=data.get('is_active', True)
+            reference_distance=float(data["reference_distance"]),
+            baseline_ipd_pixels=float(data["baseline_ipd_pixels"]),
+            baseline_face_width_pixels=float(data["baseline_face_width_pixels"]),
+            focal_length=float(data["focal_length"]),
+            real_world_ipd=float(data.get("real_world_ipd", 6.3)),
+            tolerance_cm=float(data.get("tolerance_cm", 3.0)),
+            device_model=data.get("device_model"),
+            camera_resolution=data.get("camera_resolution"),
+            is_active=data.get("is_active", True),
         )
-        
+
         db.session.add(calibration)
         db.session.commit()
-        
-        return jsonify({
-            'message': 'Calibration saved successfully',
-            'calibration_id': calibration.id,
-            'calibration': calibration.to_dict()
-        }), 201
-    
+
+        return (
+            jsonify(
+                {
+                    "message": "Calibration saved successfully",
+                    "calibration_id": calibration.id,
+                    "calibration": calibration.to_dict(),
+                }
+            ),
+            201,
+        )
+
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-@distance_bp.route('/calibration/active', methods=['GET'])
+@distance_bp.route("/calibration/active", methods=["GET"])
 @token_required
 def get_active_calibration(current_user):
     """
     Get user's active calibration data
-    
+
     Response:
     {
         "calibration": {...} or null
     }
     """
     try:
-        calibration = DistanceCalibration.query.filter_by(
-            user_id=current_user.id,
-            is_active=True
-        ).order_by(DistanceCalibration.calibrated_at.desc()).first()
-        
+        calibration = (
+            DistanceCalibration.query.filter_by(user_id=current_user.id, is_active=True)
+            .order_by(DistanceCalibration.calibrated_at.desc())
+            .first()
+        )
+
         if not calibration:
-            return jsonify({'calibration': None}), 404
-        
-        return jsonify({'calibration': calibration.to_dict()}), 200
-    
+            return jsonify({"calibration": None}), 404
+
+        return jsonify({"calibration": calibration.to_dict()}), 200
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-@distance_bp.route('/calibrations', methods=['GET'])
+@distance_bp.route("/calibrations", methods=["GET"])
 @token_required
 def get_all_calibrations(current_user):
     """
     Get all calibrations for current user
-    
+
     Response:
     {
         "calibrations": [...],
@@ -124,87 +129,96 @@ def get_all_calibrations(current_user):
     }
     """
     try:
-        calibrations = DistanceCalibration.query.filter_by(
-            user_id=current_user.id
-        ).order_by(DistanceCalibration.calibrated_at.desc()).all()
-        
-        return jsonify({
-            'calibrations': [c.to_dict() for c in calibrations],
-            'total': len(calibrations)
-        }), 200
-    
+        calibrations = (
+            DistanceCalibration.query.filter_by(user_id=current_user.id)
+            .order_by(DistanceCalibration.calibrated_at.desc())
+            .all()
+        )
+
+        return (
+            jsonify(
+                {
+                    "calibrations": [c.to_dict() for c in calibrations],
+                    "total": len(calibrations),
+                }
+            ),
+            200,
+        )
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-@distance_bp.route('/calibration/<int:calibration_id>', methods=['DELETE'])
+@distance_bp.route("/calibration/<int:calibration_id>", methods=["DELETE"])
 @token_required
 def delete_calibration(current_user, calibration_id):
     """Delete a calibration"""
     try:
         calibration = DistanceCalibration.query.filter_by(
-            id=calibration_id,
-            user_id=current_user.id
+            id=calibration_id, user_id=current_user.id
         ).first()
-        
+
         if not calibration:
-            return jsonify({'error': 'Calibration not found'}), 404
-        
+            return jsonify({"error": "Calibration not found"}), 404
+
         db.session.delete(calibration)
         db.session.commit()
-        
-        return jsonify({'message': 'Calibration deleted successfully'}), 200
-    
+
+        return jsonify({"message": "Calibration deleted successfully"}), 200
+
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-@distance_bp.route('/calibration/<int:calibration_id>/activate', methods=['PUT'])
+@distance_bp.route("/calibration/<int:calibration_id>/activate", methods=["PUT"])
 @token_required
 def activate_calibration(current_user, calibration_id):
     """Set a calibration as active"""
     try:
         # Deactivate all calibrations
         DistanceCalibration.query.filter_by(
-            user_id=current_user.id,
-            is_active=True
-        ).update({'is_active': False})
-        
+            user_id=current_user.id, is_active=True
+        ).update({"is_active": False})
+
         # Activate target calibration
         calibration = DistanceCalibration.query.filter_by(
-            id=calibration_id,
-            user_id=current_user.id
+            id=calibration_id, user_id=current_user.id
         ).first()
-        
+
         if not calibration:
-            return jsonify({'error': 'Calibration not found'}), 404
-        
+            return jsonify({"error": "Calibration not found"}), 404
+
         calibration.is_active = True
         db.session.commit()
-        
-        return jsonify({
-            'message': 'Calibration activated',
-            'calibration': calibration.to_dict()
-        }), 200
-    
+
+        return (
+            jsonify(
+                {
+                    "message": "Calibration activated",
+                    "calibration": calibration.to_dict(),
+                }
+            ),
+            200,
+        )
+
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-@distance_bp.route('/validate', methods=['POST'])
+@distance_bp.route("/validate", methods=["POST"])
 @token_required
 def validate_distance(current_user):
     """
     Server-side distance validation
-    
+
     Request Body:
     {
         "current_distance": 48.5,
         "reference_distance": 45.0
     }
-    
+
     Response:
     {
         "is_valid": true,
@@ -214,46 +228,51 @@ def validate_distance(current_user):
     """
     try:
         data = request.get_json()
-        
-        current_distance = float(data.get('current_distance', 0))
-        reference_distance = float(data.get('reference_distance', 45.0))
-        
+
+        current_distance = float(data.get("current_distance", 0))
+        reference_distance = float(data.get("reference_distance", 45.0))
+
         delta = current_distance - reference_distance
         abs_delta = abs(delta)
-        
+
         # Validation logic
         if abs_delta <= 1.0:
-            status = 'perfect'
+            status = "perfect"
             is_valid = True
         elif abs_delta <= 3.0:
-            status = 'acceptable'
+            status = "acceptable"
             is_valid = True
         elif delta < 0:
-            status = 'too_close'
+            status = "too_close"
             is_valid = False
         else:
-            status = 'too_far'
+            status = "too_far"
             is_valid = False
-        
-        return jsonify({
-            'is_valid': is_valid,
-            'delta': delta,
-            'abs_delta': abs_delta,
-            'status': status,
-            'current_distance': current_distance,
-            'reference_distance': reference_distance
-        }), 200
-    
+
+        return (
+            jsonify(
+                {
+                    "is_valid": is_valid,
+                    "delta": delta,
+                    "abs_delta": abs_delta,
+                    "status": status,
+                    "current_distance": current_distance,
+                    "reference_distance": reference_distance,
+                }
+            ),
+            200,
+        )
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-@distance_bp.route('/statistics', methods=['GET'])
+@distance_bp.route("/statistics", methods=["GET"])
 @token_required
 def get_statistics(current_user):
     """
     Get distance calibration statistics
-    
+
     Response:
     {
         "total_calibrations": 5,
@@ -266,25 +285,37 @@ def get_statistics(current_user):
         calibrations = DistanceCalibration.query.filter_by(
             user_id=current_user.id
         ).all()
-        
+
         if not calibrations:
-            return jsonify({
-                'total_calibrations': 0,
-                'active_calibration': None,
-                'average_reference_distance': None,
-                'latest_calibration_date': None
-            }), 200
-        
+            return (
+                jsonify(
+                    {
+                        "total_calibrations": 0,
+                        "active_calibration": None,
+                        "average_reference_distance": None,
+                        "latest_calibration_date": None,
+                    }
+                ),
+                200,
+            )
+
         active = next((c for c in calibrations if c.is_active), None)
-        avg_distance = sum(c.reference_distance for c in calibrations) / len(calibrations)
+        avg_distance = sum(c.reference_distance for c in calibrations) / len(
+            calibrations
+        )
         latest = max(calibrations, key=lambda c: c.calibrated_at)
-        
-        return jsonify({
-            'total_calibrations': len(calibrations),
-            'active_calibration': active.to_dict() if active else None,
-            'average_reference_distance': round(avg_distance, 2),
-            'latest_calibration_date': latest.calibrated_at.isoformat()
-        }), 200
-    
+
+        return (
+            jsonify(
+                {
+                    "total_calibrations": len(calibrations),
+                    "active_calibration": active.to_dict() if active else None,
+                    "average_reference_distance": round(avg_distance, 2),
+                    "latest_calibration_date": latest.calibrated_at.isoformat(),
+                }
+            ),
+            200,
+        )
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500

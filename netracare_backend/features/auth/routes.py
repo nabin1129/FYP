@@ -13,10 +13,7 @@ from db_model import AuthRateLimitEvent, db, User
 from core.config import BaseConfig
 from core.mailer import send_otp_email
 
-auth_ns = Namespace(
-    "auth",
-    description="Authentication APIs"
-)
+auth_ns = Namespace("auth", description="Authentication APIs")
 
 
 # -----------------------------
@@ -88,37 +85,52 @@ def _clear_login_failures(key: str) -> None:
 
 
 def _rate_limit_response(message: str, retry_after: int):
-    return {
-        "message": message,
-    }, 429, {"Retry-After": str(retry_after)}
+    return (
+        {
+            "message": message,
+        },
+        429,
+        {"Retry-After": str(retry_after)},
+    )
+
 
 # -----------------------------
 # PASSWORD POLICY (STRONG)
 # -----------------------------
 PASSWORD_REGEX = re.compile(
-    r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
+    r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
 )
 
 # -----------------------------
 # Swagger Models
 # -----------------------------
-signup_model = auth_ns.model("Signup", {
-    "name": fields.String(required=True),
-    "email": fields.String(required=True),
-    "password": fields.String(required=True),
-    "age": fields.Integer(required=False),
-    "sex": fields.String(required=False),
-})
+signup_model = auth_ns.model(
+    "Signup",
+    {
+        "name": fields.String(required=True),
+        "email": fields.String(required=True),
+        "password": fields.String(required=True),
+        "age": fields.Integer(required=False),
+        "sex": fields.String(required=False),
+    },
+)
 
-login_model = auth_ns.model("Login", {
-    "email": fields.String(required=True),
-    "password": fields.String(required=True),
-})
+login_model = auth_ns.model(
+    "Login",
+    {
+        "email": fields.String(required=True),
+        "password": fields.String(required=True),
+    },
+)
 
-auth_response = auth_ns.model("AuthResponse", {
-    "token": fields.String,
-    "user": fields.Raw,
-})
+auth_response = auth_ns.model(
+    "AuthResponse",
+    {
+        "token": fields.String,
+        "user": fields.Raw,
+    },
+)
+
 
 # -----------------------------
 # Helper Functions
@@ -134,7 +146,7 @@ def generate_token(user_id: int) -> str:
     token = jwt.encode(payload, BaseConfig.SECRET_KEY, algorithm="HS256")
     # Ensure token is always a string (PyJWT 2.x returns string, but be safe)
     if isinstance(token, bytes):
-        return token.decode('utf-8')
+        return token.decode("utf-8")
     return token
 
 
@@ -146,6 +158,7 @@ def user_to_dict(user: User) -> dict:
         "age": user.age,
         "sex": user.sex,
     }
+
 
 # -----------------------------
 # SIGNUP
@@ -165,7 +178,9 @@ class Signup(Resource):
         signup_key = f"{_client_ip()}:{email or 'unknown'}"
         cutoff = _rate_limit_cutoff(SIGNUP_WINDOW_SECONDS)
         attempts = (
-            AuthRateLimitEvent.query.filter_by(kind="signup_attempt", scope_key=signup_key)
+            AuthRateLimitEvent.query.filter_by(
+                kind="signup_attempt", scope_key=signup_key
+            )
             .filter(AuthRateLimitEvent.created_at >= cutoff)
             .order_by(AuthRateLimitEvent.created_at.asc())
             .all()
@@ -174,10 +189,7 @@ class Signup(Resource):
             oldest = attempts[0].created_at or _utcnow()
             retry_after = max(
                 1,
-                int(
-                    SIGNUP_WINDOW_SECONDS
-                    - (_utcnow() - oldest).total_seconds()
-                ),
+                int(SIGNUP_WINDOW_SECONDS - (_utcnow() - oldest).total_seconds()),
             )
             return _rate_limit_response(
                 f"Too many signup attempts. Try again in {retry_after} seconds.",
@@ -197,7 +209,7 @@ class Signup(Resource):
             auth_ns.abort(
                 400,
                 "Password must be at least 8 characters long and include "
-                "uppercase, lowercase, number, and special character."
+                "uppercase, lowercase, number, and special character.",
             )
 
         user = User(
@@ -244,9 +256,7 @@ class Login(Resource):
 
         user = User.query.filter_by(email=email).first()
 
-        if not user or not check_password_hash(
-            user.password_hash, data["password"]
-        ):
+        if not user or not check_password_hash(user.password_hash, data["password"]):
             _record_rate_limit_event(
                 "login_failure",
                 login_key,
@@ -263,25 +273,35 @@ class Login(Resource):
             "user": user_to_dict(user),
         }, 200
 
+
 # ─────────────────────────────────────────────────────────────────────────────
 # FORGOT PASSWORD (OTP via email)
 # ─────────────────────────────────────────────────────────────────────────────
 
-forgot_password_model = auth_ns.model("ForgotPassword", {
-    "email": fields.String(required=True),
-})
+forgot_password_model = auth_ns.model(
+    "ForgotPassword",
+    {
+        "email": fields.String(required=True),
+    },
+)
 
-reset_password_model = auth_ns.model("ResetPassword", {
-    "email": fields.String(required=True),
-    "otp": fields.String(required=True),
-    "new_password": fields.String(required=True),
-})
+reset_password_model = auth_ns.model(
+    "ResetPassword",
+    {
+        "email": fields.String(required=True),
+        "otp": fields.String(required=True),
+        "new_password": fields.String(required=True),
+    },
+)
 
-google_login_model = auth_ns.model("GoogleLogin", {
-    "google_token": fields.String(required=True),
-    "email": fields.String(required=True),
-    "name": fields.String(required=True),
-})
+google_login_model = auth_ns.model(
+    "GoogleLogin",
+    {
+        "google_token": fields.String(required=True),
+        "email": fields.String(required=True),
+        "name": fields.String(required=True),
+    },
+)
 
 
 def _generate_otp(length: int = 6) -> str:
@@ -442,9 +462,11 @@ class GoogleLogin(Resource):
                 email=email,
                 password_hash=generate_password_hash(
                     # Random strong password — user logs in via Google only
-                    "".join(random.choices(
-                        string.ascii_letters + string.digits + "!@#$%", k=32
-                    ))
+                    "".join(
+                        random.choices(
+                            string.ascii_letters + string.digits + "!@#$%", k=32
+                        )
+                    )
                 ),
             )
             db.session.add(user)

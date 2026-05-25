@@ -13,13 +13,12 @@ from .medical_record import MedicalRecord
 from .notification import Notification
 
 __all__ = [
-    'db',
-    'Doctor',
-    'DoctorPatient',
-    'DoctorSlot',
-    'Consultation',
-    'ConsultationMessage',
-    'MedicalRecord',
-    'Notification',
+    "db",
+    "Doctor",
+    "DoctorPatient",
+    "DoctorSlot",
+    "Consultation",
+    "ConsultationMessage",
+    "MedicalRecord",
+    "Notification",
 ]
-

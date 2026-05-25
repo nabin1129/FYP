@@ -28,7 +28,9 @@ def _consultation_doc_payload(consultation: Consultation) -> dict:
     }
 
 
-def _message_doc_payload(consultation: Consultation, message: ConsultationMessage) -> dict:
+def _message_doc_payload(
+    consultation: Consultation, message: ConsultationMessage
+) -> dict:
     as_dict = message.to_dict()
     return {
         "id": str(message.id),
@@ -62,7 +64,9 @@ def mirror_message(consultation: Consultation, message: ConsultationMessage) -> 
         return
 
     try:
-        consultation_ref = client.collection("consultations").document(str(consultation.id))
+        consultation_ref = client.collection("consultations").document(
+            str(consultation.id)
+        )
         consultation_ref.set(_consultation_doc_payload(consultation), merge=True)
 
         message_ref = consultation_ref.collection("messages").document(str(message.id))
@@ -88,7 +92,9 @@ def mirror_messages_read(
         return
 
     try:
-        consultation_ref = client.collection("consultations").document(str(consultation.id))
+        consultation_ref = client.collection("consultations").document(
+            str(consultation.id)
+        )
         consultation_ref.set(_consultation_doc_payload(consultation), merge=True)
 
         timestamp = (read_at or datetime.utcnow()).isoformat()
@@ -99,7 +105,9 @@ def mirror_messages_read(
                 msg_ref,
                 {
                     "is_read": True,
-                    "read_at": message.read_at.isoformat() if message.read_at else timestamp,
+                    "read_at": (
+                        message.read_at.isoformat() if message.read_at else timestamp
+                    ),
                     "updated_at": timestamp,
                     "participant_uids": _participant_uids(consultation),
                 },

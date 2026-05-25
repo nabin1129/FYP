@@ -23,10 +23,8 @@ def _actor_from_state(state: dict) -> ChatActor:
     return ChatActor(role=state["role"], actor_id=state["actor_id"])
 
 
-
 def _socket_error(message: str, code: str = "chat_error") -> None:
     emit("chat_error", {"code": code, "message": message})
-
 
 
 def register_chat_socket_events(socketio: SocketIO) -> None:
@@ -81,7 +79,11 @@ def register_chat_socket_events(socketio: SocketIO) -> None:
             state["rooms"].add(room_id)
             emit(
                 "room_joined",
-                {"room_id": room_id, "consultation_id": consultation.id, "status": consultation.status},
+                {
+                    "room_id": room_id,
+                    "consultation_id": consultation.id,
+                    "status": consultation.status,
+                },
             )
         except (ValueError, TypeError):
             _socket_error("consultation_id must be an integer", "validation_error")

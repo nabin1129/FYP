@@ -7,7 +7,6 @@ from flask_socketio import SocketIO
 socketio = SocketIO(cors_allowed_origins="*", async_mode="threading")
 
 
-
 def init_socketio(app) -> None:
     """Initialize SocketIO and register chat handlers."""
     socketio.init_app(app)

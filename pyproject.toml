@@ -1,0 +1,9 @@
+[tool.black]
+line-length = 88
+target-version = ['py312']
+exclude = "/(\\.venv|\\.git|\\.mypy_cache|\\.pytest_cache|build|dist|venv|\\.history|flutter/engine)/"
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = ".venv,.git,__pycache__,netracare_backend/migrations"

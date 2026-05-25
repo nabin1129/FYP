@@ -11,24 +11,24 @@ from datetime import datetime, timezone
 from models.consultation import DoctorSlot
 
 
-VALID_CONSULTATION_TYPES = {'chat', 'physical'}
+VALID_CONSULTATION_TYPES = {"chat", "physical"}
 
 
 def normalize_consultation_type(raw_type: str | None) -> str:
     """Normalize consultation type to supported values."""
     if not raw_type:
-        return 'chat'
+        return "chat"
 
     value = str(raw_type).strip().lower()
-    if value in {'in_person', 'in-person'}:
-        value = 'physical'
+    if value in {"in_person", "in-person"}:
+        value = "physical"
 
-    return value if value in VALID_CONSULTATION_TYPES else 'chat'
+    return value if value in VALID_CONSULTATION_TYPES else "chat"
 
 
 def parse_iso_datetime_utc(value: str) -> datetime:
     """Parse an ISO datetime and normalize to naive UTC for SQLite consistency."""
-    dt = datetime.fromisoformat(value.replace('Z', '+00:00'))
+    dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
     if dt.tzinfo is None:
         return dt
     return dt.astimezone(timezone.utc).replace(tzinfo=None)

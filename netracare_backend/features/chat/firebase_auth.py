@@ -10,7 +10,9 @@ def firebase_uid_for_actor(actor: ChatActor) -> str:
     return f"{actor.role}:{actor.actor_id}"
 
 
-def create_chat_firebase_custom_token(actor: ChatActor, consultation_id: int) -> str | None:
+def create_chat_firebase_custom_token(
+    actor: ChatActor, consultation_id: int
+) -> str | None:
     claims = {
         "role": actor.role,
         "actor_id": actor.actor_id,

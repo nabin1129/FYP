@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from flask import Flask
+import os
+
+from core.config import load_dotenv_file
 
 from core.settings import apply_app_config, apply_cors
 from core.extensions import init_extensions
@@ -22,6 +25,13 @@ def create_app() -> Flask:
     """Create and configure Flask application."""
     app = Flask(__name__)
 
+    # Load `.env` in development only so local secrets can be stored there.
+    env_name = os.getenv(
+        "NETRACARE_CONFIG", os.getenv("FLASK_ENV", "development")
+    ).lower()
+    if env_name in ("development", "dev"):
+        load_dotenv_file()
+
     apply_cors(app)
     apply_app_config(app)
     init_extensions(app)
@@ -39,4 +49,3 @@ def create_app() -> Flask:
         ensure_visual_acuity_schema_migrated()
 
     return app
-

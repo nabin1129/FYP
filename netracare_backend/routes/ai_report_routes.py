@@ -3,6 +3,7 @@ AI Report Generation Routes
 Uses Google Generative AI (Gemini) for comprehensive eye health report generation
 and ReportLab/FPDF for PDF creation.
 """
+
 import io
 import os
 import re
@@ -16,13 +17,20 @@ from sqlalchemy import desc
 from core.security import token_required, admin_token_required
 from core.config import BaseConfig
 from db_model import (
-    db, User, ClinicalReport, VisualAcuityTest, ColourVisionTest,
-    EyeTrackingTest, BlinkFatigueTest, PupilReflexTest,
+    db,
+    User,
+    ClinicalReport,
+    VisualAcuityTest,
+    ColourVisionTest,
+    EyeTrackingTest,
+    BlinkFatigueTest,
+    PupilReflexTest,
 )
 
 # Gemini client setup
 try:
     import google.generativeai as genai  # type: ignore[import-not-found]
+
     genai.configure(api_key=BaseConfig.GEMINI_API_KEY)
     _gemini_model = genai.GenerativeModel("gemini-1.5-flash")
     GEMINI_AVAILABLE = bool(BaseConfig.GEMINI_API_KEY)
@@ -36,14 +44,21 @@ try:
     from reportlab.lib.units import cm  # type: ignore[import-not-found]
     from reportlab.lib import colors  # type: ignore[import-not-found]
     from reportlab.platypus import (  # type: ignore[import-not-found]
-        SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable,
+        SimpleDocTemplate,
+        Paragraph,
+        Spacer,
+        Table,
+        TableStyle,
+        HRFlowable,
     )
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle  # type: ignore[import-not-found]
     from reportlab.lib.enums import TA_CENTER, TA_LEFT  # type: ignore[import-not-found]
+
     PDF_BACKEND = "reportlab"
 except ImportError:
     try:
         from fpdf import FPDF  # type: ignore[import-not-found]
+
         PDF_BACKEND = "fpdf"
     except ImportError:
         PDF_BACKEND = None
@@ -51,6 +66,7 @@ except ImportError:
 # Optional HTML->PDF renderer
 try:
     from weasyprint import HTML, CSS  # type: ignore[import-not-found]
+
     WEASY_AVAILABLE = True
 except Exception:
     WEASY_AVAILABLE = False
@@ -60,12 +76,18 @@ ai_report_ns = Namespace(
     "ai-report", description="AI-Powered Comprehensive Eye Health Reports"
 )
 
-generate_report_model = ai_report_ns.model("GenerateReport", {
-    "time_range_days": fields.Integer(description="Days of history to include (default 30)"),
-})
+generate_report_model = ai_report_ns.model(
+    "GenerateReport",
+    {
+        "time_range_days": fields.Integer(
+            description="Days of history to include (default 30)"
+        ),
+    },
+)
 
 
 # Score calculators
+
 
 def calculate_visual_acuity_score(tests):
     if not tests:
@@ -84,7 +106,11 @@ def calculate_visual_acuity_score(tests):
                 finding = "Moderate visual impairment"
             else:
                 finding = "Severe visual impairment requiring correction"
-            score_pct = round((t.correct_answers / t.total_questions) * 100) if t.total_questions else ratio
+            score_pct = (
+                round((t.correct_answers / t.total_questions) * 100)
+                if t.total_questions
+                else ratio
+            )
             return min(score_pct, 100), finding
     except Exception:
         pass
@@ -131,7 +157,9 @@ def calculate_eye_tracking_score(tests):
     if t.saccade_consistency_score is not None:
         details.append(f"saccade consistency {t.saccade_consistency_score:.1f}/100")
 
-    return round(float(score), 2), "; ".join(details) if details else "Eye tracking test completed"
+    return round(float(score), 2), (
+        "; ".join(details) if details else "Eye tracking test completed"
+    )
 
 
 def calculate_blink_fatigue_score(tests):
@@ -140,7 +168,11 @@ def calculate_blink_fatigue_score(tests):
     t = tests[0]
     # prediction: 'drowsy' or 'notdrowsy'
     is_drowsy = t.prediction == "drowsy"
-    alertness_pct = round((1 - t.drowsy_probability) * 100) if t.drowsy_probability is not None else 100
+    alertness_pct = (
+        round((1 - t.drowsy_probability) * 100)
+        if t.drowsy_probability is not None
+        else 100
+    )
     blink_rate = t.avg_blinks_per_minute if t.avg_blinks_per_minute else 15
     if 15 <= blink_rate <= 20:
         score = 100
@@ -193,12 +225,18 @@ def calculate_pupil_reflex_score(tests):
         findings.append("No nystagmus detected")
 
     urgency = "routine"
-    if (t.nystagmus_severity or '').lower() == 'severe' or (t.reaction_time or 0) * 1000 > 450:
-        urgency = 'urgent'
-    elif (t.nystagmus_severity or '').lower() == 'moderate' or (t.reaction_time or 0) * 1000 > 320:
-        urgency = 'soon'
+    if (t.nystagmus_severity or "").lower() == "severe" or (
+        t.reaction_time or 0
+    ) * 1000 > 450:
+        urgency = "urgent"
+    elif (t.nystagmus_severity or "").lower() == "moderate" or (
+        t.reaction_time or 0
+    ) * 1000 > 320:
+        urgency = "soon"
 
-    clinical_summary = "; ".join(findings) if findings else "Pupil reflex test completed"
+    clinical_summary = (
+        "; ".join(findings) if findings else "Pupil reflex test completed"
+    )
     return max(score, 0), f"{clinical_summary} (clinical urgency: {urgency})"
 
 
@@ -219,8 +257,12 @@ def analyze_trends(tests_by_type):
         except Exception:
             trends["visual_acuity"] = "insufficient_data"
     if len(tests_by_type.get("blink_fatigue", [])) > 1:
-        recent_fat = sum(1 for t in tests_by_type["blink_fatigue"][:3] if t.prediction == "drowsy")
-        older_fat = sum(1 for t in tests_by_type["blink_fatigue"][-3:] if t.prediction == "drowsy")
+        recent_fat = sum(
+            1 for t in tests_by_type["blink_fatigue"][:3] if t.prediction == "drowsy"
+        )
+        older_fat = sum(
+            1 for t in tests_by_type["blink_fatigue"][-3:] if t.prediction == "drowsy"
+        )
         if recent_fat > older_fat:
             trends["blink_fatigue"] = "worsening"
         elif recent_fat < older_fat:
@@ -228,8 +270,16 @@ def analyze_trends(tests_by_type):
         else:
             trends["blink_fatigue"] = "stable"
     if len(tests_by_type.get("eye_tracking", [])) > 1:
-        recent = tests_by_type["eye_tracking"][0].overall_performance_score or tests_by_type["eye_tracking"][0].gaze_accuracy or 0
-        older = tests_by_type["eye_tracking"][-1].overall_performance_score or tests_by_type["eye_tracking"][-1].gaze_accuracy or 0
+        recent = (
+            tests_by_type["eye_tracking"][0].overall_performance_score
+            or tests_by_type["eye_tracking"][0].gaze_accuracy
+            or 0
+        )
+        older = (
+            tests_by_type["eye_tracking"][-1].overall_performance_score
+            or tests_by_type["eye_tracking"][-1].gaze_accuracy
+            or 0
+        )
         if recent > older + 5:
             trends["eye_tracking"] = "improving"
         elif recent < older - 5:
@@ -254,23 +304,33 @@ def _assemble_report(user, time_range_days: int):
         "eye_tracking": EyeTrackingTest.query.filter(
             EyeTrackingTest.user_id == user.id,
             EyeTrackingTest.created_at >= cutoff_date,
-        ).order_by(desc(EyeTrackingTest.created_at)).all(),
+        )
+        .order_by(desc(EyeTrackingTest.created_at))
+        .all(),
         "visual_acuity": VisualAcuityTest.query.filter(
             VisualAcuityTest.user_id == user.id,
             VisualAcuityTest.created_at >= cutoff_date,
-        ).order_by(desc(VisualAcuityTest.created_at)).all(),
+        )
+        .order_by(desc(VisualAcuityTest.created_at))
+        .all(),
         "colour_vision": ColourVisionTest.query.filter(
             ColourVisionTest.user_id == user.id,
             ColourVisionTest.created_at >= cutoff_date,
-        ).order_by(desc(ColourVisionTest.created_at)).all(),
+        )
+        .order_by(desc(ColourVisionTest.created_at))
+        .all(),
         "blink_fatigue": BlinkFatigueTest.query.filter(
             BlinkFatigueTest.user_id == user.id,
             BlinkFatigueTest.created_at >= cutoff_date,
-        ).order_by(desc(BlinkFatigueTest.created_at)).all(),
+        )
+        .order_by(desc(BlinkFatigueTest.created_at))
+        .all(),
         "pupil_reflex": PupilReflexTest.query.filter(
             PupilReflexTest.user_id == user.id,
             PupilReflexTest.created_at >= cutoff_date,
-        ).order_by(desc(PupilReflexTest.created_at)).all(),
+        )
+        .order_by(desc(PupilReflexTest.created_at))
+        .all(),
     }
 
     scores, findings = {}, {}
@@ -305,19 +365,39 @@ def _assemble_report(user, time_range_days: int):
         "generation_date": datetime.utcnow().isoformat(),
         "overall_score": round(overall_score, 2),
         "health_status": (
-            "Normal" if overall_score >= 80 else
-            "Monitor" if overall_score >= 60 else
-            "Needs Attention"
+            "Normal"
+            if overall_score >= 80
+            else "Monitor" if overall_score >= 60 else "Needs Attention"
         ),
         "scores": scores,
         "findings": findings,
         "trends": trends,
         "latest_tests": {
-            "eye_tracking": _latest_record(tests_by_type.get('eye_tracking', [])).to_dict() if _latest_record(tests_by_type.get('eye_tracking', [])) else None,
-            "visual_acuity": _latest_record(tests_by_type.get('visual_acuity', [])).to_dict() if _latest_record(tests_by_type.get('visual_acuity', [])) else None,
-            "colour_vision": _latest_record(tests_by_type.get('colour_vision', [])).to_dict() if _latest_record(tests_by_type.get('colour_vision', [])) else None,
-            "blink_fatigue": _latest_record(tests_by_type.get('blink_fatigue', [])).to_dict() if _latest_record(tests_by_type.get('blink_fatigue', [])) else None,
-            "pupil_reflex": _latest_record(tests_by_type.get('pupil_reflex', [])).to_dict() if _latest_record(tests_by_type.get('pupil_reflex', [])) else None,
+            "eye_tracking": (
+                _latest_record(tests_by_type.get("eye_tracking", [])).to_dict()
+                if _latest_record(tests_by_type.get("eye_tracking", []))
+                else None
+            ),
+            "visual_acuity": (
+                _latest_record(tests_by_type.get("visual_acuity", [])).to_dict()
+                if _latest_record(tests_by_type.get("visual_acuity", []))
+                else None
+            ),
+            "colour_vision": (
+                _latest_record(tests_by_type.get("colour_vision", [])).to_dict()
+                if _latest_record(tests_by_type.get("colour_vision", []))
+                else None
+            ),
+            "blink_fatigue": (
+                _latest_record(tests_by_type.get("blink_fatigue", [])).to_dict()
+                if _latest_record(tests_by_type.get("blink_fatigue", []))
+                else None
+            ),
+            "pupil_reflex": (
+                _latest_record(tests_by_type.get("pupil_reflex", [])).to_dict()
+                if _latest_record(tests_by_type.get("pupil_reflex", []))
+                else None
+            ),
         },
         "ai_report_text": ai_text,
         "report_metadata": report_meta,
@@ -331,6 +411,7 @@ def _assemble_report(user, time_range_days: int):
 
 # Gemini report generation
 
+
 def _build_system_prompt(user, scores, findings, trends, tests_by_type, overall_score):
     test_counts = {k: len(v) for k, v in tests_by_type.items()}
 
@@ -343,8 +424,12 @@ def _build_system_prompt(user, scores, findings, trends, tests_by_type, overall_
     va_detail = ""
     if va_tests:
         t = va_tests[0]
-        score_pct = round((t.correct_answers / t.total_questions) * 100) if t.total_questions else 0
-        variant = (t.test_variant or 'snellen').replace('_', ' ').title()
+        score_pct = (
+            round((t.correct_answers / t.total_questions) * 100)
+            if t.total_questions
+            else 0
+        )
+        variant = (t.test_variant or "snellen").replace("_", " ").title()
         va_detail = (
             f"Variant: {variant}, "
             f"Snellen: {t.snellen_value or 'N/A'}, "
@@ -374,7 +459,11 @@ def _build_system_prompt(user, scores, findings, trends, tests_by_type, overall_
     bf_detail = ""
     if bf_tests:
         t = bf_tests[0]
-        alertness_pct = round((1 - t.drowsy_probability) * 100) if t.drowsy_probability is not None else 'N/A'
+        alertness_pct = (
+            round((1 - t.drowsy_probability) * 100)
+            if t.drowsy_probability is not None
+            else "N/A"
+        )
         bf_detail = (
             f"Prediction: {t.prediction or 'N/A'}, "
             f"Fatigue level: {t.fatigue_level or 'N/A'}, "
@@ -392,9 +481,10 @@ def _build_system_prompt(user, scores, findings, trends, tests_by_type, overall_
             f"Nystagmus severity: {t.nystagmus_severity or 'N/A'}"
         )
 
-    trend_text = "\n".join(
-        f"  - {k.replace('_', ' ').title()}: {v}" for k, v in trends.items()
-    ) or "  - Insufficient data for trend analysis"
+    trend_text = (
+        "\n".join(f"  - {k.replace('_', ' ').title()}: {v}" for k, v in trends.items())
+        or "  - Insufficient data for trend analysis"
+    )
 
     prompt = f"""You are a professional ophthalmology AI assistant. Generate a comprehensive,
 clinically-informative eye health report for a patient based on the data below.
@@ -452,7 +542,9 @@ Formatting rules (strictly follow):
     return prompt
 
 
-def call_gemini_for_report(user, scores, findings, trends, tests_by_type, overall_score):
+def call_gemini_for_report(
+    user, scores, findings, trends, tests_by_type, overall_score
+):
     if not GEMINI_AVAILABLE or _gemini_model is None:
         return {
             "text": _fallback_report(scores, findings, trends, overall_score),
@@ -462,7 +554,9 @@ def call_gemini_for_report(user, scores, findings, trends, tests_by_type, overal
                 "fallback_reason": "Gemini unavailable",
             },
         }
-    prompt = _build_system_prompt(user, scores, findings, trends, tests_by_type, overall_score)
+    prompt = _build_system_prompt(
+        user, scores, findings, trends, tests_by_type, overall_score
+    )
     try:
         response = _gemini_model.generate_content(prompt)
         return {
@@ -489,8 +583,11 @@ def _fallback_report(scores, findings, trends, overall_score):
     lines = [
         "EXECUTIVE SUMMARY:",
         f"Overall eye health score: {overall_score:.1f}/100. "
-        + ("All metrics are within normal range." if overall_score >= 80
-           else "Some areas require attention; please consult a specialist."),
+        + (
+            "All metrics are within normal range."
+            if overall_score >= 80
+            else "Some areas require attention; please consult a specialist."
+        ),
         "",
         "KEY FINDINGS:",
     ]
@@ -513,36 +610,45 @@ def _fallback_report(scores, findings, trends, overall_score):
 def _clean_ai_text(text: str) -> str:
     """Strip markdown artifacts Gemini may emit despite instructions."""
     # Bold: **text** → text
-    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text, flags=re.DOTALL)
+    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text, flags=re.DOTALL)
     # Italic: *text* → text  (skip lines that are bullet points)
-    text = re.sub(r'(?<![*])\*(?![*\s])(.+?)(?<!\s)\*(?![*])', r'\1', text)
+    text = re.sub(r"(?<![*])\*(?![*\s])(.+?)(?<!\s)\*(?![*])", r"\1", text)
+
     # Heading markers: ## Heading → HEADING:  (normalise to our expected format)
     def _heading_to_upper(m):
         inner = m.group(1).strip().upper()
-        if not inner.endswith(':'):
-            inner += ':'
+        if not inner.endswith(":"):
+            inner += ":"
         return inner
-    text = re.sub(r'^#{1,6}\s+(.+)', _heading_to_upper, text, flags=re.MULTILINE)
+
+    text = re.sub(r"^#{1,6}\s+(.+)", _heading_to_upper, text, flags=re.MULTILINE)
     # Remove trailing whitespace on each line
-    text = '\n'.join(line.rstrip() for line in text.splitlines())
+    text = "\n".join(line.rstrip() for line in text.splitlines())
     return text.strip()
 
 
 # PDF generation
 
+
 def generate_pdf_from_report(user, report_text, overall_score, scores, generation_date):
     buffer = io.BytesIO()
     if PDF_BACKEND == "reportlab":
-        _generate_pdf_reportlab(buffer, user, report_text, overall_score, scores, generation_date)
+        _generate_pdf_reportlab(
+            buffer, user, report_text, overall_score, scores, generation_date
+        )
     elif PDF_BACKEND == "fpdf":
-        _generate_pdf_fpdf(buffer, user, report_text, overall_score, scores, generation_date)
+        _generate_pdf_fpdf(
+            buffer, user, report_text, overall_score, scores, generation_date
+        )
     else:
         buffer.write(report_text.encode("utf-8"))
     buffer.seek(0)
     return buffer
 
 
-def _generate_pdf_reportlab(buffer, user, report_text, overall_score, scores, generation_date):
+def _generate_pdf_reportlab(
+    buffer, user, report_text, overall_score, scores, generation_date
+):
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
@@ -587,35 +693,50 @@ def _generate_pdf_reportlab(buffer, user, report_text, overall_score, scores, ge
 
     story = []
     story.append(Paragraph("NetraCare Eye Health Report", title_style))
-    story.append(Paragraph(
-        f"Generated on {generation_date}  |  Patient: {user.name or 'Patient'}",
-        subtitle_style,
-    ))
-    story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor("#1a56db")))
+    story.append(
+        Paragraph(
+            f"Generated on {generation_date}  |  Patient: {user.name or 'Patient'}",
+            subtitle_style,
+        )
+    )
+    story.append(
+        HRFlowable(width="100%", thickness=1, color=colors.HexColor("#1a56db"))
+    )
     story.append(Spacer(1, 0.4 * cm))
 
     # Scores table
     score_data = [["Test Area", "Score"]]
     for key, val in scores.items():
         label = key.replace("_", " ").title()
-        score_data.append([label, f"{val:.1f}/100" if isinstance(val, (int, float)) else str(val)])
+        score_data.append(
+            [label, f"{val:.1f}/100" if isinstance(val, (int, float)) else str(val)]
+        )
     score_data.append(["OVERALL", f"{overall_score:.1f}/100"])
 
     tbl = Table(score_data, colWidths=[10 * cm, 5 * cm])
-    tbl.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1a56db")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, 0), 11),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -2), [colors.white, colors.HexColor("#f0f4ff")]),
-        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f0fe")),
-        ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
-        ("ALIGN", (1, 0), (1, -1), "CENTER"),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#c7d2fe")),
-        ("TOPPADDING", (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-    ]))
+    tbl.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1a56db")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, 0), 11),
+                (
+                    "ROWBACKGROUNDS",
+                    (0, 1),
+                    (-1, -2),
+                    [colors.white, colors.HexColor("#f0f4ff")],
+                ),
+                ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f0fe")),
+                ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+                ("ALIGN", (1, 0), (1, -1), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#c7d2fe")),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ]
+        )
+    )
     story.append(tbl)
     story.append(Spacer(1, 0.5 * cm))
     story.append(HRFlowable(width="100%", thickness=0.5, color=colors.lightgrey))
@@ -634,27 +755,48 @@ def _generate_pdf_reportlab(buffer, user, report_text, overall_score, scores, ge
     story.append(Spacer(1, 0.5 * cm))
     story.append(HRFlowable(width="100%", thickness=0.5, color=colors.lightgrey))
     story.append(Spacer(1, 0.2 * cm))
-    story.append(Paragraph(
-        "This report is generated by NetraCare AI and is not a substitute for professional medical advice.",
-        ParagraphStyle("Footer", parent=styles["Normal"], fontSize=8, textColor=colors.grey, alignment=TA_CENTER),
-    ))
+    story.append(
+        Paragraph(
+            "This report is generated by NetraCare AI and is not a substitute for professional medical advice.",
+            ParagraphStyle(
+                "Footer",
+                parent=styles["Normal"],
+                fontSize=8,
+                textColor=colors.grey,
+                alignment=TA_CENTER,
+            ),
+        )
+    )
     doc.build(story)
 
 
-def _generate_pdf_fpdf(buffer, user, report_text, overall_score, scores, generation_date):
+def _generate_pdf_fpdf(
+    buffer, user, report_text, overall_score, scores, generation_date
+):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_margins(20, 20, 20)
     pdf.set_font("Helvetica", "B", 18)
     pdf.set_text_color(26, 86, 219)
-    pdf.cell(0, 10, "NetraCare Eye Health Report", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        0, 10, "NetraCare Eye Health Report", align="C", new_x="LMARGIN", new_y="NEXT"
+    )
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(128, 128, 128)
-    pdf.cell(0, 6, f"Generated: {generation_date}  |  Patient: {user.name or 'Patient'}", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        0,
+        6,
+        f"Generated: {generation_date}  |  Patient: {user.name or 'Patient'}",
+        align="C",
+        new_x="LMARGIN",
+        new_y="NEXT",
+    )
     pdf.ln(4)
     pdf.set_font("Helvetica", "B", 11)
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 8, f"Overall Score: {overall_score:.1f}/100", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        0, 8, f"Overall Score: {overall_score:.1f}/100", new_x="LMARGIN", new_y="NEXT"
+    )
     for key, val in scores.items():
         pdf.set_font("Helvetica", "", 10)
         label = key.replace("_", " ").title()
@@ -679,6 +821,7 @@ def _generate_pdf_fpdf(buffer, user, report_text, overall_score, scores, generat
 
 
 # API Endpoints
+
 
 @ai_report_ns.route("/generate")
 class GenerateReport(Resource):
@@ -719,10 +862,18 @@ class GenerateReportPDF(Resource):
             # Prefer HTML->PDF rendering with WeasyPrint when available for A4 layout
             if WEASY_AVAILABLE:
                 # Render the HTML template with the assembled report
-                html = render_template('report_template.html', report=report, generation_date=generation_date)
-                css_path = os.path.join(current_app.root_path, 'static', 'report_styles.css')
+                html = render_template(
+                    "report_template.html",
+                    report=report,
+                    generation_date=generation_date,
+                )
+                css_path = os.path.join(
+                    current_app.root_path, "static", "report_styles.css"
+                )
                 styles = [CSS(filename=css_path)] if os.path.exists(css_path) else None
-                pdf_bytes = HTML(string=html, base_url=current_app.root_path).write_pdf(stylesheets=styles)
+                pdf_bytes = HTML(string=html, base_url=current_app.root_path).write_pdf(
+                    stylesheets=styles
+                )
                 buf = io.BytesIO(pdf_bytes)
                 buf.seek(0)
             else:
@@ -744,12 +895,20 @@ class GenerateReportPDF(Resource):
                 cr = ClinicalReport(
                     patient_id=current_user.id,
                     ai_summary=ai_text,
-                    status='pending',
-                    visual_acuity_test_id=(report.get('latest_tests') or {}).get('visual_acuity', {}).get('id'),
-                    colour_vision_test_id=(report.get('latest_tests') or {}).get('colour_vision', {}).get('id'),
-                    pupil_reflex_test_id=(report.get('latest_tests') or {}).get('pupil_reflex', {}).get('id'),
-                    blink_fatigue_test_id=(report.get('latest_tests') or {}).get('blink_fatigue', {}).get('id'),
-                    pdf_path=os.path.join('uploads', 'reports', filename),
+                    status="pending",
+                    visual_acuity_test_id=(report.get("latest_tests") or {})
+                    .get("visual_acuity", {})
+                    .get("id"),
+                    colour_vision_test_id=(report.get("latest_tests") or {})
+                    .get("colour_vision", {})
+                    .get("id"),
+                    pupil_reflex_test_id=(report.get("latest_tests") or {})
+                    .get("pupil_reflex", {})
+                    .get("id"),
+                    blink_fatigue_test_id=(report.get("latest_tests") or {})
+                    .get("blink_fatigue", {})
+                    .get("id"),
+                    pdf_path=os.path.join("uploads", "reports", filename),
                 )
                 db.session.add(cr)
                 db.session.commit()
@@ -808,7 +967,9 @@ class AdminUserReportPDF(Resource):
                 user, ai_text, overall_score, scores, generation_date
             )
 
-            filename = f"netracare_report_{user.id}_{datetime.utcnow().strftime('%Y%m%d')}.pdf"
+            filename = (
+                f"netracare_report_{user.id}_{datetime.utcnow().strftime('%Y%m%d')}.pdf"
+            )
             reports_dir = os.path.join(current_app.root_path, "uploads", "reports")
             os.makedirs(reports_dir, exist_ok=True)
             file_path = os.path.join(reports_dir, filename)
@@ -820,12 +981,20 @@ class AdminUserReportPDF(Resource):
                 cr = ClinicalReport(
                     patient_id=user.id,
                     ai_summary=ai_text,
-                    status='pending',
-                    visual_acuity_test_id=(report.get('latest_tests') or {}).get('visual_acuity', {}).get('id'),
-                    colour_vision_test_id=(report.get('latest_tests') or {}).get('colour_vision', {}).get('id'),
-                    pupil_reflex_test_id=(report.get('latest_tests') or {}).get('pupil_reflex', {}).get('id'),
-                    blink_fatigue_test_id=(report.get('latest_tests') or {}).get('blink_fatigue', {}).get('id'),
-                    pdf_path=os.path.join('uploads', 'reports', filename),
+                    status="pending",
+                    visual_acuity_test_id=(report.get("latest_tests") or {})
+                    .get("visual_acuity", {})
+                    .get("id"),
+                    colour_vision_test_id=(report.get("latest_tests") or {})
+                    .get("colour_vision", {})
+                    .get("id"),
+                    pupil_reflex_test_id=(report.get("latest_tests") or {})
+                    .get("pupil_reflex", {})
+                    .get("id"),
+                    blink_fatigue_test_id=(report.get("latest_tests") or {})
+                    .get("blink_fatigue", {})
+                    .get("id"),
+                    pdf_path=os.path.join("uploads", "reports", filename),
                 )
                 db.session.add(cr)
                 db.session.commit()
@@ -852,44 +1021,97 @@ class GetInsights(Resource):
     def get(self, current_user):
         """Get quick eye health insights."""
         try:
-            latest_visual = VisualAcuityTest.query.filter_by(user_id=current_user.id).order_by(desc(VisualAcuityTest.created_at)).first()
-            latest_colour = ColourVisionTest.query.filter_by(user_id=current_user.id).order_by(desc(ColourVisionTest.created_at)).first()
-            latest_blink = BlinkFatigueTest.query.filter_by(user_id=current_user.id).order_by(desc(BlinkFatigueTest.created_at)).first()
-            latest_pupil = PupilReflexTest.query.filter_by(user_id=current_user.id).order_by(desc(PupilReflexTest.created_at)).first()
+            latest_visual = (
+                VisualAcuityTest.query.filter_by(user_id=current_user.id)
+                .order_by(desc(VisualAcuityTest.created_at))
+                .first()
+            )
+            latest_colour = (
+                ColourVisionTest.query.filter_by(user_id=current_user.id)
+                .order_by(desc(ColourVisionTest.created_at))
+                .first()
+            )
+            latest_blink = (
+                BlinkFatigueTest.query.filter_by(user_id=current_user.id)
+                .order_by(desc(BlinkFatigueTest.created_at))
+                .first()
+            )
+            latest_pupil = (
+                PupilReflexTest.query.filter_by(user_id=current_user.id)
+                .order_by(desc(PupilReflexTest.created_at))
+                .first()
+            )
 
             insights = []
             if latest_visual:
-                score_pct = round((latest_visual.correct_answers / latest_visual.total_questions) * 100) if latest_visual.total_questions else 0
-                variant = (latest_visual.test_variant or 'snellen').replace('_', ' ').title()
-                insights.append({
-                    "type": "visual_acuity",
-                    "message": f"Last visual acuity test ({variant}): {latest_visual.snellen_value or 'N/A'} ({score_pct}%)",
-                    "date": latest_visual.created_at.isoformat() if latest_visual.created_at else None,
-                })
+                score_pct = (
+                    round(
+                        (latest_visual.correct_answers / latest_visual.total_questions)
+                        * 100
+                    )
+                    if latest_visual.total_questions
+                    else 0
+                )
+                variant = (
+                    (latest_visual.test_variant or "snellen").replace("_", " ").title()
+                )
+                insights.append(
+                    {
+                        "type": "visual_acuity",
+                        "message": f"Last visual acuity test ({variant}): {latest_visual.snellen_value or 'N/A'} ({score_pct}%)",
+                        "date": (
+                            latest_visual.created_at.isoformat()
+                            if latest_visual.created_at
+                            else None
+                        ),
+                    }
+                )
             if latest_colour and (latest_colour.severity or "").lower() != "normal":
-                insights.append({
-                    "type": "colour_vision",
-                    "message": f"Colour vision: {latest_colour.severity} ({latest_colour.correct_count}/{latest_colour.total_plates} plates correct)",
-                    "severity": latest_colour.severity,
-                    "date": latest_colour.created_at.isoformat() if latest_colour.created_at else None,
-                })
+                insights.append(
+                    {
+                        "type": "colour_vision",
+                        "message": f"Colour vision: {latest_colour.severity} ({latest_colour.correct_count}/{latest_colour.total_plates} plates correct)",
+                        "severity": latest_colour.severity,
+                        "date": (
+                            latest_colour.created_at.isoformat()
+                            if latest_colour.created_at
+                            else None
+                        ),
+                    }
+                )
             if latest_blink and latest_blink.prediction == "drowsy":
-                insights.append({
-                    "type": "blink_fatigue",
-                    "message": f"{(latest_blink.fatigue_level or 'Drowsy').title()} eye fatigue detected",
-                    "date": latest_blink.created_at.isoformat() if latest_blink.created_at else None,
-                })
+                insights.append(
+                    {
+                        "type": "blink_fatigue",
+                        "message": f"{(latest_blink.fatigue_level or 'Drowsy').title()} eye fatigue detected",
+                        "date": (
+                            latest_blink.created_at.isoformat()
+                            if latest_blink.created_at
+                            else None
+                        ),
+                    }
+                )
             if latest_pupil and latest_pupil.nystagmus_detected:
-                urgency = 'routine'
-                if (latest_pupil.nystagmus_severity or '').lower() == 'severe' or (latest_pupil.reaction_time or 0) > 0.45:
-                    urgency = 'urgent'
-                elif (latest_pupil.nystagmus_severity or '').lower() == 'moderate' or (latest_pupil.reaction_time or 0) > 0.32:
-                    urgency = 'soon'
-                insights.append({
-                    "type": "pupil_reflex",
-                    "message": f"{latest_pupil.nystagmus_severity.title()} nystagmus detected (clinical urgency: {urgency})",
-                    "date": latest_pupil.created_at.isoformat() if latest_pupil.created_at else None,
-                })
+                urgency = "routine"
+                if (latest_pupil.nystagmus_severity or "").lower() == "severe" or (
+                    latest_pupil.reaction_time or 0
+                ) > 0.45:
+                    urgency = "urgent"
+                elif (latest_pupil.nystagmus_severity or "").lower() == "moderate" or (
+                    latest_pupil.reaction_time or 0
+                ) > 0.32:
+                    urgency = "soon"
+                insights.append(
+                    {
+                        "type": "pupil_reflex",
+                        "message": f"{latest_pupil.nystagmus_severity.title()} nystagmus detected (clinical urgency: {urgency})",
+                        "date": (
+                            latest_pupil.created_at.isoformat()
+                            if latest_pupil.created_at
+                            else None
+                        ),
+                    }
+                )
 
             return {
                 "total_insights": len(insights),
@@ -905,11 +1127,18 @@ class GetInsights(Resource):
 # SEND REPORT TO DOCTOR
 # ---------------------------------------------------------------------------
 
-send_to_doctor_model = ai_report_ns.model("SendReportToDoctor", {
-    "doctor_id": fields.Integer(required=True, description="Doctor ID to send report to"),
-    "time_range_days": fields.Integer(description="Days of history to include (default 30)"),
-    "message": fields.String(description="Optional personal message to the doctor"),
-})
+send_to_doctor_model = ai_report_ns.model(
+    "SendReportToDoctor",
+    {
+        "doctor_id": fields.Integer(
+            required=True, description="Doctor ID to send report to"
+        ),
+        "time_range_days": fields.Integer(
+            description="Days of history to include (default 30)"
+        ),
+        "message": fields.String(description="Optional personal message to the doctor"),
+    },
+)
 
 
 @ai_report_ns.route("/send-to-doctor")
@@ -971,11 +1200,13 @@ class SendReportToDoctor(Resource):
                 priority="normal",
             )
             # Store the full report JSON in action_data so the doctor can view it
-            notification.set_action_data({
-                "report": report,
-                "patient_id": current_user.id,
-                "patient_name": patient_name,
-            })
+            notification.set_action_data(
+                {
+                    "report": report,
+                    "patient_id": current_user.id,
+                    "patient_name": patient_name,
+                }
+            )
             db.session.add(notification)
             db.session.commit()
 
@@ -1007,21 +1238,21 @@ class MyDoctors(Resource):
         try:
             from models.doctor import Doctor, DoctorPatient
 
-            links = DoctorPatient.query.filter_by(
-                patient_id=current_user.id
-            ).all()
+            links = DoctorPatient.query.filter_by(patient_id=current_user.id).all()
 
             doctors = []
             for link in links:
                 doc = db.session.get(Doctor, link.doctor_id)
                 if doc and doc.is_active:
-                    doctors.append({
-                        "id": doc.id,
-                        "name": doc.name,
-                        "specialization": doc.specialization or "Ophthalmology",
-                        "working_place": doc.working_place or "",
-                        "is_available": doc.is_available,
-                    })
+                    doctors.append(
+                        {
+                            "id": doc.id,
+                            "name": doc.name,
+                            "specialization": doc.specialization or "Ophthalmology",
+                            "working_place": doc.working_place or "",
+                            "is_available": doc.is_available,
+                        }
+                    )
 
             return {"doctors": doctors, "total": len(doctors)}, 200
 

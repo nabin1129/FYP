@@ -27,10 +27,8 @@ class ChatServiceError(Exception):
     """Domain-level chat error with HTTP/socket-safe message."""
 
 
-
 def consultation_room_id(consultation_id: int) -> str:
     return f"consultation_{consultation_id}"
-
 
 
 def ensure_consultation_access(actor: ChatActor, consultation_id: int) -> Consultation:
@@ -44,7 +42,6 @@ def ensure_consultation_access(actor: ChatActor, consultation_id: int) -> Consul
         raise ChatServiceError("Not authorized for this consultation")
 
     return consultation
-
 
 
 def ensure_user_doctor_pair(patient_id: int, doctor_id: int) -> Consultation:
@@ -69,10 +66,8 @@ def ensure_user_doctor_pair(patient_id: int, doctor_id: int) -> Consultation:
     return consultation
 
 
-
 def get_consultation_messages(consultation: Consultation) -> list[ConsultationMessage]:
     return consultation.messages.order_by(ConsultationMessage.created_at.asc()).all()
-
 
 
 def mark_incoming_as_read(actor: ChatActor, consultation: Consultation) -> list[str]:
@@ -94,7 +89,6 @@ def mark_incoming_as_read(actor: ChatActor, consultation: Consultation) -> list[
         mirror_messages_read(consultation, updated_messages, read_at=now)
 
     return updated_ids
-
 
 
 def create_message(
@@ -120,7 +114,9 @@ def create_message(
         first_attachment = None
     normalized_type = "file" if message_type == "attachment" else message_type
     if first_attachment is not None:
-        normalized_type = (first_attachment.get("type") or normalized_type or "file").lower()
+        normalized_type = (
+            first_attachment.get("type") or normalized_type or "file"
+        ).lower()
         if normalized_type == "attachment":
             normalized_type = "file"
 
@@ -134,9 +130,15 @@ def create_message(
     test_id = None
     if first_attachment is not None:
         file_url = first_attachment.get("url")
-        file_name = first_attachment.get("file_name") or first_attachment.get("fileName")
-        test_type = first_attachment.get("linked_entity_title") or first_attachment.get("linkedEntityTitle")
-        linked_id = first_attachment.get("linked_entity_id") or first_attachment.get("linkedEntityId")
+        file_name = first_attachment.get("file_name") or first_attachment.get(
+            "fileName"
+        )
+        test_type = first_attachment.get("linked_entity_title") or first_attachment.get(
+            "linkedEntityTitle"
+        )
+        linked_id = first_attachment.get("linked_entity_id") or first_attachment.get(
+            "linkedEntityId"
+        )
         if linked_id is not None:
             try:
                 test_id = int(linked_id)
@@ -169,7 +171,9 @@ def create_message(
         notification = Notification.create_message_notification(
             recipient_type="doctor",
             recipient_id=consultation.doctor_id,
-            sender_name=actor.user.name if actor.user and actor.user.name else "Patient",
+            sender_name=(
+                actor.user.name if actor.user and actor.user.name else "Patient"
+            ),
             consultation_id=consultation.id,
         )
 
@@ -179,7 +183,6 @@ def create_message(
     mirror_message(consultation, message)
 
     return message
-
 
 
 def mark_messages_read(
@@ -196,7 +199,9 @@ def mark_messages_read(
     )
 
     if message_ids:
-        query = query.filter(ConsultationMessage.id.in_([int(mid) for mid in message_ids]))
+        query = query.filter(
+            ConsultationMessage.id.in_([int(mid) for mid in message_ids])
+        )
 
     rows = query.all()
     for msg in rows:
